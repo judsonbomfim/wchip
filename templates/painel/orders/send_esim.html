@@ -1,0 +1,16 @@
+{% extends 'painel/partials/_content_default.html' %}
+{% load static %}
+{% block title_page %}<i class="bi bi-shop" style="font-size: 1.2em;"></i> Pedidos{% endblock %}
+{% block title_content %}Enviar eSIMs{% endblock %}
+
+{% block content_def %}
+    <form action="{% url 'send_esims' %}" method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-default btn-rounded color-primary btn-primary">
+            <span class="flex items-center">
+                <i class="bi bi-send"></i> <span>Enviar eSIMs por e-mail</span>
+            </span>
+        </button>
+    </form>
+    <br>OBS: Para envio dos e-mails de eSIMs os pedidos precisam estar com o status <b>Enviar eSIM</b>.    
+{% endblock %}

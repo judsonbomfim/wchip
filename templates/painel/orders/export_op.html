@@ -1,0 +1,31 @@
+{% extends 'painel/partials/_content_default.html' %}
+{% load static %}
+{% block title_page %}<i class="bi bi-shop" style="font-size: 1.2em;"></i> Pedidos{% endblock %}
+{% block title_content %}Exportar Pedidos{% endblock %}
+
+{% block content_def %}
+    <form class="row g-3" action="{% url 'ord_export_op' %}" method="POST">
+        {% csrf_token %}
+        <div class="d-flex flex-column flex-sm-row">
+            <div class="dm-select-list me-3">
+                <div class="dm-select ">
+                    <select name="ord_op_f" id="ord_op_f" class="form-control form-control-lg ps-3 pe-5">
+                        <option value="op_all">Todas as Operadoras</option>
+                        {% for sims_o in sims_op %}
+                        <option value="{{sims_o.0}}">{{sims_o.1}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="dm-select-list">
+                <button type="submit" class="btn btn-default btn-rounded color-primary btn-primary">
+                    <span class="flex items-center">
+                        <i class="bi bi-download"></i> <span>Exportar para Ativação</span>
+                    </span>
+                </button>
+            </div>
+        </div>
+        <div class="form-text ms-3"><br>OBS: Para exportação os pedidos precisam estar com o status <b>Agd. Ativação</b>.</div>
+    </form>
+
+{% endblock %}

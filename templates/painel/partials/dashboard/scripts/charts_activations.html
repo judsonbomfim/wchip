@@ -1,0 +1,56 @@
+<script>
+    var countActivTM = Number('{{ countActivTM }}');
+    var countActivCM = Number('{{ countActivCM }}');
+    var countActivTC = Number('{{ countActivTC }}');
+
+    var optionsContActiv = {
+        series: [{
+            name: 'T-Mobile',
+            data: [countActivTM]
+        }, {
+            name: 'China Mobile',
+            data: [countActivCM]
+        }, {
+            name: 'Telcom',
+            data: [countActivTC]
+        }],
+        chart: {
+            height: 80,
+            type: 'bar',
+            zoom: {
+                enabled: false
+            },
+            toolbar: {
+                show: false
+            },
+            parentHeightOffset: 0,
+        },
+        colors: ['#103652', '#5DD5D9', '#daa648'],
+        legend: {
+            show: false
+        },
+        grid: {
+            show: false,
+        },
+        dataLabels: {
+            enabled: false,
+        },
+        stroke: {
+            curve: 'smooth'
+        },
+        xaxis: {
+            categories: ['Amanhã'],
+            labels: {
+                show: false
+            },
+        },
+        yaxis: {
+            labels: {
+                show: false
+            },
+        },
+    };
+
+    var ttContActiv = new ApexCharts(document.querySelector("#ttContActiv"), optionsContActiv);
+    ttContActiv.render();
+</script>

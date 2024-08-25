@@ -1,0 +1,375 @@
+{% extends 'painel/emails/shared/base.html' %}
+{% load static %}
+{% block title_page %}
+  Informações do Plano de Chamada de Voz
+{% endblock %}
+{% block content %}
+  <table class="es-content" cellspacing="0" cellpadding="0" align="center" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;table-layout:fixed !important;width:100%">
+    <tr>
+      <td align="center" style="padding:0;margin:0">
+        <table class="es-content-body" cellspacing="0" cellpadding="0" bgcolor="#ffffff" align="center" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:#FFFFFF;width:600px">
+          <tr>
+            <td align="left" style="margin:0;padding-bottom:10px;padding-top:30px;padding-left:30px;padding-right:30px">
+              <table width="100%" cellspacing="0" cellpadding="0" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                <tr>
+                  <td valign="top" align="center" style="padding:0;margin:0;width:540px">
+                    <table width="100%" cellspacing="0" cellpadding="0" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                      <tr>
+                        <td align="left" style="padding:0;margin:0;padding-top:10px;padding-bottom:10px">
+                          <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#103651;font-size:16px">
+                            <strong>Olá {{ name }}!</strong>
+                          </p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td align="left" style="padding:0;margin:0;padding-top:10px;padding-bottom:10px">
+                          <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px">
+                            Estas são as informações de seu plano <strong>CHAMADA DE VOZ</strong> do PEDIDO {{ order_id }}.
+                          </p>
+                          <p style="margin: 0;">&nbsp;</p>
+                          <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px">
+                            Nós disponibilizamos o número <strong>{{ number }}</strong> para sua utilização.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td class="esdev-adapt-off" align="left" style="margin:0;padding-top:10px;padding-bottom:10px;padding-left:30px;padding-right:30px">
+              <table cellpadding="0" cellspacing="0" class="esdev-mso-table" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:540px">
+                <tr>
+                  <td class="esdev-mso-td" valign="top" style="padding:0;margin:0">
+                    <table cellpadding="0" cellspacing="0" class="es-left" align="left" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;float:left">
+                      <tr>
+                        <td align="left" style="padding:0;margin:0;width:260px">
+                          <table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                            <tr>
+                              <td align="left" style="padding:0;margin:0">
+                                <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px">
+                                  <strong>QRCODE PARA ATIVAÇÃO DO PLANO</strong>
+                                </p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="center" style="padding:0;margin:0;font-size:0px">
+                                  <img class="adapt-img" src="{{ url_site }}/{{qrcode}}" alt style="display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic" width="260" />
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                  <td style="padding:0;margin:0;width:20px"></td>
+                  <td class="esdev-mso-td" valign="top" style="padding:0;margin:0">
+                    <table cellpadding="0" cellspacing="0" class="es-right" align="right" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;float:right">
+                      <tr>
+                        <td align="left" style="padding:0;margin:0;width:260px">
+                          <table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                            <tr>
+                              <td align="right" style="padding:0;margin:0;padding-bottom:20px">
+                                <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px">
+                                  <strong>DADOS DO PLANO</strong>
+                                </p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="right" style="padding:0;margin:0">
+                                <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px">Data da Ativação:</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="right" style="padding:0;margin:0;padding-bottom:15px">
+                                <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:27px;color:#103651;font-size:18px">
+                                  <strong>{{ activation_date }}</strong>
+                                </p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="right" style="padding:0;margin:0">
+                                <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px">Número de Voz:</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="right" style="padding:0;margin:0;padding-bottom:15px">
+                                <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#103651;font-size:16px">
+                                  <strong>{{ number }}</strong>
+                                </p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="right" style="padding:0;margin:0">
+                                <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px">Dias:</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="right" style="padding:0;margin:0;padding-bottom:15px">
+                                <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#103651;font-size:16px">
+                                  <strong>{{ days }}</strong>
+                                </p>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          {% comment %} Download do app {% endcomment %}
+          <tr>
+            <td align="left" style="margin:0;padding-top:10px;padding-bottom:30px;padding-left:30px;padding-right:30px">
+              <table width="100%" cellspacing="0" cellpadding="0" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                <tr>
+                  <td valign="top" align="center" style="padding:0;margin:0;width:540px">
+                    <table width="100%" cellspacing="0" cellpadding="0" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                      <tr>
+                        <td align="left" style="padding:0;margin:0;padding-top:10px;padding-bottom:10px">
+                          {% comment %} Instruções {% endcomment %}                          
+                          <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px; text-align:center;">
+                            Abaixo seguem os links para download do aplicativo <strong>Cloud Softphone</strong>.
+                          </p>
+                          {% comment %} das instruções {% endcomment %}
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+              {% comment %} Download {% endcomment %}
+          <tr>
+            <td class="esdev-adapt-off" align="left" style="margin:0;padding-top:10px;padding-bottom:40px;padding-left:30px;padding-right:30px">
+              <table cellpadding="0" cellspacing="0" class="esdev-mso-table" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:540px">
+                <tr>
+                  <td class="esdev-mso-td" valign="top" style="padding:0;margin:0">
+                    <table cellpadding="0" cellspacing="0" class="es-right" align="right" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;float:left">
+                      <tr>
+                        <td align="right" style="padding:0;margin:0;width:260px">
+                          <table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                            <tr>
+                              <td align="right" style="padding:0;margin:0">
+                                <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px">Celulares Apple:</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="right" style="padding:0;margin:0;padding-bottom:15px">
+                                <a href="https://apps.apple.com/br/app/cloud-softphone/id567475545" target="_blank">
+                                  <img class="adapt-img" src="{{ url_img }}apple_store.jpg" alt style="display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic" width="150" />
+                                </a>
+                              </td>
+                            </tr>
+                            <tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                  {% comment %} <td style="padding:0;margin:0;width:20px"></td> {% endcomment %}
+                  <td class="esdev-mso-td" valign="top" style="padding:0px;margin:0">
+                    <table cellpadding="0" cellspacing="0" class="es-left" align="left" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;float:right">
+                      <tr>
+                        <td align="left" style="padding:0;margin:0;width:260px">
+                          <table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                            <tr>
+                              <td align="left" style="padding:0;margin:0">
+                                <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px">Celulares Andoid:</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="left" style="padding:0;margin:0;padding-bottom:15px">
+                                <a href="https://play.google.com/store/apps/details?id=cz.acrobits.softphone.cloudphone&hl=pt_BR&gl=US" target="_blank">
+                                  <img class="adapt-img" src="{{ url_img }}google_play.jpg" alt style="display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic" width="150" />
+                                </a>
+                              </td>
+                            </tr>
+                            <tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          {% comment %} FIM Download do app {% endcomment %}
+          {% comment %} Instruções do App {% endcomment %}
+          <tr>
+            <td class="esdev-adapt-off" align="left" style="margin:0;padding:20px;padding-bottom:-20px; background-color:#f4f5f7;">
+              <table width="100%" cellspacing="0" cellpadding="0" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                <tr>
+                  <td valign="top" align="center" style="padding:0;margin:0;width:540px">
+                    <table width="100%" cellspacing="0" cellpadding="0" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                      <tr>
+                        <td align="left" style="padding:0;margin:0;padding-top:10px;padding-bottom:10px">
+                          <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px; text-align:center;">
+                            <strong>INSTRUÇÕES</strong>.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td class="esdev-adapt-off" align="left" style="margin:0;padding:20px;background-color:#f4f5f7;">
+              <table cellpadding="0" cellspacing="0" class="esdev-mso-table" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:540px">
+                <tr>
+                  <td class="esdev-mso-td" valign="top" style="padding:0;margin:0">
+                    <table cellpadding="0" cellspacing="0" class="es-left" align="left" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;float:left">
+                      <tr>
+                        <td align="left" style="padding:0;margin:0;width:260px">
+                          <table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                            <tr>
+                              <td align="left" style="padding:0;margin:0">
+                                <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px">
+                                  Após o download do aplicativo basta realizar a leitura do QRcode acima.
+                                </p>
+                                <p style="margin: 0;">&nbsp;</p>
+                                <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px">
+                                  Para realizar a leitura do QRcode basta clicar no local indicado:
+                                </p>
+                                <p style="margin: 0;">&nbsp;</p>
+                                <p style="margin: 0;">&nbsp;</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="left" style="padding:0;margin:0;padding-bottom:15px">
+                                <img class="adapt-img" src="{{ url_img }}app_login.jpg" alt style="display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic" width="200" />
+                              </td>
+                            </tr>
+                            <tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                  <td style="padding:0;margin:0;width:20px"></td>
+                  <td class="esdev-mso-td" valign="top" style="padding:0;margin:0">
+                    <table cellpadding="0" cellspacing="0" class="es-right" align="right" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;float:right">
+                      <tr>
+                        <td align="right" style="padding:0;margin:0;width:260px">
+                          <table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                            <tr>
+                              <td align="right" style="padding:0;margin:0">
+                                <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px">
+                                  Após a leitura forneça todas as permissões que o aplicativo solicitar. Todas elas são referentes a telefonia.
+                                </p>
+                                <p style="margin: 0;">&nbsp;</p>
+                                <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px">
+                                  O nome “SIPTALK” no canto superiror esquerdo deve ficar verde para que o aplicativo funcione.<br /><br />
+                                </p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="right" style="padding:0;margin:0;padding-bottom:15px">
+                                <img class="adapt-img" src="{{ url_img }}app_ativo.jpg" alt style="display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic" width="200" />
+                              </td>
+                            </tr>
+                            <tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          {% comment %} FIM Instruções do App {% endcomment %}
+          <tr>
+            <td class="esdev-adapt-off" align="left" style="margin:0;padding:20px;background-color:#f4f5f7;">
+              <table width="100%" cellspacing="0" cellpadding="0" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                <tr>
+                  <td valign="top" align="center" style="padding:0;margin:0;width:540px">
+                    <table width="100%" cellspacing="0" cellpadding="0" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                      <tr>
+                        <td align="left" style="padding:0;margin:0;padding-top:10px;padding-bottom:10px">
+
+                          {% comment %} Texto de e-mail {% endcomment %}
+                          
+                          <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px">
+                            Para realizar ligações para o Brasil basta discar 0+DDD+NÚMERO.
+                          </p>
+                          <p style="margin: 0;">&nbsp;</p>
+                          <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px">
+                            Como exemplo usarei o número da A CASA DO CHIP (11)5225-6777
+                          </p>
+                          <p style="margin: 0;">&nbsp;</p>
+                          <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px">
+                            Para realizar uma ligação através do aplicativo basta discar 01152256777
+                          </p>
+                          <p style="margin: 0;">&nbsp;</p>
+                          <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px">
+                            Para realizar ligações internacionais basta discar 00+CódPaís+NÚMERO
+                          </p>
+                          <p style="margin: 0;">&nbsp;</p>
+                          <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px">
+                            Como exemplo usarei o número da Disney +1 407-939-5277
+                          </p>
+                          <p style="margin: 0;">&nbsp;</p>
+                          <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px">
+                            Para realizar uma ligação através do aplicativo basta discar 0014079395277
+                          </p>
+                          <p style="margin: 0;">&nbsp;</p>
+                          <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px">
+                            Por favor realize a leitura do QRcode e teste da funcionalidade antes da sua viagem.
+                          </p>
+                          {% comment %} Fim do texto do e-mail {% endcomment %}
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td class="esdev-adapt-off" align="left" style="margin:0;padding:20px;">
+              <table width="100%" cellspacing="0" cellpadding="0" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                <tr>
+                  <td valign="top" align="center" style="padding:0;margin:0;width:540px">
+                    <table width="100%" cellspacing="0" cellpadding="0" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                      <tr>
+                        <td align="left" style="padding:0;margin:0;padding-top:10px;padding-bottom:10px">
+
+                          <p style="margin: 0;">&nbsp;</p>
+                          <hr>
+                          <p style="margin: 0;">&nbsp;</p>
+                          <p style="text-align: center; margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px">
+                            Caso tenha dúvidas sobre ativação ou necessite de ajuda durante sua viagem, entre em contato com nosso suporte técnico via <strong>Whatsapp</strong>
+                          </p>
+                          <p style="margin: 0;">&nbsp;</p>
+                          <p align="center" style="margin: 0;">
+                            <a href="https://wa.me/551152256777" target="_blank" style="text-items: center; color:#2CB543;font-size:14px"><img src="{{ url_img }}but_whatsapp.png" alt style="display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic" width="186" /></a>
+                          </p>
+                          <p style="margin: 0;">&nbsp;</p>
+                          <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px">
+                            Agradecemos sua compra,<br />
+                          </p>
+                          <p style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:21px;color:#103651;font-size:14px">
+                            <strong>EQUIPE A CASA DO CHIP</strong>
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+{% endblock %}

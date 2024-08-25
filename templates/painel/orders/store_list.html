@@ -1,0 +1,51 @@
+{% extends 'painel/shared/base.html' %}
+{% load static %}
+{% block title_page %}<i class="bi bi-shop"></i> Pedidos{% endblock %}
+{% block content %}
+<div class="card shadow">
+    <div class="card-header py-3">
+        <p class="text-secondary m-0 fw-bold">Lista de pedidos</p>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 text-nowrap">
+            </div>
+            <div class="col-md-6">
+                <div id="dataTable_filter" class="text-md-end dataTables_filter"><label class="form-label"><input class="form-control form-control-sm" type="search" aria-controls="dataTable" placeholder="Search" /></label></div>
+            </div>
+        </div>
+        <div id="dataTable" class="table-responsive table mt-2" role="grid" aria-describedby="dataTable_info">
+            <table id="dataTable" class="table table-hover my-0">
+                <thead>
+                    <tr>
+                        <th>Pedido</th>
+                        <th>Nome</th>
+                        <th>Data</th>
+                        <th>Status</th>
+                        <th>Frete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for orders in ord %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'order_details' orders.id %}"><span class="badge bg-secondary">#{{orders.id}}</span></a>
+                        </td>
+                        <td>{{orders.billing.first_name}} {{orders.billing.last_name}}</td>
+                        <td>{{orders.date_created}}</td>
+                        <td>{{orders.status}}</td>
+                        <td>
+                            {% for shipping in orders.meta_data %}
+                                {% if shipping.key == 'melhorenvio_quotation_v2' %}
+                                    {{shipping.value.1.name}}
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

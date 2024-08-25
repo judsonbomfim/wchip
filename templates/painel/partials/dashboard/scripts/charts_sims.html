@@ -1,0 +1,153 @@
+<script>
+    // WEEK
+    var optionsSimsWeek = {
+        series: [{
+            name: 'SIMs',
+            data: JSON.parse('{{ weekSimsValuesS|escapejs|safe }}')
+        }, {
+            name: 'eSIMs',
+            data: JSON.parse('{{ weekSimsValuesE|escapejs|safe }}')
+        }],
+        chart: {
+            height: 350,
+            type: 'bar',
+            zoom: {
+                enabled: false
+            }
+        },
+        colors: ['#103651', '#D9A648'],
+        dataLabels: {
+            enabled: false,
+        },
+        stroke: {
+            curve: 'smooth'
+        },
+        title: {
+            text: 'Vendas de {{dateWeek|date:"d/m/Y"}} a {{dateYesterday|date:"d/m/Y"}}',
+            align: 'left'
+        },
+        grid: {
+            row: {
+                colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+                opacity: 0.5
+            },
+        },
+        xaxis: {
+            title: {
+                text: 'Dias'
+            },
+            type: 'datetime',
+            categories: JSON.parse('{{ weekSimsDates|escapejs|safe }}'),
+            labels: {
+                format: 'd',
+            }
+        }
+    };
+
+    var ttSimsWeek = new ApexCharts(document.querySelector("#ttSimsWeek"), optionsSimsWeek);
+    ttSimsWeek.render();
+
+    // MONTH
+    $('#total_sims-month-tab').on("shown.bs.tab", function () {
+        var optionsSimsMonth = {
+            series: [{
+                name: 'SIMs',
+                data: JSON.parse('{{ monthSimsValuesS|escapejs|safe }}')
+            }, {
+                name: 'eSIMs',
+                data: JSON.parse('{{ monthSimsValuesE|escapejs|safe }}')
+            }],
+            chart: {
+                height: 350,
+                type: 'line',
+                zoom: {
+                    enabled: false
+                }
+            },
+            colors: ['#103651', '#d79a2c'],
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                curve: 'smooth'
+            },
+            title: {
+                text: 'Vendas de {{dateMonth|date:"d/m/Y"}} a {{dateYesterday|date:"d/m/Y"}}',
+                align: 'left'
+            },
+            grid: {
+                row: {
+                    colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+                    opacity: 0.5
+                },
+            },
+            xaxis: {
+                title: {
+                    text: 'Dias'
+                },
+                type: 'datetime',
+                categories: JSON.parse('{{ monthSimsDays|escapejs|safe }}'),
+                labels: {
+                    format: 'd',
+                }
+            }
+        };
+    
+        var ttSimsMonth = new ApexCharts(document.querySelector("#ttSimsMonth"), optionsSimsMonth);
+        ttSimsMonth.render();
+
+        $('#total_sims-month-tab').off();
+    });
+
+    // YEAR
+    $('#total_sims-year-tab').on("shown.bs.tab", function () {
+        var optionsSimsYear = {
+            series: [{
+                name: 'SIMs',
+                data: JSON.parse('{{ yearSimsValuesS|escapejs|safe }}')
+            }, {
+                name: 'eSIMs',
+                data: JSON.parse('{{ yearSimsValuesE|escapejs|safe }}')
+            }],
+            chart: {
+                height: 350,
+                type: 'bar',
+                zoom: {
+                    enabled: false
+                }
+            },
+            colors: ['#103651', '#d79a2c'],
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                curve: 'smooth'
+            },
+            title: {
+                text: 'Vendas de {{dateMonth|date:"d/m/Y"}} a {{dateYesterday|date:"d/m/Y"}}',
+                align: 'left'
+            },
+            grid: {
+                row: {
+                    colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+                    opacity: 0.5
+                },
+            },
+            xaxis: {
+                title: {
+                    text: 'Dias'
+                },
+                type: 'datetime',
+                categories: JSON.parse('{{ yearSimsDates|escapejs|safe }}'),
+                labels: {
+                    format: 'MMM',
+                }
+            }
+        };
+    
+        var ttSimsYear = new ApexCharts(document.querySelector("#ttSimsYear"), optionsSimsYear);
+        ttSimsYear.render();
+
+        $('#total_sims-year-tab').off();
+    });
+</script>

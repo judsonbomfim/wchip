@@ -1,0 +1,35 @@
+/* Menu */
+.layout-dark {
+    --main-color:#092940 !important;
+}
+.nav-author__options{
+    background-color: #092940 !important;
+}
+.menu-author{
+    text-align: right !important;
+}
+
+/* Tabela */
+.userDatatable-header{
+    border: 1px solid #e6e6e6 !important;
+}
+.table-tr{
+    border: 1px solid #e6e6e6 !important;
+}
+.table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
+    background-color: #f2f7fb !important;
+}
+.userDatatable-content{
+    color: #808080 !important;
+}
+
+/* Widgets */
+.bg-destaque1{
+    background-color: #e5f8e8 !important;
+}
+.bg-destaque2{
+    background-color: #fef3e6 !important;
+}
+.bg-destaque3{
+    background-color: #e5f6ff !important;
+}

@@ -1,0 +1,75 @@
+{% load static %}
+{% load permission_tags %}
+{% load url_check %}
+<div class="sidebar-wrapper layout-dark">
+    <div class="sidebar sidebar-collapse bg-primary" id="sidebar">
+        <div class="sidebar__menu-group">
+            <ul class="sidebar_nav">
+                <li class="has-child open"><a><span class="menu-text"></span></a></li>
+                <li class="{% urL_active request '/' %}">
+                    <a href="{% url 'dashboard' %}">
+                        <i class="nav-icon bi bi-speedometer2"></i>
+                        <span class="menu-text">Dashboard</span>
+                    </a>
+                </li>
+                {% if request.user|can:'view_orders' %}
+                <li class="has-child open">
+                    <a>
+                        <i class="nav-icon bi bi-shop"></i>
+                        <span class="menu-text">Pedidos</span>
+                        <i class="toggle-icon bi bi-plus-circle text-light"></i>
+                    </a>
+                    <ul>
+                        {% if request.user|can:'view_orders' %}
+                        <li class="{% urL_active request '/pedidos/listar/' %}">
+                            <a href="{% url 'orders_list' %}">Listar Pedidos</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </li>
+                {% endif %}
+
+                {% if request.user|can:'list_activations' %}
+                <li class="has-child open">
+                    <a>
+                        <i class="nav-icon bi bi-sim-fill"></i>
+                        <span class="menu-text">Ativações</span>
+                        <i class="toggle-icon bi bi-plus-circle text-light"></i>
+                    </a>
+                    <ul>
+                        <li class="{% urL_active request '/pedidos/ativacoes/' %}">
+                            <a href="{% url 'orders_activations' %}">Listar Ativações</a>
+                        </li>
+                        {% if request.user|can:'export_activations' %}
+                        <li class="{% urL_active request '/pedidos/exportar/' %}">
+                            <a href="{% url 'ord_export_op' %}">Exportar para Ativação</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </li>
+                {% endif %}
+
+                {% if request.user|can:'view_sims' %}
+                <li class="has-child open">
+                    <a>
+                        <i class="nav-icon bi bi-sim"></i>
+                        <span class="menu-text">SIMs</span>
+                        <i class="toggle-icon bi bi-plus-circle text-light"></i>
+                    </a>
+                    <ul>
+                        <li class="{% urL_active request '/sims/listar/' %}">
+                            <a href="{% url 'sims_index' %}">Estoque</a>
+                        </li>
+                        <li class="{% urL_active request '/sims/adicionar/sim/' %}">
+                            <a href="{% url 'sims_add_sim' %}">Adicionar SIMs</a>
+                        </li>
+                        <li class="{% urL_active request '/sims/adicionar/esim/' %}">
+                            <a href="{% url 'sims_add_esim' %}">Adicionar eSIMs</a>
+                        </li>
+                    </ul>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>

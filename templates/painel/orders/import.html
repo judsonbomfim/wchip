@@ -1,0 +1,16 @@
+{% extends 'painel/partials/_content_default.html' %}
+{% load static %}
+{% block title_page %}<i class="bi bi-shop" style="font-size: 1.2em;"></i> Pedidos{% endblock %}
+{% block title_content %}Importar Pedidos{% endblock %}
+
+{% block content_def %}
+    <form action="{% url 'ord_import' %}" method="POST">
+        {% csrf_token %}
+        <p>Clique no botão abaixo para importar todos os pedidos que ainda não foram importados da loja.</p>
+        <button type="submit" class="btn btn-default btn-rounded color-primary btn-primary">
+            <span class="flex items-center">
+                <i class="bi bi-upload"></i> <span>Importar pedidos da loja</span>
+            </span>
+        </button>
+    </form>
+{% endblock %}

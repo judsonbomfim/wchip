@@ -1,0 +1,162 @@
+<script>
+    // WEEK
+    var optionsOperWeek = {
+        series: [{
+            name: 'T-Mobile',
+            data: JSON.parse('{{ weekOperValuesTM|escapejs|safe }}')
+        }, {
+            name: 'China Mobile',
+            data: JSON.parse('{{ weekOperValuesCM|escapejs|safe }}')
+        }, {
+            name: 'Telcom',
+            data: JSON.parse('{{ weekOperValuesTC|escapejs|safe }}')
+        }],
+        chart: {
+            height: 350,
+            type: 'bar',
+            zoom: {
+                enabled: false
+            },
+        },
+        colors: ['#103652', '#5DD5D9', '#daa648'],
+        dataLabels: {
+            enabled: false
+        },
+        stroke: {
+            curve: 'smooth'
+        },
+        title: {
+            text: 'Vendas de {{weekOperDays|date:"d/m/Y"}} a {{dateYesterday|date:"d/m/Y"}}',
+            align: 'left'
+        },
+        grid: {
+            row: {
+                colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+                opacity: 0.5
+            },
+        },
+        xaxis: {
+            title: {
+                text: 'Dias'
+            },
+            type: 'datetime',
+            categories: JSON.parse('{{ weekOperDates|escapejs|safe }}'),
+            labels: {
+                format: 'd',
+            }
+        }
+    };
+
+    var ttOperWeek = new ApexCharts(document.querySelector("#ttOperWeek"), optionsOperWeek);
+    ttOperWeek.render();
+
+    // MONTH
+    $('#total_oper-month-tab').on("shown.bs.tab", function () {
+        var optionsOperMonth = {
+            series: [{
+                name: 'T-Mobile',
+                data: JSON.parse('{{ monthOperValuesTM|escapejs|safe }}')
+            }, {
+                name: 'China Mobile',
+                data: JSON.parse('{{ monthOperValuesCM|escapejs|safe }}')
+            }, {
+                name: 'Telcom',
+                data: JSON.parse('{{ monthOperValuesTC|escapejs|safe }}')
+            }],
+            chart: {
+                height: 350,
+                type: 'line',
+                zoom: {
+                    enabled: false
+                },
+            },
+            colors: ['#103652', '#5DD5D9', '#daa648'],
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                curve: 'smooth'
+            },
+            title: {
+                text: 'Vendas de {{monthOperDays|date:"d/m/Y"}} a {{dateYesterday|date:"d/m/Y"}}',
+                align: 'left'
+            },
+            grid: {
+                row: {
+                    colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+                    opacity: 0.5
+                },
+            },
+            xaxis: {
+                title: {
+                    text: 'Meses'
+                },
+                type: 'datetime',
+                categories: JSON.parse('{{ monthOperDates|escapejs|safe }}'),
+                labels: {
+                    format: 'd',
+                }
+            }
+        };
+    
+        var ttOperhMonth = new ApexCharts(document.querySelector("#ttOperhMonth"), optionsOperMonth);
+        ttOperhMonth.render();
+
+        $('#total_oper-month-tab').off();
+    });
+
+    // YEAR
+    $('#total_oper-year-tab').on("shown.bs.tab", function () {
+        var optionsOperYear = {
+            series: [{
+                name: 'T-Mobile',
+                data: JSON.parse('{{ yearOperValuesTM|escapejs|safe }}')
+            }, {
+                name: 'China Mobile',
+                data: JSON.parse('{{ yearOperValuesCM|escapejs|safe }}')
+            }, {
+                name: 'Telcom',
+                data: JSON.parse('{{ yearOperValuesTC|escapejs|safe }}')
+            }],
+            chart: {
+                height: 350,
+                type: 'bar',
+                zoom: {
+                    enabled: false
+                },
+            },
+            colors: ['#103652', '#5DD5D9', '#daa648'],
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                curve: 'smooth'
+            },
+            title: {
+                text: 'Vendas de {{dateTomorrow|date:"d/m/Y"}} a {{dateYesterday|date:"d/m/Y"}}',
+                align: 'left'
+            },
+            grid: {
+                row: {
+                    colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+                    opacity: 0.5
+                },
+            },
+            xaxis: {
+                title: {
+                    text: 'Meses'
+                },
+                type: 'datetime',
+                categories: JSON.parse('{{ yearOperDates|escapejs|safe }}'),
+                labels: {
+                    format: 'MMM',
+                }
+            }
+        };
+    
+        var ttOperhYear = new ApexCharts(document.querySelector("#ttOperhYear"), optionsOperYear);
+        ttOperhYear.render();
+
+        $('#total_oper-year-tab').off();
+    });
+</script>

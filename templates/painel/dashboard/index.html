@@ -1,0 +1,259 @@
+{% extends 'painel/shared/base.html' %}
+{% load permission_tags %}
+{% load static %}
+{% load date_day %}
+
+{% block title_page %}<i class="bi bi-speedometer2"></i> Dashboard{% endblock %}
+{% block js_custom %}
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+    <div class="row pt-5">
+        <div class="col-xxl-12 ms-15">
+            <h4 class="text-primary fw-bold">Olá {{ user.first_name }} {{ user.last_name }}</h4>
+        </div>
+    </div>
+</div>
+
+{% if request.user|can:'view_statistics' %}
+
+    <!-- Estoque de SIMs -->
+    {% include 'painel/partials/_sims_stock.html' %}
+    <!-- Fim Estoque de SIMs -->
+
+    <!-- Vendas -->
+    <div class="container-fluid">
+        <div class="row pt-5">
+            <div class="col-xxl-6 mb-25">
+                <div class="card shadow-sm revenueChartTwo border-1">
+                    <div class="card-header border-0">
+                        <h6 class="p-3">Pedidos</h6>
+                        <div class="card-extra">
+                            <ul class="card-tab-links nav-tabs nav" role="tablist">
+                                <li>
+                                    <a class="active" href="#total_sales-week" data-bs-toggle="tab"
+                                        id="total_sales-week-tab" role="tab" aria-selected="false">Semana</a>
+                                </li>
+                                <li>
+                                    <a href="#total_sales-month" data-bs-toggle="tab" id="total_sales-month-tab" role="tab"
+                                        aria-selected="false">Mês</a>
+                                </li>
+                                <li>
+                                    <a href="#total_sales-year" data-bs-toggle="tab" id="total_sales-year-tab" role="tab"
+                                        aria-selected="false">Ano</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- ends: .card-header -->
+                    <div class="card-body pt-0 px-20">
+                        <div class="tab-content">
+                            <div class="tab-pane fade active show" id="total_sales-week" role="tabpanel"
+                                aria-labelledby="total_sales-week-tab">
+                                <div class="cashflow-display cashflow-display2 d-flex">
+                                </div>
+                                <!-- ends: .performance-stats -->
+                                <div class="wp-chart">
+                                    <div class="parentContainer">
+                                        <div>
+                                            <div id="ttSalesWeek"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- ends: .performance-stats -->
+                            </div>
+                            <div class="tab-pane fade" id="total_sales-month" role="tabpanel"
+                                aria-labelledby="total_sales-month-tab">
+                                <div class="cashflow-display cashflow-display2 d-flex">
+                                </div>
+                                <!-- ends: .performance-stats -->
+                                <div class="wp-chart">
+                                    <div class="parentContainer">
+                                        <div>
+                                            <div id="ttSalesMonth"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- ends: .performance-stats -->
+                            </div>
+                            <div class="tab-pane fade" id="total_sales-year" role="tabpanel"
+                                aria-labelledby="total_sales-year-tab">
+                                <div class="cashflow-display cashflow-display2 d-flex">
+                                </div>
+                                <!-- ends: .performance-stats -->
+                                <div class="wp-chart">
+                                    <div class="parentContainer">
+                                        <div>
+                                            <div id="ttSalesYear"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- ends: .performance-stats -->
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ends: .card-body -->
+                </div>
+                <!-- ends: .card-body -->
+            </div>
+            <div class="col-xxl-6 mb-25">
+                <div class="card shadow-sm revenueChartTwo border-1">
+                    <div class="card-header border-0">
+                        <h6 class="p-3">SIMs / eSIms</h6>
+                        <div class="card-extra">
+                            <ul class="card-tab-links nav-tabs nav" role="tablist">
+                                <li>
+                                    <a class="active" href="#total_sims-week" data-bs-toggle="tab" id="total_sims-week-tab"
+                                        role="tab" aria-selected="false">Semana</a>
+                                </li>
+                                <li>
+                                    <a href="#total_sims-month" data-bs-toggle="tab" id="total_sims-month-tab" role="tab"
+                                        aria-selected="false">Mês</a>
+                                </li>
+                                <li>
+                                    <a href="#total_sims-year" data-bs-toggle="tab" id="total_sims-year-tab" role="tab"
+                                        aria-selected="false">Ano</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- ends: .card-header -->
+                    <div class="card-body pt-0 px-20">
+                        <div class="tab-content">
+                            <div class="tab-pane fade active show" id="total_sims-week" role="tabpanel"
+                                aria-labelledby="total_sims-week-tab">
+                                <div class="cashflow-display cashflow-display2 d-flex">
+                                </div>
+                                <!-- ends: .performance-stats -->
+                                <div class="wp-chart">
+                                    <div class="parentContainer">
+                                        <div>
+                                            <div id="ttSimsWeek"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- ends: .performance-stats -->
+                            </div>
+                            <div class="tab-pane fade" id="total_sims-month" role="tabpanel"
+                                aria-labelledby="total_sims-month-tab">
+                                <div class="cashflow-display cashflow-display2 d-flex">
+                                </div>
+                                <!-- ends: .performance-stats -->
+                                <div class="wp-chart">
+                                    <div class="parentContainer">
+                                        <div>
+                                            <div id="ttSimsMonth"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- ends: .performance-stats -->
+                            </div>
+                            <div class="tab-pane fade" id="total_sims-year" role="tabpanel"
+                                aria-labelledby="total_sims-year-tab">
+                                <div class="cashflow-display cashflow-display2 d-flex">
+                                </div>
+                                <!-- ends: .performance-stats -->
+                                <div class="wp-chart">
+                                    <div class="parentContainer">
+                                        <div>
+                                            <div id="ttSimsYear"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- ends: .performance-stats -->
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ends: .card-body -->
+                </div>
+                <!-- ends: .card-body -->
+            </div>
+            <div class="col-xxl-6 mb-25">
+                <div class="card shadow-sm revenueChartTwo border-1">
+                    <div class="card-header border-0">
+                        <h6 class="p-3">Operadora</h6>
+                        <div class="card-extra">
+                            <ul class="card-tab-links nav-tabs nav" role="tablist">
+                                <li>
+                                    <a class="active" href="#total_oper-week" data-bs-toggle="tab" id="total_oper-week-tab"
+                                        role="tab" aria-selected="false">Semana</a>
+                                </li>
+                                <li>
+                                    <a href="#total_oper-month" data-bs-toggle="tab" id="total_oper-month-tab" role="tab"
+                                        aria-selected="false">Mês</a>
+                                </li>
+                                <li>
+                                    <a href="#total_oper-year" data-bs-toggle="tab" id="total_oper-year-tab" role="tab"
+                                        aria-selected="false">Ano</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- ends: .card-header -->
+                    <div class="card-body pt-0 px-20">
+                        <div class="tab-content">
+                            <div class="tab-pane fade active show" id="total_oper-week" role="tabpanel"
+                                aria-labelledby="total_oper-week-tab">
+                                <div class="cashflow-display cashflow-display2 d-flex">
+                                </div>
+                                <!-- ends: .performance-stats -->
+                                <div class="wp-chart">
+                                    <div class="parentContainer">
+                                        <div>
+                                            <div id="ttOperWeek"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- ends: .performance-stats -->
+                            </div>
+                            <div class="tab-pane fade" id="total_oper-month" role="tabpanel"
+                                aria-labelledby="total_oper-month-tab">
+                                <div class="cashflow-display cashflow-display2 d-flex">
+                                </div>
+                                <!-- ends: .performance-stats -->
+                                <div class="wp-chart">
+                                    <div class="parentContainer">
+                                        <div>
+                                            <div id="ttOperhMonth"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- ends: .performance-stats -->
+                            </div>
+                            <div class="tab-pane fade" id="total_oper-year" role="tabpanel"
+                                aria-labelledby="total_oper-year-tab">
+                                <div class="cashflow-display cashflow-display2 d-flex">
+                                </div>
+                                <!-- ends: .performance-stats -->
+                                <div class="wp-chart">
+                                    <div class="parentContainer">
+                                        <div>
+                                            <div id="ttOperhYear"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- ends: .performance-stats -->
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ends: .card-body -->
+                </div>
+                <!-- ends: .card-body -->
+            </div>
+        </div>
+    </div>
+    <!-- Fim Vendas -->
+
+{% endif %}
+{% endblock %}
+
+{% block script_custom %}
+<!-- Charts Sales -->
+{% include 'painel/partials/dashboard/scripts/charts_activations.html' %}
+{% include 'painel/partials/dashboard/scripts/charts_sales.html' %}
+{% include 'painel/partials/dashboard/scripts/charts_sims.html' %}
+{% include 'painel/partials/dashboard/scripts/charts_operators.html' %}
+{% include 'painel/partials/_messages_script.html' %}
+{% endblock %}

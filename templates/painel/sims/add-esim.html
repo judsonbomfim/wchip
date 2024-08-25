@@ -1,0 +1,40 @@
+{% extends 'painel/partials/_content_default.html' %}
+{% load static %}
+{% load date_day %}
+{% block title_page %}<i class="bi bi-sim" style="font-size: 1.2em;"></i> SIMs{% endblock %}
+{% block title_content %}Adicionar eSIMs{% endblock %}
+
+{% block content_def %}
+<form action="{% url 'sims_add_esim' %}" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label class="form-label">Tipo de Chip</label>
+    <div class="radio-horizontal-list d-flex">
+        <input type="radio" class="btn-check" name="type_sim" id="type_sim1" value="sim" autocomplete="off" disabled>
+        <label class="btn btn-outline-primary me-2" for="type_sim1">SIM Físico</label>
+
+        <input type="radio" class="btn-check" name="type_sim" id="type_sim2" value="esim" autocomplete="off" checked>
+        <label class="btn btn-outline-primary me-2" for="type_sim2">eSIM Virtual</label>
+    </div>
+
+    <label class="form-label">Operadora</label>
+    <div class="radio-horizontal-list d-flex">
+        {% for code, name in operator_list %}
+        <input type="radio" class="btn-check" name="operator" id="oper-{{ code }}" value="{{ code }}" autocomplete="off" required>
+        <label class="btn btn-outline-primary me-2" for="oper-{{ code }}">{{ name }}</label>
+        {% endfor %}
+    </div>
+    <div class="form-group">
+        <label for="formFile" class="form-label">Enviar imagens</label>
+        <input class="form-control" type="file" id="formFile" name="esim" multiple required>
+    </div>
+    <div class="form-group mt-5">
+        <button type="submit" class="btn btn-default btn-rounded color-primary btn-primary">
+            <span class="flex items-center">
+                <i class="bi bi-sim"></i> <span>Cadastrar SIMs</span>
+            </span>
+        </button>
+    </div>
+
+</form>
+
+{% endblock %}

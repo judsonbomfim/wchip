@@ -1,0 +1,25 @@
+{% extends 'painel/shared/base.html' %}
+{% block content %}
+<div class="crm mb-25">
+   <div class="container-fluid">
+      <div class="row">
+         <div class="col-lg-12">
+            <div class="breadcrumb-main">
+               <h4 class="fw-normal">{% block title_page %}{% endblock %}</h4>
+            </div>
+         </div>
+         <div class="col-lg-12">
+            <div class="card shadow-sm">
+               <div class="card-header">
+                  <h6 class="text-uppercase fw-normal color-gray p-4">{% block title_content %}{% endblock %}</h6>
+               </div>
+               <div class="card-body p-4">
+                  {% block content_def %}{% endblock %}
+               </div>
+            </div>
+         </div>
+      </div>
+      <!-- ends: .row -->
+   </div>
+</div>
+{% endblock %}

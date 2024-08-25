@@ -1,0 +1,57 @@
+{% load static %}
+<!doctype html>
+<html lang="pt-br" dir="rtr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>PAINEL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- inject:css-->
+    <link rel="stylesheet" href="{% static 'painel/theme/hexadash/css/plugin.min.css' %}">
+    <link rel="stylesheet" href="{% static 'painel/theme/hexadash/css/plugin.min.css' %}">
+    <link rel="stylesheet" href="{% static 'painel/theme/hexadash/css/style.css' %}">
+    <!-- endinject -->
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'painel/theme/img/favicon.ico' %}">
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@iconscout/unicons@4.0.8/css/line.min.css">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{% static 'painel/theme/css/styles_custom.css' %}">
+    {% block css_custom %}{% endblock %}
+    {% block js_custom %}{% endblock %}
+</head>
+
+<body class="layout-light side-menu bg-primary">
+    {% include 'painel/partials/_header.html' %}
+    <main class="main-content">
+        {% include 'painel/partials/_sidebar.html' %}
+        <div class="contents">
+            {% include 'painel/partials/_messages.html' %}
+            {% block content_top %}{% endblock %}
+            {% block content %}{% endblock %}
+        </div>
+        {% include 'painel/partials/_footer.html' %}
+    </main>
+    <div id="overlayer">
+        <div class="loader-overlay">
+            <div class="dm-spin-dots spin-lg">
+                <span class="spin-dot badge-dot dot-primary"></span>
+                <span class="spin-dot badge-dot dot-primary"></span>
+                <span class="spin-dot badge-dot dot-primary"></span>
+                <span class="spin-dot badge-dot dot-primary"></span>
+            </div>
+        </div>
+    </div>
+    <div class="overlay-dark-sidebar"></div>
+    <div class="customizer-overlay"></div>
+
+    <!-- inject:js-->
+    <script src="{% static 'painel/theme/hexadash/js/plugins.min.js' %}"></script>
+    <script src="{% static 'painel/theme/hexadash/js/script.min.js' %}"></script>
+    {% include 'painel/partials/_messages_script.html' %}
+    {% block script_custom %}{% endblock %}
+    <!-- endinject-->
+</body>
+</html>

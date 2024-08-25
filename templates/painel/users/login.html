@@ -1,0 +1,58 @@
+{% load static %}
+<!doctype html>
+<html lang="pt-br" dir="rtr">
+
+<head>
+  <script src="{% static 'painel/theme/bootstrap/js/color-modes.js' %}"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+  <meta name="generator" content="Hugo 0.115.4">
+  <title>Login</title>
+
+  {% comment %}
+  <link rel="canonical" href="https://getbootstrap.com/docs/5.3/examples/sign-in/"> {% endcomment %}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
+  <link rel="stylesheet" href="{% static 'painel/theme/bootstrap/css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'painel/theme/bootstrap/css/login.css' %}">
+
+  <style>
+    .bg-body {
+      background-color: #12364e !important;
+      background-image: url('{% static 'painel/theme/img/bg-sistema-login.jpg' %}') !important;
+      background-align: center !important;
+    }
+ </style>
+
+</head>
+
+<body class="d-flex align-items-center py-4 bg-body">
+
+  <main class="form-signin w-100 m-auto bg-light bg-opacity-10">
+    {% include 'painel/partials/_messages.html' %}
+    <form action="{% url 'login' %}" method="POST">
+      {% csrf_token %}
+      <div class="text-center mb-4">
+        <img class="mb-4" src="{% static 'painel/theme/img/logo-painel.png' %}" style="width: 250px">
+        <h1 class="h5 mb-3 fw-normal text-white">Login do Sistema</h1>
+      </div>
+      <div class="form-floating pb-2">
+        <input type="text" class="form-control" id="floatingInput" placeholder="" name="name_form">
+        <label for="floatingInput">Usuário</label>
+      </div>
+      <div class="form-floating">
+        <input type="password" class="form-control" id="floatingPassword" placeholder="" name="pass_form">
+        <label for="floatingPassword">Senha</label>
+      </div>
+      <button class="btn btn-primary w-100 py-2" type="submit">Logar</button>
+      <div class="text-center my-3">
+        <p class="mt-5 mb-3 text-body-secondary text-white">Copyright © 2024 WorldChip</p>
+      </div>
+    </form>
+  </main>
+  <script src="{% static 'painel/theme/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+  {% include 'painel/partials/_messages_script.html' %}
+</body>
+
+</html>
