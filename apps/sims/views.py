@@ -134,7 +134,7 @@ def sims_add_sim(request):
     global orders_l
     orders_l = ''
 
-    orders_all = Orders.objects.all().order_by('-id')
+    orders_all = Orders.objects.all().order_by('-id').filter(order_status='AS').filter(id_sim=None)
     orders_l = orders_all
     
     if request.method == 'GET':
@@ -152,6 +152,38 @@ def sims_add_sim(request):
         ord_sim_f = request.POST.get('ord_sim_f')
         oper_f = request.POST.get('oper_f')
         ord_st_f = request.POST.get('ord_st_f')
+        
+        # Salvar Pedido com SIM
+        if 'save_sims' in request.POST:
+            order_ids = request.POST.getlist('ord_id')
+            print('order_ids >>>>>>>>>>', order_ids)
+            for order_id in order_ids:
+                ord_id = int(order_id)
+                order = Orders.objects.get(id=ord_id)
+                ord_oper = request.POST.get(f'ord_oper_{ord_id}')
+                ord_sim = request.POST.get(f'ord_sim_{ord_id}')
+                
+                print('order_id >>>>>>>>>>', order_id)
+                print('ord_oper >>>>>>>>', ord_oper)
+                print('ord_sim >>>>>>', ord_sim)
+                
+                if ord_sim != '':
+                    # Salvar SIM
+                    add_sim = Sims(
+                        sim = ord_sim,
+                        type_sim = 'sim',
+                        operator = ord_oper,
+                        sim_status = 'AT'
+                    )
+                    add_sim.save()
+                    sim_id = add_sim.id
+                    print('add_sim ----------', add_sim)
+                    print('sim_id --------',sim_id)
+                    # Salvar Pedido
+                    order.id_sim = add_sim
+                    order.order_status = 'AE'                
+                    order.save()
+            messages.success(request,f'SIM(s) atualizado(s) com sucesso!')        
     
     url_filter = ''
 
@@ -193,6 +225,7 @@ def sims_add_sim(request):
     context = {
         'orders_l': orders_l,
         'orders': orders,
+        'oper': '',
         'ord_st_list': ord_st_list,
         'oper_list': oper_list,
         'shipp_list': shipp_list,

@@ -13,11 +13,14 @@
     <div class="row pt-5">
         <div class="col-xxl-12 ms-15">
             <h4 class="text-primary fw-bold">Olá {{ user.first_name }} {{ user.last_name }}</h4>
+            <br>
+            <br>
+            <span class="text-primary fw-bold pb-5">{{texto}}</span>
         </div>
     </div>
 </div>
 
-{% if request.user|can:'view_statistics' %}
+{% comment %} {% if request.user|can:'123' %}
 
     <!-- Estoque de SIMs -->
     {% include 'painel/partials/_sims_stock.html' %}
@@ -246,7 +249,7 @@
     </div>
     <!-- Fim Vendas -->
 
-{% endif %}
+{% endif %} {% endcomment %}
 {% endblock %}
 
 {% block script_custom %}

@@ -63,7 +63,10 @@
     </div>
 </form>
 </div>
-    <div class="table-responsive">
+
+<form class="row g-3" action="{% url 'sims_add_sim' %}" method="POST">
+{% csrf_token %}
+<div class="table-responsive">
         <table class="table mb-0 table-hover table-responsive">
             <thead>
                 <tr class="userDatatable-header">
@@ -83,7 +86,12 @@
                 <tr class="table-tr">
                     <td class="text-left">
                         <div class="userDatatable-content">
-                            <input class="checkItem form-check-input " type="checkbox" value="{{order.id}}" name="ord_id">
+                            <input type="hidden" name="ord_id" value="{{ order.id }}">
+                            {% for oper in oper_list %}
+                                {% if oper.0 == order.oper_sim %}
+                                    <input type="hidden" name="ord_oper_{{ order.id }}" value="{{ oper.0 }}">
+                                {% endif %}
+                            {% endfor %}
                         </div>
                     </td>
                     <td class="text-left">
@@ -109,7 +117,7 @@
                     </td>
                     <td class="text-left">
                         <div class="userDatatable-content">
-                            <input type="text" class="form-control small" value="">
+                            <input type="text" class="form-control small" name="ord_sim_{{ order.id }}" value="">
                         </div>
                     </td>
                     <td class="text-left">
@@ -130,29 +138,10 @@
                 {% endif %}
             </tbody>
         </table>
-    </div>
-    <nav aria-label="navigation">
-        <ul class="pagination">
-            {% if orders.has_previous %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ orders.previous_page_number }}{{ url_filter }}"
-                    aria-label="Previous">
-                    <span aria-hidden="true">&laquo;</span>
-                </a>
-            </li>
-            {% endif %}
-            <li class="page-item"><a class="page-link" href="">
-                    {{ orders.number }} de {{ orders.paginator.num_pages }}</a>
-            </li>
-            {% if orders.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ orders.next_page_number }}{{ url_filter }}" aria-label="Next">
-                    <span aria-hidden="true">&raquo;</span>
-                </a>
-            </li>
-            {% endif %}
-        </ul>
-    </nav>
+        <button type="submit" class="btn btn-default btn-rounded color-primary btn-primary mt-5"
+            name="save_sims">Salvar SIMs</button>
+</div>
+</form>
 
 {% endblock %}
 {% block script_custom %}
