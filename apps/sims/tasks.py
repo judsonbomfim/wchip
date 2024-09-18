@@ -28,15 +28,17 @@ def sims_in_orders():
     for ord in orders:
         
         id_id_i = ord.id
+        id_item_i = Orders.objects.get(pk=id_id_i)
         order_id_i = ord.order_id
         product_i = ord.product
         type_sim_i = ord.type_sim
         esim_eua = type_sim_i == 'esim' and (product_i == '977' or product_i == '980')
+        id_sim_i = id_item_i.id_sim.id
         
         # Se já houver SIM   
-        if ord.id_sim != None:
+        if id_sim_i != None:
             if ord.order_status == 'AS':
-                sim_put = Sims.objects.get(pk=id_id_i)
+                sim_put = Sims.objects.get(pk=id_sim_i)
                 if esim_eua:
                     sim_put.sim_status = 'AI'
                 else:
@@ -46,7 +48,7 @@ def sims_in_orders():
             # Notes
             def addNote(t_note):
                 add_sim = Notes( 
-                    id_item = Orders.objects.get(pk=id_id_i),
+                    id_item = id_item_i,
                     note = t_note,
                     type_note = 'S',
                 )
