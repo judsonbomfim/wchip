@@ -70,7 +70,7 @@ class Orders(models.Model):
     client_id = models.IntegerField(null=True)  # Temporariamente permitindo nulo
     client = models.CharField(max_length=70)
     email = models.CharField(max_length=70, null=True, blank=True)
-    product = models.CharField(choices=PRODUCT)
+    product = models.CharField(max_length=35, choices=PRODUCT)
     data_day = models.CharField(max_length=15, choices=DATA)
     qty = models.IntegerField()
     coupon = models.CharField(max_length=25, default=None)
