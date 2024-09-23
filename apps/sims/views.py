@@ -3,16 +3,18 @@ from rolepermissions.decorators import has_permission_decorator
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.urls import reverse
-import csv
-import imghdr
 from datetime import date
 from django.core.paginator import Paginator
 from django.contrib import messages
-from apps.sims.models import Sims
-from apps.orders.models import Orders
-import boto3
 from django.conf import settings
 from django.core.files.storage import default_storage
+import csv
+import imghdr
+import boto3
+
+from apps.sims.models import Sims
+from apps.orders.models import Orders
+from apps.orders.classes import ApiStore
 from .tasks import sims_in_orders
 
 
@@ -159,12 +161,11 @@ def sims_add_sim(request):
             for order_id in order_ids:
                 ord_id = int(order_id)
                 order = Orders.objects.get(id=ord_id)
+                item_id = order.order_id
                 ord_oper = request.POST.get(f'ord_oper_{ord_id}')
                 ord_sim = request.POST.get(f'ord_sim_{ord_id}')
                 
-                print('order_id >>>>>>>>>>', order_id)
-                print('ord_oper >>>>>>>>', ord_oper)
-                print('ord_sim >>>>>>', ord_sim)
+                print(f'item_id >>>>>>>>> {item_id}')
                 
                 if ord_sim != '':
                     # Salvar SIM
@@ -176,12 +177,27 @@ def sims_add_sim(request):
                     )
                     add_sim.save()
                     sim_id = add_sim.id
-                    print('add_sim ----------', add_sim)
-                    print('sim_id --------',sim_id)
                     # Salvar Pedido
                     order.id_sim = add_sim
                     order.order_status = 'AE'                
                     order.save()
+                    #ALterar status no site
+                    try:
+                        apiStore = ApiStore.conectApiStore()
+                        update_store = {
+                                'status': 'agd-envio'
+                            }
+                        apiStore.put(f'orders/{item_id}', update_store).json()
+                        
+                        apiStore = ApiStore.conectApiStore()
+                        update_store = {
+                                'status': 'agd-envio'
+                            }
+                        apiStore.put(f'orders/{order_id}', update_store).json()
+                                        
+                    except Exception as e:
+                        messages.error(request,f'Erro ao atualizar status do pedido {order} no site: {e}')
+                    
             messages.success(request,f'SIM(s) atualizado(s) com sucesso!')        
     
     url_filter = ''
