@@ -30,7 +30,8 @@ def order_import():
     start_date = date_now - timedelta(days=30)
     end_date = date_now
     # order_p = apiStore.get('orders', params={'after': start_date, 'before': end_date, 'status': 'processing', 'per_page': per_page})        
-    order_p = apiStore.get('orders', params={'status': 'processing', 'per_page': per_page})        
+    order_p = apiStore.get('orders', params={'status': 'pg-confirmado', 'per_page': per_page})
+    print(f'----------------- order_p - {order_p}')
     
     total_pages = int(order_p.headers['X-WP-TotalPages'])
     n_page = 1
@@ -39,7 +40,7 @@ def order_import():
     
     while n_page <= total_pages:
         # Pedidos com status 'processing'
-        ord = apiStore.get('orders', params={'order': 'asc', 'status': 'processing', 'per_page': per_page, 'page': n_page}).json()
+        ord = apiStore.get('orders', params={'order': 'asc', 'status': 'pg-confirmado', 'per_page': per_page, 'page': n_page}).json()
 
         # Listar pedidos         
         for order in ord:

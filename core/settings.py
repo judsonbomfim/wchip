@@ -1,4 +1,5 @@
 from pathlib import Path
+import environ
 import os
 import boto3
 from django.contrib.messages import constants as messages
@@ -7,27 +8,32 @@ from datetime import timedelta
 from dotenv import load_dotenv
 load_dotenv()
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Inicialize o `environ`
+env = environ.Env(
+    DEBUG=(bool, False)
+)
+# Leia o arquivo `.env`
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = str(os.getenv('SECRET_KEY'))
+SECRET_KEY = str(env('SECRET_KEY'))
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    h.strip() for h in os.getenv('ALLOWED_HOSTS', '').split(',')
-    if h.strip()
-]
+# Certifique-se de que cast não seja sobrescrito
+ALLOWED_HOSTS = [h.strip() for h in env('ALLOWED_HOSTS', default='').split(',')]
 
-CSRF_TRUSTED_ORIGINS = [
-    a.strip() for a in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
-    if a.strip()
-]
+
+CSRF_TRUSTED_ORIGINS = [a.strip() for a in env('CSRF_TRUSTED_ORIGINS', default='').split(',')]
+
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
@@ -93,12 +99,12 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('DB_ENGINE'),
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT'),
+        'ENGINE': env('DB_ENGINE'),
+        'NAME': env('DB_NAME'),
+        'USER': env('DB_USER'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST'),
+        'PORT': env('DB_PORT'),
     }
 }
 
@@ -139,18 +145,18 @@ DATA_UPLOAD_MAX_NUMBER_FILES = 1000
 SESSION_COOKIE_AGE = 36000
 
 
-URL_PAINEL = str(os.getenv('URL_PAINEL'))
-URL_CDN = 'https://'+str(os.getenv('URL_CDN'))
+URL_PAINEL = str(env('URL_PAINEL'))
+URL_CDN = 'https://'+str(env('URL_CDN'))
 
 
-AWS_ACCESS_KEY_ID = str(os.getenv('AWS_ACCESS_KEY_ID'))
-AWS_SECRET_ACCESS_KEY = str(os.getenv('AWS_SECRET_ACCESS_KEY'))
-AWS_STORAGE_BUCKET_NAME = str(os.getenv('AWS_STORAGE_BUCKET_NAME'))
-AWS_S3_CUSTOM_DOMAIN = str(os.getenv('AWS_S3_CUSTOM_DOMAIN'))
+AWS_ACCESS_KEY_ID = str(env('AWS_ACCESS_KEY_ID'))
+AWS_SECRET_ACCESS_KEY = str(env('AWS_SECRET_ACCESS_KEY'))
+AWS_STORAGE_BUCKET_NAME = str(env('AWS_STORAGE_BUCKET_NAME'))
+AWS_S3_CUSTOM_DOMAIN = str(env('AWS_S3_CUSTOM_DOMAIN'))
 AWS_DEFAULT_ACL = None
-AWS_S3_OBJECT_PARAMETERS = {
-    'CacheControl': 'max-age=86400',
-}
+# AWS_S3_OBJECT_PARAMETERS = {
+#     'CacheControl': 'max-age=86400',
+# }
 
 STATIC_LOCATION = 'static'
 
@@ -185,19 +191,19 @@ KEYCLOAK_PERMISSIONS_METHOD = 'role'
 
 # E-mail
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = str(os.getenv('EMAIL_HOST'))
+EMAIL_HOST = str(env('EMAIL_HOST'))
 EMAIL_PORT = 587
-EMAIL_HOST_USER = str(os.getenv('EMAIL_HOST_USER'))
-EMAIL_HOST_PASSWORD = str(os.getenv('EMAIL_HOST_PASSWORD'))
+EMAIL_HOST_USER = str(env('EMAIL_HOST_USER'))
+EMAIL_HOST_PASSWORD = str(env('EMAIL_HOST_PASSWORD'))
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
-DEFAULT_FROM_EMAIL = str(os.getenv('DEFAULT_FROM_EMAIL'))
+DEFAULT_FROM_EMAIL = str(env('DEFAULT_FROM_EMAIL'))
 
 
 # CELERY
 
-CELERY_BROKER_URL = str(os.getenv('CELERY_BROKER_URL'))
-CELERY_RESULT_BACKEND = str(os.getenv('CELERY_RESULT_BACKEND'))
+CELERY_BROKER_URL = str(env('CELERY_BROKER_URL'))
+CELERY_RESULT_BACKEND = str(env('CELERY_RESULT_BACKEND'))
 
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
@@ -224,6 +230,6 @@ CELERY_BEAT_SCHEDULE = {
 
 # API TELCON
 
-APITC_USERNAME = str(os.getenv('APITC_USERNAME'))
-APITC_PASSWORD = str(os.getenv('APITC_PASSWORD'))
-APITC_HTTPCONN = str(os.getenv('APITC_HTTPCONN'))
+APITC_USERNAME = str(env('APITC_USERNAME'))
+APITC_PASSWORD = str(env('APITC_PASSWORD'))
+APITC_HTTPCONN = str(env('APITC_HTTPCONN'))

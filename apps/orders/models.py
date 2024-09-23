@@ -40,6 +40,7 @@ ORDER_STATUS = [
     ('EE', 'Enviar E-mail'),
     ('ES', 'Em Separação'),
     ('MB', 'Motoboy'),
+    ('PC', 'Pag. Confirmado!'),
     ('PR', 'Processando'),
     ('RE', 'Reembolsar'),
     ('RB', 'Reembolsado'),

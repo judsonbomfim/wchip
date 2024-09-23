@@ -1,15 +1,21 @@
 from woocommerce import API
-import os
+import environ
+from django.conf import settings
 from apps.orders.models import Orders, Notes
+
+# Inicialize o `environ`
+env = environ.Env(
+    DEBUG=(bool, False)
+)
 
 # Conect woocommerce api
 class ApiStore():
     @staticmethod
     def conectApiStore():
         wcapi = API(
-            url = str(os.getenv('url_site')),
-            consumer_key = str(os.getenv('consumer_key')),
-            consumer_secret = str(os.getenv('consumer_secret')),
+            url = str(env('url_site')),
+            consumer_key = str(env('consumer_key')),
+            consumer_secret = str(env('consumer_secret')),
             wp_api = True,
             version = 'wc/v3',
             timeout = 5000
@@ -18,7 +24,7 @@ class ApiStore():
 
     @staticmethod
     def updateEsimStore(order_id):    
-        url_painel = str(os.getenv('URL_PAINEL'))
+        url_painel = str(settings.env('URL_PAINEL'))
         esims_order = Orders.objects.filter(order_id=order_id).filter(id_sim__link__isnull=False)
         esims_list = ''
         update_store = {"meta_data":[{"key": "campo_esims","value": ''}]}

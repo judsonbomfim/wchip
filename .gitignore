@@ -262,6 +262,7 @@ poetry.toml
 .ruff_cache/
 
 ### VisualStudioCode ###
+.vscode/
 .vscode/*
 .vscode/settings.json
 .vscode/tasks.json

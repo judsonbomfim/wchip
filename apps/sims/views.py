@@ -156,7 +156,6 @@ def sims_add_sim(request):
         # Salvar Pedido com SIM
         if 'save_sims' in request.POST:
             order_ids = request.POST.getlist('ord_id')
-            print('order_ids >>>>>>>>>>', order_ids)
             for order_id in order_ids:
                 ord_id = int(order_id)
                 order = Orders.objects.get(id=ord_id)
@@ -221,6 +220,9 @@ def sims_add_sim(request):
     paginator = Paginator(orders_l, 50)
     page = request.GET.get('page')
     orders = paginator.get_page(page)
+    
+    print(f'orders >>>>>>>>> {orders}')
+    print(f'orders_l >>>>>>>>> {orders_l}')
 
     context = {
         'orders_l': orders_l,
