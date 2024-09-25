@@ -8,7 +8,6 @@ COPY requirements.txt .
 RUN apt-get update && apt-get install -y nano && \
     pip install --upgrade pip && \
     pip install -r requirements.txt && \
-    pkg-config && \
     adduser --disabled-password --no-create-home duser
 
 COPY . .
