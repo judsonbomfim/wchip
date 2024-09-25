@@ -38,7 +38,7 @@ def sims_in_orders():
         # Se já houver SIM   
         if id_sim_i != None:
             if ord.order_status == 'AS':
-                sim_put = Sims.objects.get(pk=id_sim_i)
+                sim_put = Sims.objects.get(pk=id_sim_i.id)
                 if esim_eua:
                     sim_put.sim_status = 'AI'
                 else:
