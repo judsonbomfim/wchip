@@ -23,6 +23,7 @@ gunicorn==21.2.0
 idna==3.6
 jmespath==1.0.1
 kombu==5.3.5
+mysqlclient==2.2.4
 numpy==1.26.2
 packaging==23.2
 pandas==2.1.4
