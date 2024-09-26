@@ -6,7 +6,7 @@ services:
     build: .
     command: /djangoapp/scripts/entrypoint.sh
     ports:
-      - "8080:8000"
+      - "80:8000"
     env_file:
       - ./.env
     depends_on:
@@ -16,8 +16,10 @@ services:
     image: redis:7.2.4-alpine
     volumes:
       - redis-data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf 
     ports:
       - "6379:6379"
-      
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    
 volumes:
   redis-data:
