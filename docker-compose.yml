@@ -13,6 +13,10 @@ services:
       - redis
     expose:
       - "8000"
+    volumes:
+      - ./:/app
+      - /var/www/static/:/var/www/static/
+      - /var/certbot/conf:/etc/letsencrypt/:ro
 
   redis:
     container_name: redis
