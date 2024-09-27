@@ -1,23 +1,16 @@
 # version: '3.8'
 
-version: '3.8'
-
 services:
   web:
     container_name: djangoapp
     build: .
     command: /djangoapp/scripts/entrypoint.sh
+    ports:
+      - "8000:8000"
     env_file:
       - ./.env
     depends_on:
       - redis
-    expose:
-      - "8000"
-    volumes:
-      - ./:/app
-      - /var/www/static/:/var/www/static/
-      - /var/certbot/conf:/etc/letsencrypt/:ro
-
   redis:
     container_name: redis
     image: redis:7.2.4-alpine
@@ -25,52 +18,8 @@ services:
       - redis-data:/data
     ports:
       - "6379:6379"
-
-  nginx:
-    image: nginx:alpine
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/www/static/:/var/www/static/
-      - /nginx/conf.d/:/etc/nginx/conf.d/
-    depends_on:
-      - web
-
-  certbot:
-    image: certbot/certbot:latest
-    volumes:
-      - /var/certbot/conf:/etc/letsencrypt/:rw
-      - /var/certbot/www/:/var/www/certbot/:rw
-    depends_on:
-      - nginx
-
+      
 volumes:
   redis-data:
-
-
-
-# services:
-#   web:
-#     container_name: djangoapp
-#     build: .
-#     command: /djangoapp/scripts/entrypoint.sh
-#     ports:
-#       - "8000:8000"
-#     env_file:
-#       - ./.env
-#     depends_on:
-#       - redis
-#   redis:
-#     container_name: redis
-#     image: redis:7.2.4-alpine
-#     volumes:
-#       - redis-data:/data
-#     ports:
-#       - "6379:6379"
-      
-# volumes:
-#   redis-data:
 
 
