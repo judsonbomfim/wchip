@@ -18,6 +18,7 @@ then
 fi
 
 python manage.py flush --no-input
+python manage.py makemigrations
 python manage.py migrate
 python manage.py collectstatic --no-input --clear
 nohup celery -A core worker -B --loglevel=info
