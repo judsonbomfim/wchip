@@ -13,7 +13,7 @@ services:
       - redis
   redis:
     container_name: redis
-    image: redis:7.2.4-alpine
+    image: redis:alpine
     volumes:
       - redis-data:/data
     ports:
