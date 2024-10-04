@@ -19,8 +19,12 @@
                     <div class="card-body">
                         <div class="card">
                             <div class="card-body">
-                                <span>NOME - {{ order.client }}</span><br>
-                                <span>E-MAIL - {{ order.email }}</span><br>
+                                <span>Nome - <b>{{ order.client }}</b></span><br>
+                                <span>E-mail - {{ order.email }}</span><br>
+                                <span>-----</span><br>
+                                <span>Celular: - {{ order.cell_mod }}</span><br>
+                                <span>IMEI - {{ order.cell_imei }}</span><br>
+                                <span>EID - {{ order.cell_eid }}</span><br>
                             </div>
                         </div>
                         <br>
@@ -167,7 +171,7 @@
                             </div>
                             <br>
                             <div class="form-group">
-                                <button type="submit" class="btn btn-primary mb-3">Editar Pedido</button>
+                                <button type="submit" class="btn btn-primary mb-3">Atualizar Pedido</button>
                             </div>
                         </form>
                     </div>

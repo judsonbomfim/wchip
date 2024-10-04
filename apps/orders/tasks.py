@@ -105,17 +105,27 @@ def order_import():
                     # notes_i = 0
                     
                     # Definir status do pedido
-                    # 'RT', 'Retirada'
-                    # 'MB', 'Motoboy'
-                    # 'AS', 'Atribuir SIM'
-                    if 'RETIRADA' in shipping_i:
-                        shipping_i = 'Retirada SP'
-                        order_status_i = 'RT'
-                    elif 'Entrega na Agência' in shipping_i:
-                        shipping_i = 'Entr. Agência'
+                    # ('AG', 'Aerop. GRU'),
+                    # ('FG', 'Frete Grátis'),
+                    # ('FN', 'Frete Normal'),
+                    # ('EV', 'Entrega VIP'),
+                    # ('SD', 'SEDEX'),
+                    
+                    if 'GRU' in shipping_i:
+                        shipping_i = 'AG'
                         order_status_i = 'AG'
-                    elif 'Motoboy' in shipping_i:
-                        order_status_i = 'MB'
+                    elif 'Grátis' in shipping_i:
+                        shipping_i = 'FG'
+                        order_status_i = 'AS'
+                    elif 'Normal' in shipping_i:
+                        shipping_i = 'FN'
+                        order_status_i = 'AS'
+                    elif 'SEDEX' in shipping_i:
+                        shipping_i = 'SD'
+                        order_status_i = 'AS'
+                    elif 'VIP' in shipping_i:
+                        shipping_i = 'EV'
+                        order_status_i = 'EV'
                     else:
                         order_status_i = 'AS'
                         

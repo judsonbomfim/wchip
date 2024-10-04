@@ -39,7 +39,8 @@ ORDER_STATUS = [
     ('ED', 'Erro Desativação'),
     ('EE', 'Enviar E-mail'),
     ('ES', 'Em Separação'),
-    ('MB', 'Motoboy'),
+    ('EV', 'Entrega VIP'),
+    ('EV', 'Entrega VIP'),
     ('PC', 'Pag. Confirmado!'),
     ('PR', 'Processando'),
     ('RE', 'Reembolsar'),
@@ -51,17 +52,11 @@ ORDER_STATUS = [
 ]
 
 SHIPMENTS = [
+    ('AG', 'Aerop. GRU'),
+    ('FG', 'Frete Grátis'),
     ('FN', 'Frete Normal'),
-    ('FE', 'Frete Expresso'),
-    ('RT', 'Retirada'),
-    ('MD', 'Mordomo'),
-]
-
-SHIP = [
-    ('FN', 'Frete Normal'),
-    ('FE', 'Frete Expresso'),
-    ('RT', 'Retirada'),
-    ('MD', 'Mordomo'),
+    ('EV', 'Entrega VIP'),
+    ('SD', 'SEDEX'),
 ]
 
 class Orders(models.Model):
@@ -82,7 +77,6 @@ class Orders(models.Model):
     cell_eid = models.CharField(max_length=35, null=True, blank=True)
     ord_chip_nun = models.CharField(max_length=35, null=True, blank=True)
     shipping = models.CharField(max_length=20, choices=SHIPMENTS, default='FN')
-    ship = models.CharField(max_length=20, choices=SHIP, default='FN')
     order_date = models.DateTimeField()
     activation_date = models.DateField()
     order_status = models.CharField(max_length=20, choices=ORDER_STATUS, default='PR')

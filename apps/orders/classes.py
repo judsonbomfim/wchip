@@ -52,17 +52,18 @@ class StatusStore():
         status_sis_site = {
             'AA': 'agd-ativacao',
             'AE': 'agd-envio',
-            'AG': 'agencia',
+            'AC': 'agencia',
+            'AG': 'aerop-gru',
             'AS': 'em-separacao',
             'AT': 'ativado',
             'CN': 'completed', 
             'DA': 'data-em-aberto', 
             'DS': 'desativado', 
             'ES': 'em-separacao',
-            'MB': 'motoboy',
+            'EV': 'entrega-vip',
             'RE': 'reembolsar',
-            'RS': 'reuso',
             'RT': 'retirada',
+            'RS': 'reuso',
         }
         return status_sis_site
     
