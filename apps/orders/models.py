@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from apps.sims.models import Sims
 
 PRODUCT = [
+    ('3734', 'Am. Sul Flex'),
+    ('3564', 'Am. do Sul Controle'),
     ('981', 'Norte Verizon'),
     ('980', 'Norte T-Mobile'),
     ('979', 'EUA Flex'),
