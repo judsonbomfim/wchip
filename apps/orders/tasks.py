@@ -92,6 +92,7 @@ def order_import():
                             sim_t = tipe_sim[0].strip().lower()
                             if sim_t == 'esim' : type_sim_i = 'esim'
                             else: type_sim_i = 'sim'
+                            print('----------------- type_sim_i',type_sim_i)
                         if i['key'] == 'pa_franquia': data_day_i = i['value']
                         if i['key'] == 'pa_dias': days_i = i['value']
                         if 'Visitará' in i['key']:
