@@ -87,7 +87,7 @@ def order_import():
                     cell_mod_i = False
                     # Percorrer itens do pedido
                     for i in item['meta_data']:
-                        if i['key'] == 'Tipo de SIM':
+                        if i['key'] == 'pa_tipo-de-sim':
                             tipe_sim = i['display_value'].split('|')
                             sim_t = tipe_sim[0].strip().lower()
                             if sim_t == 'esim' : type_sim_i = 'esim'
