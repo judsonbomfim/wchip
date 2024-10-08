@@ -92,7 +92,6 @@ def order_import():
                             sim_t = tipe_sim[0].strip().lower()
                             if sim_t == 'esim' : type_sim_i = 'esim'
                             else: type_sim_i = 'sim'
-                            print('----------------- type_sim_i',type_sim_i)
                         if i['key'] == 'pa_franquia': data_day_i = i['value']
                         if i['key'] == 'pa_dias': days_i = i['value']
                         if 'Visitará' in i['key']:
@@ -127,8 +126,11 @@ def order_import():
                     elif 'VIP' in shipping_i:
                         shipping_i = 'EV'
                         order_status_i = 'EV'
-                    else:
+                    elif 'SP' in shipping_i:
+                        shipping_i = 'RS'
                         order_status_i = 'AS'
+                    
+                    print('----------------- shipping_i',shipping_i)
                         
                     # Definir Operadora                   
                     oper_sel = OperatorSelect.opSel()

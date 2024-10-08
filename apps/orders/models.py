@@ -47,7 +47,7 @@ ORDER_STATUS = [
     ('RB', 'Reembolsado'),
     ('RS', 'Reuso'),
     ('RP', 'Reprocessar'),
-    ('RT', 'Retirada'),
+    ('RS', 'Retirada SP'),
     ('VS', 'Verificar SIM'),
 ]
 
@@ -57,6 +57,7 @@ SHIPMENTS = [
     ('FN', 'Frete Normal'),
     ('EV', 'Entrega VIP'),
     ('SD', 'SEDEX'),
+    ('RS', 'Retirada SP'),
 ]
 
 class Orders(models.Model):
@@ -79,7 +80,7 @@ class Orders(models.Model):
     shipping = models.CharField(max_length=20, choices=SHIPMENTS, default='FN')
     order_date = models.DateTimeField()
     activation_date = models.DateField()
-    order_status = models.CharField(max_length=20, choices=ORDER_STATUS, default='PR')
+    order_status = models.CharField(max_length=4, choices=ORDER_STATUS, default='PR')
     type_sim = models.CharField(max_length=4, null=True, blank=True, default='sim')
     oper_sim = models.CharField(max_length=2, null=True, blank=True)
     id_sim = models.ForeignKey(Sims, on_delete=models.DO_NOTHING, null=True, blank=True)
