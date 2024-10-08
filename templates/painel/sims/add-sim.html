@@ -24,10 +24,9 @@
     {% csrf_token %}
     <div class="col-md-2">
         <div id="pageContentArea" class="pageSection">
-            <input type="text" id="activReturn_f" name="activReturn_f"
-                class="inputField shortInputField dateRangeField form-control  ih-medium ip-gray radius-xs b-light"
-                placeholder="Data de Retorno" data-from-field="txtDateFrom" data-to-field="txtDateTo"
-                autocomplete="off" />
+            <input type="text" id="activDate" name="activDate"
+                class="inputField shortInputField form-control ih-medium ip-gray radius-xs b-light"
+                placeholder="Data Ativação" autocomplete="off" />
         </div>
     </div>
     <div class="col-md-2">
@@ -150,6 +149,13 @@
         // Ação do botão "Marcar Todos"
         $('#checkAll').on('change', function () {
             $('.checkItem').prop('checked', this.checked);
+        });
+        // Data Picker
+        $("#activDate").datepicker({
+            showOn: "focus",
+            dateFormat: "dd/mm/yy",
+            useHiddenAltFields: true,
+            constrainInput: true,
         });
     });
 </script>

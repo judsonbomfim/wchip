@@ -16,8 +16,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(
     DEBUG=(bool, False)
 )
+
 # Leia o arquivo `.env`
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+
+# Leia a variável de ambiente DEBUG
+debug_mode = env('DEBUG')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -208,8 +212,6 @@ CELERY_RESULT_BACKEND = str(env('CELERY_RESULT_BACKEND'))
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 CELERY_BEAT_SYNC_EVERY = None
-
-CELERY_TIMEZONE = 'Europe/London'
 
 CELERY_BEAT_SCHEDULE = {
     'task__5_min_orders_auto': {
