@@ -113,8 +113,7 @@ def simActivateTC(id=None):
     
     from apps.orders.tasks import up_order_st_store    
         
-    london_tz = pytz.timezone('Europe/London')
-    today = datetime.now(london_tz).date()
+    today = datetime.now().date()
 
     print('>>>>>>>>>> ATIVAÇÂO INICIADA')
     
@@ -255,15 +254,14 @@ def simDeactivateTC(id=None):
     
     from apps.orders.tasks import up_order_st_store    
     
-    timezone = pytz.timezone('Europe/London')
     min_hour = 23  # hora
     min_minute = 45  # 45 minutos
 
-    current_hour = datetime.now(timezone).hour
-    current_minute = datetime.now(timezone).minute
+    current_hour = datetime.now().hour
+    current_minute = datetime.now().minute
             
     # Timezone / Hoje
-    today = pd.Timestamp.now(tz=timezone).date()
+    today = pd.Timestamp.now().date()
 
     # Selecionar pedidos
     if id is None:
