@@ -123,13 +123,15 @@ def order_import():
                     elif 'SEDEX' in shipping_i:
                         shipping_i = 'SD'
                         order_status_i = 'AS'
+                    elif 'e-mail' in shipping_i:
+                        shipping_i = 'EM'
+                        order_status_i = 'AS'
                     elif 'VIP' in shipping_i:
                         shipping_i = 'EV'
                         order_status_i = 'EV'
                     elif 'SP' in shipping_i:
                         shipping_i = 'RS'
-                        order_status_i = 'AS'
-                    
+                        order_status_i = 'RS'
                     print('----------------- shipping_i',shipping_i)
                         
                     # Definir Operadora                   

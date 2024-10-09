@@ -29,7 +29,7 @@ DATA = [
 ORDER_STATUS = [
     ('AA', 'Agd. Ativação'),
     ('AE', 'Agd. Envio'),
-    ('AG', 'Agência'),
+    ('AG', 'Aeropoto GRU'),
     ('AS', 'Atribuir SIM'),
     ('AI', 'Atribuir IMEI'),
     ('AT', 'Ativado'),
@@ -41,7 +41,6 @@ ORDER_STATUS = [
     ('ED', 'Erro Desativação'),
     ('EE', 'Enviar E-mail'),
     ('ES', 'Em Separação'),
-    ('EV', 'Entrega VIP'),
     ('EV', 'Entrega VIP'),
     ('PC', 'Pag. Confirmado!'),
     ('PR', 'Processando'),
@@ -56,8 +55,9 @@ ORDER_STATUS = [
 SHIPMENTS = [
     ('AG', 'Aerop. GRU'),
     ('FG', 'Frete Grátis'),
-    ('FN', 'Frete Normal'),
+    ('EM', 'E-mail'),
     ('EV', 'Entrega VIP'),
+    ('FN', 'Frete Normal'),
     ('SD', 'SEDEX'),
     ('RS', 'Retirada SP'),
 ]
