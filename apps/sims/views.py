@@ -14,7 +14,7 @@ import boto3
 
 from apps.sims.models import Sims
 from apps.orders.models import Orders
-from apps.orders.classes import ApiStore
+from apps.orders.classes import ApiStore, DateFormats
 from .tasks import sims_in_orders
 
 
@@ -141,19 +141,19 @@ def sims_add_sim(request):
     
     if request.method == 'GET':
 
-        ord_name_f = request.GET.get('ord_name')
-        ord_order_f = request.GET.get('ord_order')
-        ord_sim_f = request.GET.get('ord_sim')
-        oper_f = request.GET.get('oper')
-        ord_st_f = request.GET.get('ord_st')
+        ord_date_f = request.GET.get('ord_date')
+        ord_shipp_f = request.GET.get('shipp_f')
+        ord_oper_f = request.GET.get('oper_f')
 
     if request.method == 'POST':
 
-        ord_name_f = request.POST.get('ord_name_f')
-        ord_order_f = request.POST.get('ord_order_f')  
-        ord_sim_f = request.POST.get('ord_sim_f')
-        oper_f = request.POST.get('oper_f')
-        ord_st_f = request.POST.get('ord_st_f')
+        ord_date_f = request.POST.get('ord_date')
+        ord_shipp_f = request.POST.get('shipp_f')  
+        ord_oper_f = request.POST.get('oper_f')
+        print(f'ord_date >>>>>>>>> {ord_date_f}')
+        print(f'ord_shipp_f >>>>>>>>> {ord_shipp_f}')
+        print(f'ord_oper_f >>>>>>>>> {ord_oper_f}')
+        
         
         # Salvar Pedido com SIM
         if 'save_sims' in request.POST:
@@ -202,25 +202,18 @@ def sims_add_sim(request):
     
     url_filter = ''
 
-    if ord_name_f:
-        orders_l = orders_l.filter(client__icontains=ord_name_f)
-        url_filter += f"&ord_name={ord_name_f}"
+    if ord_date_f:
+        ord_date_f = DateFormats.dateF(ord_date_f)
+        orders_l = orders_l.filter(order_date__icontains=ord_date_f)
+        url_filter += f"&ord_date_f={ord_date_f}"
 
-    if ord_order_f: 
-        orders_l = orders_l.filter(item_id__icontains=ord_order_f)   
-        url_filter += f"&ord_order={ord_order_f}"
+    if ord_shipp_f: 
+        orders_l = orders_l.filter(shipping__icontains=ord_shipp_f)   
+        url_filter += f"&ord_shipp_f={ord_shipp_f}"
 
-    if ord_sim_f: 
-        orders_l = orders_l.filter(id_sim__sim__icontains=ord_sim_f)
-        url_filter += f"&ord_sim={ord_sim_f}"
-
-    if oper_f: 
-        orders_l = orders_l.filter(id_sim__operator__icontains=oper_f)
-        url_filter += f"&oper={oper_f}"
-
-    if ord_st_f: 
-        orders_l = orders_l.filter(order_status__icontains=ord_st_f)
-        url_filter += f"&ord_st={ord_st_f}"
+    if ord_oper_f: 
+        orders_l = orders_l.filter(oper_sim__icontains=ord_oper_f)
+        url_filter += f"&ord_oper_f={ord_oper_f}"
 
     ord_status = Orders.order_status.field.choices
     oper_list = Sims.operator.field.choices

@@ -20,13 +20,13 @@
 </div>
 {% comment %} {% endif %} {% endcomment %}
 <div class="col-md-12 py-3">
-<form class="row g-3" action="{% url 'orders_list' %}" method="POST">
+<form class="row g-3" action="{% url 'sims_add_sim' %}" method="POST">
     {% csrf_token %}
     <div class="col-md-2">
         <div id="pageContentArea" class="pageSection">
-            <input type="text" id="activDate" name="activDate"
+            <input type="text" id="ord_date" name="ord_date"
                 class="inputField shortInputField form-control ih-medium ip-gray radius-xs b-light"
-                placeholder="Data Ativação" autocomplete="off" />
+                placeholder="Data Pedido" autocomplete="off" />
         </div>
     </div>
     <div class="col-md-2">
@@ -97,7 +97,7 @@
                         <div class="userDatatable-content">{{ order.item_id }}</div>
                     </td>
                     <td class="text-left">
-                        <div class="userDatatable-content">{{ order.order_date|date:'d/m/Y h:m' }}h</div>
+                        <div class="userDatatable-content">{{ order.order_date|date:'d/m/Y' }}h</div>
                     </td>
                     <td class="text-left">
                         <div class="userDatatable-content">{{ order.client|truncatechars:25 }}</div>
@@ -121,7 +121,7 @@
                     </td>
                     <td class="text-left">
                         <div class="userDatatable-content">
-                            {{ order.shipping }}
+                            {{ order.get_shipping_display }}
                         </div>
                     </td>
                 </tr>
@@ -151,7 +151,7 @@
             $('.checkItem').prop('checked', this.checked);
         });
         // Data Picker
-        $("#activDate").datepicker({
+        $("#ord_date").datepicker({
             showOn: "focus",
             dateFormat: "dd/mm/yy",
             useHiddenAltFields: true,
