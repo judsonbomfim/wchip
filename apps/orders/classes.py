@@ -24,7 +24,7 @@ class ApiStore():
 
     @staticmethod
     def updateEsimStore(order_id):    
-        url_painel = str(settings.env('URL_PAINEL'))
+        url_painel = str(settings.URL_PAINEL)
         esims_order = Orders.objects.filter(order_id=order_id).filter(id_sim__link__isnull=False)
         esims_list = ''
         update_store = {"meta_data":[{"key": "campo_esims","value": ''}]}
