@@ -11,7 +11,6 @@ from django.core.files.storage import default_storage
 import csv
 import imghdr
 import boto3
-
 from apps.sims.models import Sims
 from apps.orders.models import Orders
 from apps.orders.classes import ApiStore, DateFormats
