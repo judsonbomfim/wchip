@@ -19,10 +19,10 @@ DATA = [
     ('500mb-dia', '500MB/Dia'),
     ('1gb-dia', '1GB / Dia'),
     ('2gb-dia', '2GB / Dia'),
-    ('5gb-mes', '5GB / Mês'),
-    ('10gb-mes', '10GB / Mês'),
-    ('20gb-mes', '20GB / Mês'),
-    ('30gb-mes', '30GB / Mês'),
+    ('5gb-30dias', '5GB / Mês'),
+    ('10gb-30dias', '10GB / Mês'),
+    ('20gb-30dias', '20GB / Mês'),
+    ('30gb-30dias', '30GB / Mês'),
     ('ilimitado', 'Ilimitado'),
 ]
 
