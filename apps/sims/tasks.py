@@ -144,6 +144,7 @@ def simActivateTC(id=None):
         order = Orders.objects.get(pk=order.id)
         order_id = order.order_id
         id_item = order.id
+        product = order.product
         try:
             iccid = order.id_sim.sim
         except Exception:
@@ -174,7 +175,7 @@ def simActivateTC(id=None):
         ##
         
         # Alterar plano
-        ApiTC.planChange(endpointId,headers,dataDay)
+        ApiTC.planChange(endpointId,headers,dataDay,product)
         NotesAdd.addNote(order,f'{iccid} Plano alterado para {dataDay}')    
 
         if simStatus == 'Pre-Active':
