@@ -35,6 +35,9 @@ def sims_in_orders():
         esim_eua = type_sim_i == 'esim' and (product_i == '977' or product_i == '980')
         id_sim_i = id_item_i.id_sim
         
+        print('>>>>>>>>>>>>>>>>>>>>>>> id_id_i', id_id_i) 
+        print('>>>>>>>>>>>>>>>>>>>>>>> type_sim_i', type_sim_i) 
+        
         # Se já houver SIM   
         if id_sim_i != None:
             if ord.order_status == 'AS':
