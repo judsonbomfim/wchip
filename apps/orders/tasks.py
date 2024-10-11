@@ -31,7 +31,6 @@ def order_import():
     end_date = date_now
     # order_p = apiStore.get('orders', params={'after': start_date, 'before': end_date, 'status': 'processing', 'per_page': per_page})        
     order_p = apiStore.get('orders', params={'status': 'pg-confirmado', 'per_page': per_page})
-    print(f'----------------- order_p - {order_p}')
     
     total_pages = int(order_p.headers['X-WP-TotalPages'])
     n_page = 1
@@ -88,10 +87,12 @@ def order_import():
                     # Percorrer itens do pedido
                     for i in item['meta_data']:
                         if i['key'] == 'pa_tipo-de-sim':
-                            tipe_sim = i['display_value'].split('|')
+                            print(f'----------------- pa_tipo-de-sim - {i['display_value']}')                            
+                            tipe_sim = i['display_value'].split(' ')
                             sim_t = tipe_sim[0].strip().lower()
                             if sim_t == 'esim' : type_sim_i = 'esim'
                             else: type_sim_i = 'sim'
+                            print(f'----------------- type_sim_i - {type_sim_i}')    
                         if i['key'] == 'pa_franquia': data_day_i = i['value']
                         if i['key'] == 'pa_dias': days_i = i['value']
                         if 'Visitará' in i['key']:

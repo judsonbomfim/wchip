@@ -275,6 +275,8 @@ def ord_edit(request,id):
         order_put.cell_eid = cell_eid
         order_put.tracking = tracking
         order_put.order_status = ord_st
+        order_put.type_sim = type_sim
+        order_put.oper_sim = operator
         order_put.save()
         
         # Notes
