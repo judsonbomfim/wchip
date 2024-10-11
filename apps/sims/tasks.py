@@ -35,9 +35,6 @@ def sims_in_orders():
         esim_eua = type_sim_i == 'esim' and (product_i == '977' or product_i == '980')
         id_sim_i = id_item_i.id_sim
         
-        print('>>>>>>>>>>>>>>>>>>>>>>> id_id_i', id_id_i) 
-        print('>>>>>>>>>>>>>>>>>>>>>>> type_sim_i', type_sim_i) 
-        
         # Se já houver SIM   
         if id_sim_i != None:
             if ord.order_status == 'AS':
@@ -65,19 +62,15 @@ def sims_in_orders():
             elif product_i == '975':
                 operator_i = 'CM'
             else: operator_i = 'TC'
-            
-            print('>>>>>>>>>>>>>>>>>>>>>>> operator_i', operator_i) 
-            
+                        
             # Select SIM
             if esim_eua:
                 sim_ds = Sims.objects.all().get(pk=0)
             else:
                 sim_ds = Sims.objects.all().order_by('id').filter(operator=operator_i, type_sim=type_sim_i, sim_status='DS').first()
-                print('>>>>>>>>>>>>>>>>>>>>>>> sim_ds DISPONIVEL', sim_ds) 
                 if sim_ds:
                     pass
                 else:
-                    print('>>>>>>>>>>>>>>>>>>>>>>> SIMs indisponíveis!')
                     continue
             
             # update order
@@ -112,7 +105,6 @@ def sims_in_orders():
             
             n_item_total += 1
     
-        print('>>>>>>>>>>>>>>>>>>>>>>> SIMs atribuidos!')
     
 @shared_task
 def simActivateTC(id=None):
@@ -144,6 +136,7 @@ def simActivateTC(id=None):
         order = Orders.objects.get(pk=order.id)
         order_id = order.order_id
         id_item = order.id
+        product = order.product
         try:
             iccid = order.id_sim.sim
         except Exception:
@@ -174,7 +167,7 @@ def simActivateTC(id=None):
         ##
         
         # Alterar plano
-        ApiTC.planChange(endpointId,headers,dataDay)
+        ApiTC.planChange(endpointId,headers,dataDay,product)
         NotesAdd.addNote(order,f'{iccid} Plano alterado para {dataDay}')    
 
         if simStatus == 'Pre-Active':

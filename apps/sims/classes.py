@@ -54,12 +54,48 @@ class ApiTC:
 
     # Pl0an Change
     @staticmethod
-    def planChange(endpointId,headers,dataDay):  
-        planList = {
-            '500mb-dia': '572960',
-            '1gb': '572961',
-            '2gb': '572963',
-        }
+    def planChange(endpointId,headers,dataDay,product):  
+        planList = {}
+        #Planos
+        eua = ['976', '979']
+        europa = ['974', '971']
+        latam = ['3734', '3564']
+        
+        if product in eua:
+            planList = {
+                '500mb-dia': '607266',
+                '1gb-dia': '607268',
+                '2gb-dia': '607269',
+                '5gb-30dias': '636538',
+                '10gb-30dias': '636539',
+                '20gb-30dias': '636541',
+                '30gb-30dias': '636542',
+            }
+        elif product in europa:
+            planList = {
+                '500mb-dia': '607185',
+                '1gb-dia': '607188',
+                '2gb-dia': '607191',
+                '5gb-30dias': '607830',
+                '10gb-30dias': '607831',
+                '20gb-30dias': '607833',
+                '30gb-30dias': '-',
+            }
+        elif product in latam:
+            planList = {
+                '500mb-dia': '607270',
+                '1gb-dia': '607271',
+                '2gb-dia': '607272',
+                '5gb-30dias': '636533',
+                '10gb-30dias': '636534',
+                '20gb-30dias': '636535',
+                '30gb-30dias': '636537',
+                '1gb-7dias': '636522',
+                '2gb-7dias': '636523',
+                '3gb-15dias': '636524',
+                '4gb-15dias': '636531',
+            }
+            
         plan_list = json.loads(planList[dataDay])       
         payload = json.dumps({
             "Request": {
