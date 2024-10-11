@@ -179,6 +179,7 @@ def ord_edit(request,id):
         # Insert SIM in Order
         def insertSIM(ord_st=None):
             sim_up = Sims.objects.filter(sim_status='DS', type_sim=type_sim, operator=operator).first()
+            print('>>>>>>>>>> SIM UP:',sim_up)
             if sim_up:
                 sim_put = Sims.objects.get(pk=sim_up.id)
                 if order_sim != '':
@@ -197,6 +198,7 @@ def ord_edit(request,id):
                 order_put.save()
             else:       
                 msg_error.append(f'Não há estoque de {operator} - {type_sim} no sistema')
+                print('>>>>>>>>>> Não há estoque de SIMs')
                         
         # Liberar SIMs
         if ord_st == 'CC' or ord_st == 'DE' or ord_st == 'RE':
