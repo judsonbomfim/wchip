@@ -57,7 +57,7 @@ class ApiTC:
     def planChange(endpointId,headers,dataDay,product):  
         planList = {}
         #Planos
-        eua = ['974', '971']
+        eua = ['976', '979']
         europa = ['974', '971']
         latam = ['3734', '3564']
         
