@@ -19,11 +19,14 @@ DATA = [
     ('500mb-dia', '500MB/Dia'),
     ('1gb-dia', '1GB / Dia'),
     ('2gb-dia', '2GB / Dia'),
-    ('5gb-30dias', '5GB / Mês'),
-    ('10gb-30dias', '10GB / Mês'),
-    ('20gb-30dias', '20GB / Mês'),
-    ('30gb-30dias', '30GB / Mês'),
-    ('ilimitado', 'Ilimitado'),
+    ('5gb-30dias', '5GB / 30 Dias'),
+    ('10gb-30dias', '10GB / 30 Dias'),
+    ('20gb-30dias', '20GB / 30 Dias'),
+    ('30gb-30dias', '30GB / 30 Dias'),
+    ('1gb-7dias', '1GB / 7 Dias'),
+    ('2gb-7dias', '2GB / 7 Dias'),
+    ('3gb-15dias', '3GB / 15 Dias'),
+    ('4gb-15dias', '4GB / 15 Dias'),
 ]
 
 ORDER_STATUS = [
