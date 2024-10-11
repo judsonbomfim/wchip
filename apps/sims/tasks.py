@@ -63,11 +63,14 @@ def sims_in_orders():
                 operator_i = 'CM'
             else: operator_i = 'TC'
             
+            print('>>>>>>>>>>>>>>>>>>>>>>> operator_i', operator_i) 
+            
             # Select SIM
             if esim_eua:
                 sim_ds = Sims.objects.all().get(pk=0)
             else:
                 sim_ds = Sims.objects.all().order_by('id').filter(operator=operator_i, type_sim=type_sim_i, sim_status='DS').first()
+                print('>>>>>>>>>>>>>>>>>>>>>>> sim_ds DISPONIVEL', sim_ds) 
                 if sim_ds:
                     pass
                 else:
