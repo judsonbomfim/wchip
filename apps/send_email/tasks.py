@@ -31,7 +31,7 @@ def send_email_sims(id=None):
         activation_date = order.activation_date
         product = f'{order.get_product_display()} {order.get_data_day_display()}'
         days = order.days     
-        product_plan = order.get_product_display()
+        product_plan = order.product
         try: type_sim = order.id_sim.type_sim
         except: continue            
         countries = order.countries
@@ -69,7 +69,7 @@ def send_email_sims(id=None):
         email.send()
         
         if order_st != 'CN' and type_sim == 'esim':
-            if product_plan == 'USA' or product_plan == 'USA 30 Dias':
+            if product_plan == '980' or product_plan == '977':
                 # Update Order
                 order = Orders.objects.get(pk=id)
                 order.order_status = 'AI'
