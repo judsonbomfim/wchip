@@ -29,7 +29,7 @@
                         <br>
                         <form action="{% url 'ord_edit' order.id %}" method="POST">
                             {% csrf_token %}
-                            <div class="col-md-6 col-xl-6">
+                            <div class="col-md-12 col-xl-12">
                                 <label class="form-label">Dias</label>
                                 <div class="row">
                                     {% for day in ord_days %}
