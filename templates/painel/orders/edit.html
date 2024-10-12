@@ -63,9 +63,9 @@
                                 <div class="col-md-6 col-xl-6">
                                     <label class="form-label">Tipo de Chip</label>
                                     <div class="row">
-                                        <input type="radio" class="btn-check" name="type_sim" id="type_sim1" value="sim" {% if order.id_sim.type_sim or order.type_sim == 'sim' %}checked{% endif %} required>
+                                        <input type="radio" class="btn-check" name="type_sim" id="type_sim1" value="sim" {% if order.id_sim.type_sim == 'sim'  or order.type_sim == 'sim' %}checked{% endif %} required>
                                         <label class="btn btn-outline-primary m-1" for="type_sim1">SIM Físico</label>
-                                        <input type="radio" class="btn-check" name="type_sim" id="type_sim2" value="esim" {% if order.id_sim.type_sim or order.type_sim == 'esim' %}checked{% endif %} required>
+                                        <input type="radio" class="btn-check" name="type_sim" id="type_sim2" value="esim" {% if order.id_sim.type_sim == 'esim' or order.type_sim == 'esim' %}checked{% endif %} required>
                                         <label class="btn btn-outline-primary m-1" for="type_sim2">eSIM Virtual</label>
                                     </div>
                                 </div>

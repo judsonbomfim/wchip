@@ -169,8 +169,6 @@ def ord_edit(request,id):
         ord_note = request.POST.get('ord_note')
         up_oper = request.POST.get('upOper')
         esim_v = None
-        
-        print('>>>>>>>>>> type_sim:',type_sim)
                 
         # Update SIM in Order and update SIM
         def updateSIM():
@@ -268,9 +266,7 @@ def ord_edit(request,id):
             activation_date = order.activation_date
         if email == '':
             email = order.email
-        
-        print('>>>>>>>>>> type_sim 2:',type_sim)
-        
+                
         order_put = Orders.objects.get(pk=order.id)
         order_put.days = days
         order_put.product = product
