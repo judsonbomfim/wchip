@@ -27,6 +27,7 @@ DATA = [
     ('2gb-7dias', '2GB / 7 Dias'),
     ('3gb-15dias', '3GB / 15 Dias'),
     ('4gb-15dias', '4GB / 15 Dias'),
+    ('ilimitado', 'Ilimitado'),
 ]
 
 ORDER_STATUS = [

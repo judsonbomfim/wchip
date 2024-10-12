@@ -221,6 +221,8 @@ def simActivateTC(id=None):
             
             res = conn.getresponse()
             data = json.loads(res.read())
+            conn.close()            
+            
             resultCode = int(data["Response"]["resultCode"])
             resultDescription = data["Response"]["resultParam"]["resultDescription"]
             try:
@@ -247,6 +249,7 @@ def simActivateTC(id=None):
                 NotesAdd.addNote(order,f'TC: {resultDescription}')
                 
     print('>>>>>>>>>> ATIVAÇÂO FINALIZADA')
+
 
 @shared_task
 def simDeactivateTC(id=None):
@@ -345,13 +348,15 @@ def simDeactivateTC(id=None):
             
         res = conn.getresponse()
         data = json.loads(res.read())
+        conn.close()
+        
         try:
             resultCode = int(data["Response"]["resultCode"])
             resultDescription = data["Response"]["resultParam"]["resultDescription"]
         except Exception:
             resultCode = None
             resultDescription = None
-
+        
         if resultCode == 0:
             if id is None:
                 print('>>>>>>>>>> Alterar status')                
@@ -372,6 +377,7 @@ def simDeactivateTC(id=None):
             NotesAdd.addNote(order,f'{iccid} com erro na Telcon. Verificar erro. TC: {resultDescription}')
                 
     print('>>>>>>>>>> DESATIVAÇÂO FINALIZADA')
+
 
 @shared_task
 def simActivateTM(id=None):
