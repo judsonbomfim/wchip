@@ -404,9 +404,9 @@ def simActivateTM(id=None):
         order_date = (order.activation_date).isoformat()
         order_day = order.days
         order_type = order.id_sim.type_sim
-        order_iccid = order.id_sim.sim
-        order_imei = order.cell_imei
-        order_eid = order.cell_eid
+        order_iccid = order.id_sim.sim or ''
+        order_imei = order.cell_imei or ''
+        order_eid = order.cell_eid or ''
         
         # Selecionar plano  
         if order_product == '977' and order_type == 'sim':
