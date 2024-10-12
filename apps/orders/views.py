@@ -169,6 +169,8 @@ def ord_edit(request,id):
         ord_note = request.POST.get('ord_note')
         up_oper = request.POST.get('upOper')
         esim_v = None
+        
+        print('>>>>>>>>>> type_sim:',type_sim)
                 
         # Update SIM in Order and update SIM
         def updateSIM():
@@ -224,32 +226,28 @@ def ord_edit(request,id):
 
         # Se SIM preenchico
         if sim:
-            # Verificar se Operadora e Tipo de SIM estão marcados
-            if operator != None and type_sim != None:
-                if order_sim != '':
-                    # Alterar status no sistema e no site
-                    updateSIM()
-                
-                sims_all = Sims.objects.all().filter(sim=sim)
-                if sims_all:
-                        messages.info(request,f'O SIM {sim} já está cadastrado no sistema')
-                else:
-                    # Save SIMs - Insert Stock
-                    add_sim = Sims( 
-                        sim = sim,
-                        type_sim = type_sim,
-                        operator = operator,
-                        sim_status = 'AT',
-                    )
-                    add_sim.save()
-                
-                    # Update order
-                    order_put = order
-                    order_put.id_sim_id = add_sim.id
-                    order_put.save()
-                    up_plan = True # verificação para nota
+            if order_sim != '':
+                # Alterar status no sistema e no site
+                updateSIM()
+            
+            sims_all = Sims.objects.all().filter(sim=sim)
+            if sims_all:
+                    messages.info(request,f'O SIM {sim} já está cadastrado no sistema')
             else:
-                msg_error.append(f'Você precisa selecionar o tipo de SIM e a Operadora')
+                # Save SIMs - Insert Stock
+                add_sim = Sims( 
+                    sim = sim,
+                    type_sim = type_sim,
+                    operator = operator,
+                    sim_status = 'AT',
+                )
+                add_sim.save()
+            
+                # Update order
+                order_put = order
+                order_put.id_sim_id = add_sim.id
+                order_put.save()
+                up_plan = True # verificação para nota
         else:
             # Troca de SIM
             if order_sim != '':
@@ -260,18 +258,19 @@ def ord_edit(request,id):
                     
                     # Update SIM
                     esim_v = True             
-            else:
-                if operator != None and type_sim != None:
-                    if product != '974' and type_sim != 'esim':
-                        insertSIM(ord_st)
-                        up_plan = True # verificação para nota
-            
+            else:             
+                if product != '974' and type_sim != 'esim':
+                    insertSIM(ord_st)
+                    up_plan = True # verificação para nota
+        
         # Update Order
         if activation_date == '':
             activation_date = order.activation_date
         if email == '':
             email = order.email
-                
+        
+        print('>>>>>>>>>> type_sim 2:',type_sim)
+        
         order_put = Orders.objects.get(pk=order.id)
         order_put.days = days
         order_put.product = product
