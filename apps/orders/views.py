@@ -128,6 +128,7 @@ def ord_edit(request,id):
             'ord_product': ord_product,
             'ord_data_day': ord_data_day,
             'ord_data_day': ord_data_day,
+            'ord_operators': ord_operators,
             'ord_days': dias,
         }
         return render(request, 'painel/orders/edit.html', context)
