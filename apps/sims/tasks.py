@@ -1,16 +1,15 @@
 from celery import shared_task
-import os
+from urllib.parse import urlparse
 import http.client
 import json
-import time
 from django.conf import settings
 from .classes import ApiTC
 from apps.orders.models import Orders, Notes
-from apps.orders.classes import ApiStore, StatusStore, NotesAdd, UpdateOrder
+from apps.orders.classes import StatusStore, NotesAdd, UpdateOrder
 from apps.send_email.tasks import send_email_sims
 from apps.sims.models import Sims
-from datetime import datetime
-import pytz
+from datetime import datetime, timedelta
+from django.utils import timezone
 import pandas as pd
 
 @shared_task
@@ -109,15 +108,16 @@ def sims_in_orders():
 @shared_task
 def simActivateTC(id=None):
     
-    from apps.orders.tasks import up_order_st_store    
+    from apps.orders.tasks import up_order_st_store
         
-    today = datetime.now().date()
+    today = timezone.now()
+    today_2h = (today + timedelta(hours=2)).date()
 
     print('>>>>>>>>>> ATIVAÇÂO INICIADA')
     
     # Selecionar pedidos
     if id is None:
-        orders_all = Orders.objects.filter(order_status='AA', id_sim__operator='TC', activation_date__lte=today)
+        orders_all = Orders.objects.filter(order_status='AA', id_sim__operator='TC', activation_date__lte=today_2h)
     else:
         orders_all = Orders.objects.filter(pk=id)
             
@@ -256,8 +256,8 @@ def simDeactivateTC(id=None):
     min_hour = 23  # hora
     min_minute = 45  # 45 minutos
 
-    current_hour = datetime.now().hour
-    current_minute = datetime.now().minute
+    current_hour = timezone.now().hour
+    current_minute = timezone.now().minute
             
     # Timezone / Hoje
     today = pd.Timestamp.now().date()
@@ -373,50 +373,86 @@ def simDeactivateTC(id=None):
                 
     print('>>>>>>>>>> DESATIVAÇÂO FINALIZADA')
 
-def simActivateTm(id=None):
-    from urllib.parse import urlparse
-    import http.client
-    import json
+@shared_task
+def simActivateTM(id=None):
+    
+    from apps.orders.tasks import up_order_st_store
+    
+    today = timezone.now()
+    today_2h = (today + timedelta(hours=2)).date()
 
-
-    # Dados para a solicitação
-    url = "xxx"
-    parsed_url = urlparse(url)
-    payload = json.dumps({
-        "operator": 18,
-        "phone_number": 8901260314789665040,
-        "product": 594, # Product ID
-        "activate_at": "2025-12-31", # Activate date (greater or equal to current date) 
-        "days": 14,
-        # "imei": "null",
-        # "eid": "null",
-        "client": { # Client data 
-            "email": "xxx"
-        },
-        "token": "xxx"
-    })        
-
-    # Cabeçalhos da solicitação
-    headers = {
-        'Content-Type': 'application/json'
-    }
-    # Estabelece a conexão HTTPS
-    conn = http.client.HTTPSConnection(parsed_url.netloc)
-    # Envia a solicitação POST
-    conn.request("POST", parsed_url.path, payload, headers)
-    # Obtém a resposta
-    res = conn.getresponse()
-    data = res.read()
-    # Decodifica a resposta
-    response_data = json.loads(data.decode("utf-8"))
-    # Verifica o código de resposta
-    if 'code' in response_data:
-        if response_data['code'] == 0:
-            print('IF CODE >>>>>>>>>>',response_data)
-        else:
-            print('IFELSE CODE >>>>>>>>>>',response_data)
+    print('>>>>>>>>>> ATIVAÇÂO T-MOBILE INICIADA')
+    
+    # Selecionar pedidos
+    if id is None:
+        orders_all = Orders.objects.filter(order_status='AA', id_sim__operator='TM', activation_date__lte=today_2h)
     else:
-        print('ELSE CODE >>>>>>>>>>',response_data)
+        orders_all = Orders.objects.filter(pk=id)
+
+    for order in orders_all:
         
-    # Fecha a conexão
-    conn.close()
+        order = Orders.objects.get(pk=order.id)
+        order_id = order.order_id
+        id_item = order.id
+        order_product = order.product
+        order_date = order.activation_date
+        order_day = order.days
+        order_type = order.id_sim.type_sim
+        order_iccid = order.id_sim.sim
+        order_imei = order.cell_imei
+        order_eid = order.cell_eid
+        
+        # Selecionar plano  
+        if order_product == '977' and order_type == 'sim':
+            product = 594
+        elif order_product == '977' and order_type == 'esim':
+            product = 595
+        elif order_product == '980' and order_type == 'sim':
+            product = 656
+        elif order_product == '980' and order_type == 'esim':
+            product = 657              
+        
+        # Dados para a solicitação
+        url = settings.APITM_URL
+        parsed_url = urlparse(url)
+        payload = json.dumps({
+            "operator": settings.APITM_OPERATOR,
+            "phone_number": order_iccid,
+            "product": product, # Product ID
+            "activate_at": order_date, # Activate date (greater or equal to current date) 
+            "days": order_day,
+            "imei": order_imei,
+            "eid": order_eid,
+            "client": { # Client data 
+                "email": settings.APITM_EMAIL,
+            },
+            "token": settings.APITM_TOKEN
+        })        
+
+        # Conectar API
+        headers = {
+            'Content-Type': 'application/json'
+        }
+        conn = http.client.HTTPSConnection(parsed_url.netloc)
+        conn.request("POST", parsed_url.path, payload, headers)
+        res = conn.getresponse()
+        data = res.read()
+        response_data = json.loads(data.decode("utf-8"))
+        conn.close()
+        
+        print(f'>>>>>>>>>> response_data ----- {response_data}')
+
+        # Verifica o código de resposta           
+        if 'code' not in response_data:
+            # Alterar status
+            UpdateOrder.upStatus(id_item,'AT')
+            up_order_st_store.delay(order_id,'ativado')
+            StatusStore.upStatus(order_id,'ativado')
+            # Adicionar nota
+            note = f'{order_iccid} enviado com sucesso na T-mobile'
+            NotesAdd.addNote(order,f'{note} TM: {response_data['hash']}')
+        else:
+            # Alterar status
+            UpdateOrder.upStatus(id_item,'EA')
+            # Adicionar nota
+            NotesAdd.addNote(order,f'TM: {response_data}')

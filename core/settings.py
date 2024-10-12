@@ -136,6 +136,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
+USE_TZ = True
 DATE_INPUT_FORMATS = ('%d/%m/%Y',)
 USE_I18N = True
 USE_L10N = True
@@ -226,6 +227,10 @@ CELERY_BEAT_SCHEDULE = {
     },
     'task__deactivate_TC': {
         'task': 'apps.sims.tasks.simDeactivateTC',
+        'schedule': crontab( hour=23, minute=50),
+    },
+    'task__simActivateTM': {
+        'task': 'apps.sims.tasks.simActivateTM',
         'schedule': crontab( hour=22, minute=00),
     },
 }
