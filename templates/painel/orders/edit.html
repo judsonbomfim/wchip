@@ -21,7 +21,6 @@
                             <div class="card-body">
                                 <span>Nome - <b>{{ order.client }}</b></span><br>
                                 <span>E-mail - {{ order.email }}</span><br>
-                                <span>-----</span><br>
                                 <span>Celular: - {{ order.cell_mod }}</span><br>
                                 <span>IMEI - {{ order.cell_imei }}</span><br>
                                 <span>EID - {{ order.cell_eid }}</span><br>
@@ -30,12 +29,12 @@
                         <br>
                         <form action="{% url 'ord_edit' order.id %}" method="POST">
                             {% csrf_token %}
-                            <div class="col-md-6 col-xl-9">
+                            <div class="col-md-6 col-xl-6">
                                 <label class="form-label">Dias</label>
                                 <div class="row">
-                                    {% for days_l in days %}
-                                    <input type="radio" class="btn-check" name="days" id="days{{forloop.counter}}" value="{{forloop.counter}}" {% if order.days == days_l %}checked{% endif %}>
-                                    <label class="btn btn-outline-primary m-1" for="days{{forloop.counter}}">{{forloop.counter}}</label>
+                                    {% for day in ord_days %}
+                                    <input type="radio" class="btn-check" name="days" id="days{{ day }}" value="{{ day }}" {% if order.days == day %}checked{% endif %}>
+                                    <label class="btn btn-outline-primary m-1" for="days{{ day }}">{{ day }}</label>
                                     {% endfor %}
                                 </div>
                             </div>
@@ -64,21 +63,19 @@
                                 <div class="col-md-6 col-xl-6">
                                     <label class="form-label">Tipo de Chip</label>
                                     <div class="row">
-                                        <input type="radio" class="btn-check" name="type_sim" id="type_sim1" value="sim" {% if order.id_sim.type_sim == 'sim' %}checked{% endif %} required>
+                                        <input type="radio" class="btn-check" name="type_sim" id="type_sim1" value="sim" {% if order.id_sim.type_sim or order.type_sim == 'sim' %}checked{% endif %} required>
                                         <label class="btn btn-outline-primary m-1" for="type_sim1">SIM Físico</label>
-                                        <input type="radio" class="btn-check" name="type_sim" id="type_sim2" value="esim" {% if order.id_sim.type_sim == 'esim' %}checked{% endif %} required>
+                                        <input type="radio" class="btn-check" name="type_sim" id="type_sim2" value="esim" {% if order.id_sim.type_sim or order.type_sim == 'esim' %}checked{% endif %} required>
                                         <label class="btn btn-outline-primary m-1" for="type_sim2">eSIM Virtual</label>
                                     </div>
                                 </div>
                                 <div class="col-md-6 col-xl-6">
                                     <label class="form-label">Operadora</label>
                                     <div class="row">
-                                        <input type="radio" class="btn-check" name="operator" id="operator1" value="TM" {% if order.id_sim.operator == 'TM' %}checked{% endif %} required>
-                                        <label class="btn btn-outline-primary m-1" for="operator1">T-mobile</label>
-                                        <input type="radio" class="btn-check" name="operator" id="operator2" value="CM" {% if order.id_sim.operator == 'CM' %}checked{% endif %} required>
-                                        <label class="btn btn-outline-primary m-1" for="operator2">China Mobile</label>
-                                        <input type="radio" class="btn-check" name="operator" id="operator3" value="TC" {% if order.id_sim.operator == 'TC' %}checked{% endif %} required>
-                                        <label class="btn btn-outline-primary m-1" for="operator3">Telcom</label>
+                                        {% for oper_p in ord_operators %}
+                                        <input type="radio" class="btn-check " name="operator" id="operator{{forloop.counter}}" value="{{oper_p.0}}" {% if order.id_sim.operator == oper_p.0 or order.oper_sim == oper_p.0 %}checked{% endif %}>
+                                        <label class="btn btn-outline-primary m-1" for="operator{{forloop.counter}}">{{oper_p.1}}</label>
+                                        {% endfor %}
                                     </div>
                                     <div class="pt-2">
                                         <label>

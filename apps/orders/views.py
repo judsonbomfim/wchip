@@ -118,13 +118,17 @@ def ord_edit(request,id):
         ord_status = Orders.order_status.field.choices
         ord_product = Orders.product.field.choices
         ord_data_day = Orders.data_day.field.choices
+        ord_operators = Sims.operator.field.choices
+        
+        dias = list(range(1, 31))
         
         context = {
             'order': order,
             'ord_status': ord_status,
             'ord_product': ord_product,
             'ord_data_day': ord_data_day,
-            'days': range(1, 31),
+            'ord_data_day': ord_data_day,
+            'ord_days': dias,
         }
         return render(request, 'painel/orders/edit.html', context)
         
