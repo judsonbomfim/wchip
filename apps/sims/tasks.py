@@ -419,7 +419,7 @@ def simActivateTM(id=None):
             product = 657              
         
         # Dados para a solicitação
-        url = settings.APITM_URL
+        url = settings.APITM_HTTPCONN
         parsed_url = urlparse(url)
         payload = json.dumps({
             "operator": settings.APITM_OPERATOR,
