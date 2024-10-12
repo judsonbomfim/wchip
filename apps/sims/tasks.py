@@ -373,3 +373,50 @@ def simDeactivateTC(id=None):
                 
     print('>>>>>>>>>> DESATIVAÇÂO FINALIZADA')
 
+def simActivateTm(id=None):
+    from urllib.parse import urlparse
+    import http.client
+    import json
+
+
+    # Dados para a solicitação
+    url = "xxx"
+    parsed_url = urlparse(url)
+    payload = json.dumps({
+        "operator": 18,
+        "phone_number": 8901260314789665040,
+        "product": 594, # Product ID
+        "activate_at": "2025-12-31", # Activate date (greater or equal to current date) 
+        "days": 14,
+        # "imei": "null",
+        # "eid": "null",
+        "client": { # Client data 
+            "email": "xxx"
+        },
+        "token": "xxx"
+    })        
+
+    # Cabeçalhos da solicitação
+    headers = {
+        'Content-Type': 'application/json'
+    }
+    # Estabelece a conexão HTTPS
+    conn = http.client.HTTPSConnection(parsed_url.netloc)
+    # Envia a solicitação POST
+    conn.request("POST", parsed_url.path, payload, headers)
+    # Obtém a resposta
+    res = conn.getresponse()
+    data = res.read()
+    # Decodifica a resposta
+    response_data = json.loads(data.decode("utf-8"))
+    # Verifica o código de resposta
+    if 'code' in response_data:
+        if response_data['code'] == 0:
+            print('IF CODE >>>>>>>>>>',response_data)
+        else:
+            print('IFELSE CODE >>>>>>>>>>',response_data)
+    else:
+        print('ELSE CODE >>>>>>>>>>',response_data)
+        
+    # Fecha a conexão
+    conn.close()
