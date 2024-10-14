@@ -29,7 +29,7 @@ def index(request):
         activList = activList.groupby(['operator']).size().reset_index(name='countActiv')
     else:
         activationTomorrow = 0
-        activList = pd.DataFrame({'operator': ['TM', 'CM', 'TC', 'VR'], 'countActiv': [0, 0, 0]})
+        activList = pd.DataFrame({'operator': ['TM', 'CM', 'TC', 'VR'], 'countActiv': [0, 0, 0, 0]})
           
     try: countActivTM = activList[activList['operator'] == 'TM']['countActiv'].values[0]
     except: countActivTM = 0
