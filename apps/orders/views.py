@@ -10,7 +10,7 @@ from django.contrib import messages
 from django.conf import settings
 from apps.orders.models import Orders, Notes
 from apps.sims.models import Sims
-from apps.send_email.tasks import send_email_sims
+from apps.send_email.tasks import send_email_sims, send_tracking
 from apps.sims.tasks import simDeactivateTC, simActivateTC
 from .classes import ApiStore, StatusStore, DateFormats
 from .tasks import orders_up_status
@@ -263,7 +263,7 @@ def ord_edit(request,id):
         
         
         if tracking != order.tracking:
-            pass           
+            send_tracking(id=order.id)           
             
                     
         # Update Order
