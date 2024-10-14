@@ -99,4 +99,62 @@ def send_email_sims(id=None):
     
     url_site = settings.URL_CDN
     url_img = f'{url_site}/email/'
+
+@shared_task
+def send_tracking(id=None):
     
+    orders_all = None
+    if id == None:
+        orders_all = Orders.objects.filter(order_status='EE')
+    else:
+        orders_all = Orders.objects.filter(pk=id)
+        
+    url_site = settings.URL_CDN
+    url_img = f'{url_site}/email/'
+
+    
+    for order in orders_all:
+        id = order.id
+        name = order.client
+        client_email = order.email
+        order_id = order.item_id
+        order_st = order.order_status
+        product = f'{order.get_product_display()} {order.get_data_day_display()}'
+        tracking = order.tracking
+        
+        context = {
+            'url_site': url_site,
+            'url_img': url_img,
+            'name': name,
+            'order_id': order_id,
+            'product': product,
+            'tracking': tracking,
+        }
+        html_content = render_to_string('painel/emails/send_email_tracking.html', context)
+        text_content = strip_tags(html_content)
+        subject = f"RASTREIO DO PEDIDO #{order_id}"
+        email = EmailMultiAlternatives(
+            #subject
+            subject,
+            #content
+            text_content,
+            #from email
+            settings.DEFAULT_FROM_EMAIL,
+            #to
+            [client_email],
+        )
+        email.attach_alternative(html_content, "text/html")
+        email.send()
+        
+        # Add note
+        add_note = Notes( 
+            id_item = order,
+            id_user = None,
+            note = 'E-mail de rastreio enviado com sucesso!',
+            type_note = 'S',
+        )
+        add_note.save()
+    
+    url_site = settings.URL_CDN
+    url_img = f'{url_site}/email/'
+ 

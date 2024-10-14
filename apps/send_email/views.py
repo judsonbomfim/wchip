@@ -16,8 +16,8 @@ def send_email_esims():
 
 
 @login_required(login_url='/login/')
-def send_traking():
-    send_traking.delay()
+def send_tracking():
+    send_tracking.delay()
 
     
 @login_required(login_url='/login/')
