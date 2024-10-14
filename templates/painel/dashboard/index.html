@@ -22,7 +22,7 @@
     </div>
   </div>
 
-  {% if request.user|can:'123' %}
+  {% comment %} {% if request.user|can:'123' %}
     <!-- Estoque de SIMs -->
     {% include 'painel/partials/_sims_stock.html' %}
     <!-- Fim Estoque de SIMs -->
@@ -222,7 +222,7 @@
       </div>
     </div>
     <!-- Fim Vendas -->
-  {% endif %}
+  {% endif %} {% endcomment %}
 {% endblock %}
 
 {% block script_custom %}

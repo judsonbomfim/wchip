@@ -9,9 +9,16 @@ def send_email(request,id):
     messages.success(request,f'E-mail enviado com sucesso!!')
     return redirect('orders_list')    
 
+
 @login_required(login_url='/login/')
 def send_email_esims():
     send_email_sims.delay()
+
+
+@login_required(login_url='/login/')
+def send_traking():
+    send_traking.delay()
+
     
 @login_required(login_url='/login/')
 def visualizar(request):

@@ -261,6 +261,12 @@ def ord_edit(request,id):
                     insertSIM(ord_st)
                     up_plan = True # verificação para nota
         
+        
+        if tracking != order.tracking:
+            
+            
+            
+                    
         # Update Order
         if activation_date == '':
             activation_date = order.activation_date
