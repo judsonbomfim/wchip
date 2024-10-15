@@ -130,7 +130,7 @@ def order_import():
                         order_status_i = 'AS'
                     elif 'e-mail' in shipping_i:
                         shipping_i = 'EM'
-                        order_status_i = 'AS'
+                        order_status_i = 'AE'
                     elif 'VIP' in shipping_i:
                         shipping_i = 'EV'
                         order_status_i = 'EV'
