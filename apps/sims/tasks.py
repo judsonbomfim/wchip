@@ -32,14 +32,14 @@ def sims_in_orders():
         order_id_i = ord.order_id
         product_i = ord.product
         type_sim_i = ord.type_sim
-        esim_eua = product_i in list_plan
+        # esim_eua = product_i in list_plan
         id_sim_i = id_item_i.id_sim
         
         # Se já houver SIM   
         if id_sim_i != None:
             if ord.order_status == 'AS':
                 sim_put = Sims.objects.get(pk=id_sim_i.id)
-                if esim_eua:
+                if product_i in list_plan:
                     sim_put.sim_status = 'AI'
                 else:
                     sim_put.sim_status = 'AA'
@@ -64,7 +64,7 @@ def sims_in_orders():
             else: operator_i = 'TC'
                         
             # Select SIM
-            if esim_eua:
+            if product_i in list_plan:
                 sim_ds = Sims.objects.all().get(pk=0)
             else:
                 sim_ds = Sims.objects.all().order_by('id').filter(operator=operator_i, type_sim=type_sim_i, sim_status='DS').first()
@@ -87,7 +87,7 @@ def sims_in_orders():
             order_put.save()
             
             # Verification esim x eua
-            if esim_eua:
+            if product_i in list_plan:
                 send_email_sims.delay(id_id_i)
                 addNote(f'eSIM EUA - SIM padrão adicionado')
                 msg_info.append(f'Pedido {order_id_i} atualizados com sucesso')
