@@ -146,9 +146,13 @@
                         data-bs-placement="top"
                         data-bs-custom-class="custom-popover"
                         data-bs-content="{{ order.id_sim.get_operator_display }} - {% if order.id_sim.type_sim == 'sim' %}
-                          SIM
+                          
+                        SIM
+
                         {% elif order.id_sim.type_sim == 'esim' %}
-                          eSIM
+                          
+                        eSIM
+
                         {% endif %}">
                         {{ order.id_sim }}
                       </span>
@@ -180,7 +184,9 @@
                   <div class="userDatatable-content">{{ order.days }}</div>
                 </td>
                 <td>
-                  <div class="userDatatable-content">{{ order.tracking }}</div>
+                  <div class="userDatatable-content">
+                    {% if order.id_sim %}{{ order.tracking }}{% endif %}
+                  </div>
                 </td>
                 <td class="text-center">
                   <div class="userDatatable-content">{{ order.activation_date|date:'d/m/Y' }}</div>
