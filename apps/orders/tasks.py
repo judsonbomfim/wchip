@@ -87,7 +87,6 @@ def order_import():
                     # Percorrer itens do pedido
                     for i in item['meta_data']:
                         if i['key'] == 'pa_tipo-de-sim':
-                            print(f'----------------- pa_tipo-de-sim - {i['display_value']}')                            
                             tipe_sim = i['display_value'].split(' ')
                             sim_t = tipe_sim[0].strip().lower()
                             if sim_t == 'esim' : type_sim_i = 'esim'
@@ -102,6 +101,8 @@ def order_import():
                         if i['key'] == 'Modelo e marca de celular': cell_mod_i = i['value']
                         if i['key'] == 'Número de pedido ou do chip': ord_chip_nun_i = i['value']
                     shipping_i = order['shipping_lines'][0]['method_title']
+                    order_status_i = 'AS'
+                    
                     order_date_i = DateFormats.dateHour(order['date_created'])
                     # notes_i = 0
                     
@@ -124,6 +125,9 @@ def order_import():
                     elif 'SEDEX' in shipping_i:
                         shipping_i = 'SD'
                         order_status_i = 'AS'
+                    elif 'Loja' in shipping_i:
+                        shipping_i = 'EL'
+                        order_status_i = 'AS'
                     elif 'e-mail' in shipping_i:
                         shipping_i = 'EM'
                         order_status_i = 'AS'
@@ -133,6 +137,7 @@ def order_import():
                     elif 'SP' in shipping_i:
                         shipping_i = 'RS'
                         order_status_i = 'RS'
+
                     print('----------------- shipping_i',shipping_i)
                         
                     # Definir Operadora                   

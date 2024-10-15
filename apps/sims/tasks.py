@@ -457,7 +457,8 @@ def simActivateTM(id=None):
             StatusStore.upStatus(order_id,'ativado')
             # Adicionar nota
             note = f'{order_iccid} enviado com sucesso na T-mobile'
-            NotesAdd.addNote(order,f'{note} TM: {response_data['hash']}')
+            hash_value = response_data['hash']
+            NotesAdd.addNote(order,f'{note} TM: {hash_value}')
         else:
             # Alterar status
             UpdateOrder.upStatus(id_item,'EA')

@@ -60,6 +60,7 @@ SHIPMENTS = [
     ('AG', 'Aerop. GRU'),
     ('FG', 'Frete Grátis'),
     ('EM', 'E-mail'),
+    ('EL', 'Engrega Loja'),
     ('EV', 'Entrega VIP'),
     ('FN', 'Frete Normal'),
     ('SD', 'SEDEX'),
