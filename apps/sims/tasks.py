@@ -26,7 +26,7 @@ def sims_in_orders():
     
     for ord in orders:
         
-        list_plan = ['977','980','3564','3734']
+        list_plan = ['977','980']
         id_id_i = ord.id
         id_item_i = Orders.objects.get(pk=id_id_i)
         order_id_i = ord.order_id
