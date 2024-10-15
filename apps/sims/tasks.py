@@ -26,12 +26,13 @@ def sims_in_orders():
     
     for ord in orders:
         
+        list_plan = ['977','980','3564','3734']
         id_id_i = ord.id
         id_item_i = Orders.objects.get(pk=id_id_i)
         order_id_i = ord.order_id
         product_i = ord.product
         type_sim_i = ord.type_sim
-        esim_eua = type_sim_i == 'esim' and (product_i == '977' or product_i == '980')
+        esim_eua = product_i in list_plan
         id_sim_i = id_item_i.id_sim
         
         # Se já houver SIM   
@@ -56,7 +57,7 @@ def sims_in_orders():
             # Escolher operadora
             if product_i == '981':
                 operator_i = 'VR'
-            elif product_i == '977' or product_i == '980':
+            elif product_i in list_plan:
                 operator_i = 'TM'
             elif product_i == '975':
                 operator_i = 'CM'
@@ -75,7 +76,7 @@ def sims_in_orders():
             # update order
             # Save SIMs
             if type_sim_i == 'esim':
-                if product_i == '977' or product_i == '980' or product_i == '981': 
+                if product_i in list_plan: 
                     status_ord = 'AI'
                 else: status_ord = 'EE'
             else: status_ord = 'ES'
