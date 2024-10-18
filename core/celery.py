@@ -19,4 +19,15 @@ CELERY_CONFIG = {
 
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
+# Configuração do Redis com suporte a failover
+app.conf.update(
+    broker_url='redis://master.redis:6379/0',
+    result_backend='redis://master.redis:6379/0',
+    broker_transport_options={
+        'master_name': 'mymaster',
+        'sentinels': [('sentinel1.redis', 26379), ('sentinel2.redis', 26379)],
+        'socket_timeout': 0.1,
+    },
+)
+
 app.autodiscover_tasks()
