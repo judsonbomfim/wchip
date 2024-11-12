@@ -94,8 +94,6 @@ def orders_list(request):
     page = request.GET.get('page')
     orders = paginator.get_page(page)
 
-    from rolepermissions.permissions import available_perm_status
-
     context = {
         'url_cdn': url_cdn,
         'orders_l': orders_l,
@@ -120,16 +118,15 @@ def ord_edit(request,id):
         ord_data_day = Orders.data_day.field.choices
         ord_operators = Sims.operator.field.choices
         
-        dias = list(range(1, 31))
+        days = list(range(1, 31))
         
         context = {
             'order': order,
             'ord_status': ord_status,
             'ord_product': ord_product,
             'ord_data_day': ord_data_day,
-            'ord_data_day': ord_data_day,
             'ord_operators': ord_operators,
-            'ord_days': dias,
+            'ord_days': days,
         }
         return render(request, 'painel/orders/edit.html', context)
         
