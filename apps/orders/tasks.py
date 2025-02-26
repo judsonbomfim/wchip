@@ -29,8 +29,8 @@ def order_import():
     date_now = datetime.now()
     start_date = date_now - timedelta(days=30)
     end_date = date_now
-    # order_p = apiStore.get('orders', params={'after': start_date, 'before': end_date, 'status': 'processing', 'per_page': per_page})        
-    order_p = apiStore.get('orders', params={'status': 'pg-confirmado', 'per_page': per_page})
+    # order_p = apiStore.get('orders', params={'status': 'pg-confirmado', 'per_page': per_page})
+    order_p = apiStore.get('orders', params={'status': ['pg-confirmado', 'processing'], 'per_page': per_page})
     
     total_pages = int(order_p.headers['X-WP-TotalPages'])
     n_page = 1

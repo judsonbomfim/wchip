@@ -84,7 +84,7 @@ class Orders(models.Model):
     cell_imei = models.CharField(max_length=35, null=True, blank=True)
     cell_eid = models.CharField(max_length=35, null=True, blank=True)
     ord_chip_nun = models.CharField(max_length=35, null=True, blank=True)
-    shipping = models.CharField(max_length=20, choices=SHIPMENTS, default='FN')
+    shipping = models.CharField(max_length=30, choices=SHIPMENTS, default='FN')
     order_date = models.DateTimeField()
     activation_date = models.DateField()
     order_status = models.CharField(max_length=4, choices=ORDER_STATUS, default='PR')
