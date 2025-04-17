@@ -339,17 +339,17 @@ def delSIMs(request):
     orders = Orders.objects.all()
     
     sims_cc = Sims.objects.filter(sim_status='CC')
-    sims_tc = Sims.objects.filter(sim_status='TC')
+    # sims_tc = Sims.objects.filter(sim_status='TC')
     
     for sim in sims_cc:
         if orders.filter(id_sim=sim.id):
             continue
         sim.delete()
     
-    for sim in sims_tc:
-        if orders.filter(id_sim=sim.id):
-            continue
-        sim.delete()
+    # for sim in sims_tc:
+    #     if orders.filter(id_sim=sim.id):
+    #         continue
+    #     sim.delete()
     
     return HttpResponse('SIMs deletados com sucesso')
 
