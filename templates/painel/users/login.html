@@ -20,7 +20,7 @@
   <style>
     .bg-body {
       background-color: #12364e !important;
-      background-image: url('{% static 'painel/theme/img/bg-sistema-login.jpg' %}') !important;
+      background-image: url('{% static "painel/theme/img/bg-sistema-login.jpg" %}') !important;
       background-align: center !important;
     }
  </style>
@@ -34,7 +34,7 @@
     <form action="{% url 'login' %}" method="POST">
       {% csrf_token %}
       <div class="text-center mb-4">
-        <img class="mb-4" src="{% static 'painel/theme/img/logo-painel.png' %}" style="width: 250px">
+        <img class="mb-4" src="{% static 'painel/theme/img/logo-worldchip-sistema.png' %}" style="width: 250px">
         <h1 class="h5 mb-3 fw-normal text-white">Login do Sistema</h1>
       </div>
       <div class="form-floating pb-2">
