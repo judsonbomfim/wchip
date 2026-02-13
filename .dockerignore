@@ -19,7 +19,7 @@ local_settings.py
 # Virtual environments
 env/
 venv/
-.env/
+#.env/
 .venv/
 
 # Node modules

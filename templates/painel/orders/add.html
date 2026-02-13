@@ -1,0 +1,155 @@
+{% extends 'painel/shared/base.html' %}
+{% load static %}
+{% block title_page %}<i class="bi bi-shop" style="font-size: 1.2em;"></i> Pedidos{% endblock %}
+
+{% block content %}
+<div class="crm mb-25">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="breadcrumb-main">
+                    <h4 class="fw-normal">Adicionar Pedido Manual</h4>
+                </div>
+            </div>
+            <div class="col-md-12 col-xl-10">
+                <div class="card shadow">
+                    <div class="card-header py-3">
+                        <h6 class="text-uppercase fw-normal color-gray">NOVO PEDIDO</h6>
+                    </div>
+                    <div class="card-body">
+                        <form action="{% url 'ord_add' %}" method="POST">
+                            {% csrf_token %}
+
+                            <div class="row mb-4">
+                                <div class="col-md-6 col-xl-3">
+                                    <label class="form-label">ID Pedido*</label>
+                                    <input type="number" class="form-control" name="order_id" value="{{ request.POST.order_id }}" required>
+                                </div>
+                                <div class="col-md-6 col-xl-3">
+                                    <label class="form-label">Item do Pedido*</label>
+                                    <input type="text" class="form-control" name="item_id" value="{{ request.POST.item_id }}" required>
+                                </div>
+                                <div class="col-md-6 col-xl-6">
+                                    <label class="form-label">Cliente*</label>
+                                    <input type="text" class="form-control" name="client" value="{{ request.POST.client }}" required>
+                                </div>
+                            </div>
+
+                            <div class="row mb-4">
+                                <div class="col-md-6 col-xl-6">
+                                    <label class="form-label">E-mail</label>
+                                    <input type="email" class="form-control" name="email" value="{{ request.POST.email }}">
+                                </div>
+                                <div class="col-md-6 col-xl-6">
+                                    <label class="form-label">Celular/Modelo</label>
+                                    <input type="text" class="form-control" name="cell_mod" value="{{ request.POST.cell_mod }}">
+                                </div>
+                            </div>
+
+                            <div class="col-md-12 col-xl-12">
+                                <label class="form-label">Dias*</label>
+                                <div class="row">
+                                    {% for day in ord_days %}
+                                    <input type="radio" class="btn-check" name="days" id="days{{ day }}" value="{{ day }}" {% if request.POST.days == day|stringformat:"s" %}checked{% endif %} required>
+                                    <label class="btn btn-outline-primary m-1" for="days{{ day }}">{{ day }}</label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <br>
+
+                            <div class="row mb-4">
+                                <div class="col-md-6 col-xl-6">
+                                    <label class="form-label">Plano*</label>
+                                    <div class="row">
+                                        {% for ord_p in ord_product %}
+                                        <input type="radio" class="btn-check" name="product" id="product{{forloop.counter}}" value="{{ord_p.0}}" {% if request.POST.product == ord_p.0 %}checked{% endif %} required>
+                                        <label class="btn btn-outline-primary m-1" for="product{{forloop.counter}}">{{ord_p.1}}</label>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-xl-6">
+                                    <label class="form-label">Franquia*</label>
+                                    <div class="row">
+                                        {% for ord_d_d in ord_data_day %}
+                                        <input type="radio" class="btn-check m-1" name="data_day" id="data_day{{forloop.counter}}" value="{{ord_d_d.0}}" {% if request.POST.data_day == ord_d_d.0 %}checked{% endif %} required>
+                                        <label class="btn btn-outline-primary m-1" for="data_day{{forloop.counter}}">{{ord_d_d.1}}</label>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-4">
+                                <div class="col-md-6 col-xl-6">
+                                    <label class="form-label">Tipo de Chip*</label>
+                                    <div class="row">
+                                        <input type="radio" class="btn-check" name="type_sim" id="type_sim1" value="sim" {% if request.POST.type_sim == 'sim' or not request.POST.type_sim %}checked{% endif %} required>
+                                        <label class="btn btn-outline-primary m-1" for="type_sim1">SIM Físico</label>
+                                        <input type="radio" class="btn-check" name="type_sim" id="type_sim2" value="esim" {% if request.POST.type_sim == 'esim' %}checked{% endif %} required>
+                                        <label class="btn btn-outline-primary m-1" for="type_sim2">eSIM Virtual</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-xl-6">
+                                    <label class="form-label">Operadora*</label>
+                                    <div class="row">
+                                        {% for oper_p in ord_operators %}
+                                        <input type="radio" class="btn-check" name="operator" id="operator{{forloop.counter}}" value="{{oper_p.0}}" {% if request.POST.operator == oper_p.0 %}checked{% endif %} required>
+                                        <label class="btn btn-outline-primary m-1" for="operator{{forloop.counter}}">{{oper_p.1}}</label>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-4">
+                                <div class="col-md-6 col-xl-6">
+                                    <label class="form-label">SIM/(e)SIM (opcional)</label>
+                                    <input type="text" class="form-control" name="sim" value="{{ request.POST.sim }}" placeholder="Número do SIM">
+                                </div>
+                                <div class="col-md-6 col-xl-3">
+                                    <label class="form-label">Data de ativação*</label>
+                                    <input type="date" class="form-control" name="activation_date" value="{{ request.POST.activation_date }}" required>
+                                </div>
+                                <div class="col-md-6 col-xl-3">
+                                    <label class="form-label">Status*</label>
+                                    <select class="form-select" name="ord_st_f" required>
+                                        <option value="">Selecione</option>
+                                        {% for ord_s in ord_status %}
+                                        <option value="{{ord_s.0}}" {% if request.POST.ord_st_f == ord_s.0 %}selected{% endif %}>{{ord_s.1}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-4">
+                                <div class="col-md-6 col-xl-6">
+                                    <label class="form-label">IMEI</label>
+                                    <input type="text" class="form-control" name="cell_imei" value="{{ request.POST.cell_imei }}">
+                                </div>
+                                <div class="col-md-6 col-xl-6">
+                                    <label class="form-label">EID</label>
+                                    <input type="text" class="form-control" name="cell_eid" value="{{ request.POST.cell_eid }}">
+                                </div>
+                            </div>
+
+                            <div class="row mb-4">
+                                <div class="col-md-6 col-xl-6">
+                                    <label class="form-label">Rastreio</label>
+                                    <input type="text" class="form-control" name="tracking" value="{{ request.POST.tracking }}">
+                                </div>
+                                <div class="col-md-6 col-xl-6">
+                                    <label class="form-label">Nota do pedido</label>
+                                    <input type="text" class="form-control" name="ord_note" value="{{ request.POST.ord_note }}" placeholder="Observações sobre o cadastro manual">
+                                </div>
+                            </div>
+
+                            <div class="form-group d-flex gap-2">
+                                <button type="submit" class="btn btn-primary mb-3">Salvar Pedido</button>
+                                <a href="{% url 'orders_list' %}" class="btn btn-light mb-3">Cancelar</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

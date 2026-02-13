@@ -109,6 +109,95 @@ def orders_list(request):
 # Order Edit
 @login_required(login_url='/login/')
 @has_permission_decorator('edit_orders')
+def ord_add(request):
+    ord_status = Orders.order_status.field.choices
+    ord_product = Orders.product.field.choices
+    ord_data_day = Orders.data_day.field.choices
+    ord_operators = Sims.operator.field.choices
+    days = list(range(1, 31))
+
+    context = {
+        'ord_status': ord_status,
+        'ord_product': ord_product,
+        'ord_data_day': ord_data_day,
+        'ord_operators': ord_operators,
+        'ord_days': days,
+    }
+
+    if request.method == 'GET':
+        return render(request, 'painel/orders/add.html', context)
+
+    order_id = request.POST.get('order_id')
+    item_id = request.POST.get('item_id')
+    client = request.POST.get('client')
+    email = request.POST.get('email')
+    cell_mod = request.POST.get('cell_mod')
+    days_value = request.POST.get('days')
+    product = request.POST.get('product')
+    data_day = request.POST.get('data_day')
+    type_sim = request.POST.get('type_sim')
+    operator = request.POST.get('operator')
+    sim = request.POST.get('sim')
+    activation_date = request.POST.get('activation_date')
+    cell_imei = request.POST.get('cell_imei')
+    cell_eid = request.POST.get('cell_eid')
+    tracking = request.POST.get('tracking')
+    ord_st = request.POST.get('ord_st_f')
+    ord_note = request.POST.get('ord_note')
+
+    if not order_id or not item_id or not client or not product or not data_day or not days_value or not activation_date or not ord_st:
+        messages.error(request, 'Preencha todos os campos obrigatórios para criar o pedido.')
+        return render(request, 'painel/orders/add.html', context)
+
+    id_sim = None
+    if sim:
+        sim_exists = Sims.objects.filter(sim=sim).first()
+        if sim_exists:
+            messages.error(request, f'O SIM {sim} já está cadastrado no sistema.')
+            return render(request, 'painel/orders/add.html', context)
+
+        id_sim = Sims.objects.create(
+            sim=sim,
+            type_sim=type_sim,
+            operator=operator,
+            sim_status='AT',
+        )
+
+    order = Orders.objects.create(
+        order_id=int(order_id),
+        item_id=item_id,
+        client=client,
+        email=email,
+        product=product,
+        data_day=data_day,
+        qty=1,
+        days=int(days_value),
+        cell_mod=cell_mod,
+        cell_imei=cell_imei,
+        cell_eid=cell_eid,
+        activation_date=activation_date,
+        order_date=datetime.now(),
+        order_status=ord_st,
+        type_sim=type_sim,
+        oper_sim=operator,
+        id_sim=id_sim,
+        tracking=tracking,
+    )
+
+    if ord_note:
+        Notes.objects.create(
+            id_item=order,
+            id_user=User.objects.get(pk=request.user.id),
+            note=ord_note,
+            type_note='S',
+        )
+
+    messages.success(request, f'Pedido {order.item_id} criado com sucesso!')
+    return redirect('ord_edit', id=order.id)
+
+
+@login_required(login_url='/login/')
+@has_permission_decorator('edit_orders')
 def ord_edit(request,id):
     if request.method == 'GET':
             
@@ -191,7 +280,7 @@ def ord_edit(request,id):
                 sim_put.save()
                 
                 if type_sim == 'esim': 
-                    ord_st = 'EE'
+                    ord_st = 'AA'
                 else: ord_st = ord_st
                 
                 order_put = Orders.objects.get(pk=order.id)

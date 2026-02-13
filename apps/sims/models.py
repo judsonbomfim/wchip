@@ -9,8 +9,9 @@ SIM_STATUS = [
     ('TC', 'Troca'),
 ]
 SIM_OPERATOR = [
-    ('TM', 'T-Mobile'), 
+    ('AR', 'Airalo'),
     ('CM', 'China Mobile'),
+    ('TM', 'T-Mobile'), 
     ('TC', 'Telcom'),
     ('VR', 'Verizon'),
 ]

@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     path('listar/', views.orders_list, name='orders_list'),
+    path('adicionar/', views.ord_add, name='ord_add'),
     path('editar/<int:id>', views.ord_edit, name='ord_edit'),
     path('exportar/', views.ord_export_op, name='ord_export_op'),
     path('enviar/esims/', views.send_esims, name='send_esims'),

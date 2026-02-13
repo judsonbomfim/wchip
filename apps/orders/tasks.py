@@ -9,9 +9,15 @@ from apps.sims.tasks import sims_in_orders, simDeactivateTC, simActivateTC
 from apps.sims.classes import OperatorSelect
 import time
 from apps.send_email.tasks import send_email_sims
+import logging
+
+# Configurar logger para este módulo
+logger = logging.getLogger('apps.orders')
 
 @shared_task
 def order_import():
+    date_now = datetime.now()
+    logger.info(f'[{date_now}] Iniciando importação de pedidos')
     
     print('----------------- Importar pedidos')
     # Importar pedidos
@@ -26,19 +32,20 @@ def order_import():
     
     # Definir números de páginas
     per_page = 100
-    date_now = datetime.now()
-    start_date = date_now - timedelta(days=30)
-    end_date = date_now
-    order_p = apiStore.get('orders', params={'status': 'pg-confirmado', 'per_page': per_page})
+    order_p = apiStore.get('orders', params={'status': 'pg-confirmado,processing', 'per_page': per_page})
     
-    total_pages = int(order_p.headers['X-WP-TotalPages'])
+    if order_p.status_code != 200:
+        logger.error(f'[{date_now}] Erro ao buscar pedidos: {order_p.status_code}')
+        return
+    
+    total_pages = int(order_p.headers.get('X-WP-TotalPages', 1))
     n_page = 1
-    
+    logger.info(f'Total de páginas de pedidos: {total_pages}')
     # orders_all = Orders.objects.all()
     
     while n_page <= total_pages:
         # Pedidos com status 'processing'
-        ord = apiStore.get('orders', params={'order': 'asc', 'status': 'pg-confirmado', 'per_page': per_page, 'page': n_page}).json()
+        ord = apiStore.get('orders', params={'order': 'asc', 'status': 'pg-confirmado,processing', 'per_page': per_page, 'page': n_page}).json()
 
         # Listar pedidos         
         for order in ord:
@@ -68,7 +75,7 @@ def order_import():
                 
                 while q_i <= qtd:
                     order_id_i = order['id']
-                    print('----------------- Inserindo pedido',order_id_i)
+                    logger.info(f'Inserindo pedido {order_id_i}')
                     
                     item_id_i = f'{order_id_i}-{n_item}'
                     client_i = f'{order["billing"]["first_name"]} {order["billing"]["last_name"]}'
@@ -83,6 +90,7 @@ def order_import():
                     ord_chip_nun_i = '-'
                     countries_i = False
                     cell_mod_i = False
+                    type_sim_i = "sim"
                     # Percorrer itens do pedido
                     for i in item['meta_data']:
                         if i['key'] == 'pa_tipo-de-sim':
@@ -90,7 +98,7 @@ def order_import():
                             sim_t = tipe_sim[0].strip().lower()
                             if sim_t == 'esim' : type_sim_i = 'esim'
                             else: type_sim_i = 'sim'
-                            print(f'----------------- type_sim_i - {type_sim_i}')    
+                            logger.info(f'type_sim_i - {type_sim_i}')    
                         if i['key'] == 'pa_franquia': data_day_i = i['value']
                         if i['key'] == 'pa_dias': days_i = i['value']
                         if 'Visitará' in i['key']:
@@ -112,35 +120,29 @@ def order_import():
                     # ('EV', 'Entrega VIP'),
                     # ('SD', 'SEDEX'),
                     
-                    if 'GRU' in shipping_i:
-                        shipping_i = 'AG'
-                        order_status_i = 'AG'
-                    elif 'Grátis' in shipping_i:
+                    if 'Grátis' in shipping_i:
                         shipping_i = 'FG'
                         order_status_i = 'AS'
-                    elif 'Normal' in shipping_i:
-                        shipping_i = 'FN'
+                    elif 'e-mail' in shipping_i:
+                        shipping_i = 'EM'
+                        if (product_i == '977'):
+                            order_status_i = 'AI'
+                        else:
+                            order_status_i = 'AS'
+                    elif 'Pac' in shipping_i:
+                        shipping_i = 'PC'
                         order_status_i = 'AS'
                     elif 'SEDEX' in shipping_i:
                         shipping_i = 'SD'
                         order_status_i = 'AS'
-                    elif 'Loja' in shipping_i:
-                        shipping_i = 'EL'
+                    elif 'Loggi' in shipping_i:
+                        shipping_i = 'LG'
                         order_status_i = 'AS'
-                    elif 'e-mail' in shipping_i:
-                        shipping_i = 'EM'
-                        if (product_i == '981' or product_i == '980' or product_i == '977'):
-                            order_status_i = 'AI'
-                        else:
-                            order_status_i = 'AS'
-                    elif 'VIP' in shipping_i:
-                        shipping_i = 'EV'
-                        order_status_i = 'EV'
                     elif 'SP' in shipping_i:
                         shipping_i = 'RS'
                         order_status_i = 'RS'
-
-                    print('----------------- shipping_i',shipping_i)
+                    elif type_sim_i == "esim":
+                        order_status_i = 'AS'
                         
                     # Definir Operadora                   
                     oper_sel = OperatorSelect.opSel()
@@ -220,13 +222,12 @@ def order_import():
 
 @shared_task
 def orders_auto():
-    print('-----------------orders_auto')
+    logger.info('Iniciando orders_auto')
     order_import.delay()
     time.sleep(5)
     sims_in_orders.delay()
     time.sleep(10)
     send_email_sims.delay()
-
 
 @shared_task
 def orders_up_status(ord_id, ord_s, id_user):
@@ -236,8 +237,7 @@ def orders_up_status(ord_id, ord_s, id_user):
     
     for o_id in ord_id:
         
-        print('-----------------o_id')
-        print(o_id)
+        logger.info(f'Processando order ID: {o_id}')
         
         order = Orders.objects.get(pk=o_id)
         user = User.objects.get(pk=id_user)

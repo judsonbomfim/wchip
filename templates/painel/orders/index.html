@@ -45,6 +45,13 @@
       </div>
     </div>
   {% endif %}
+  {% if request.user|can:'edit_orders' %}
+    <div class="col-md-12 mb-3">
+      <a href="{% url 'ord_add' %}" class="btn btn-default btn-rounded color-primary btn-primary">
+        <i class="bi bi-plus-circle"></i> Novo Pedido
+      </a>
+    </div>
+  {% endif %}
   <form class="row g-3" action="{% url 'orders_list' %}" method="POST">
     {% csrf_token %}
     {% if request.user|can:'edit_orders' %}

@@ -3,31 +3,37 @@ from django.contrib.auth.models import User
 from apps.sims.models import Sims
 
 PRODUCT = [
-    ('3734', 'Am. Sul Flex'),
-    ('3564', 'Am. do Sul Controle'),
-    ('981', 'Norte Verizon'),
-    ('980', 'Norte T-Mobile'),
-    ('979', 'EUA Flex'),
-    ('976', 'EUA Controle'),
+    ('4769', 'Oriente Flex'),
+    ('4768', 'Asia Flex'),
+    ('4763', 'Africa Flex'),
+    ('4752', 'Cuba Flex'),
+    ('4740', 'Japão Flex'),
+    ('4735', 'Oceania Flex'),
+    ('4718', 'Caribe Flex'),
+    ('3734', 'A. Sul Flex'),
+    ('3564', 'A. Sul Controle'),
+    ('981', 'A. Norte Flex'),
+    ('980', 'A. Norte Controle'),
+    ('976', 'EUA Flex'),    
     ('977', 'EUA Ilimitado'),
-    ('975', 'Mundo'),
-    ('974', 'Europa Flex'),
+    ('975', 'Mundo Controle'),
+    ('4816', 'Europa Flex (E)'),
+    ('974', 'Europa Flex (F)'),
     ('971', 'Europa Controle'),
 ]
 
 DATA = [
-    ('500mb-dia', '500MB/Dia'),
+    ('500mb-dia', '500MB / Dia'),
     ('1gb-dia', '1GB / Dia'),
     ('2gb-dia', '2GB / Dia'),
-    ('5gb-30dias', '5GB / 30 Dias'),
-    ('10gb-30dias', '10GB / 30 Dias'),
-    ('20gb-30dias', '20GB / 30 Dias'),
-    ('30gb-30dias', '30GB / 30 Dias'),
-    ('1gb-7dias', '1GB / 7 Dias'),
-    ('2gb-7dias', '2GB / 7 Dias'),
-    ('3gb-15dias', '3GB / 15 Dias'),
-    ('4gb-15dias', '4GB / 15 Dias'),
     ('ilimitado', 'Ilimitado'),
+    ('1gb-periodo', '1GB / Período'),
+    ('2gb-periodo', '2GB / Período'),
+    ('3gb-periodo', '3GB / Período'),
+    ('5gb-periodo', '5GB / Período'),
+    ('10gb-periodo', '10GB / Período'),
+    ('20gb-periodo', '20GB / Período'),
+    ('30gb-periodo', '30GB / Período'),
 ]
 
 ORDER_STATUS = [
@@ -57,12 +63,10 @@ ORDER_STATUS = [
 ]
 
 SHIPMENTS = [
-    ('AG', 'Aerop. GRU'),
-    ('FG', 'Frete Grátis'),
     ('EM', 'E-mail'),
-    ('EL', 'Engrega Loja'),
-    ('EV', 'Entrega VIP'),
-    ('FN', 'Frete Normal'),
+    ('FG', 'Frete Grátis'),
+    ('LG', 'Loggi'),
+    ('PC', 'Pac'),
     ('SD', 'SEDEX'),
     ('RS', 'Retirada SP'),
 ]

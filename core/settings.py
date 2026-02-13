@@ -207,43 +207,173 @@ DEFAULT_FROM_EMAIL = str(env('DEFAULT_FROM_EMAIL'))
 
 # CELERY
 
-CELERY_BROKER_URL = str(env('CELERY_BROKER_URL'))
-CELERY_RESULT_BACKEND = str(env('CELERY_RESULT_BACKEND'))
+CELERY_BROKER_URL = str(os.getenv('CELERY_BROKER_URL'))
+CELERY_RESULT_BACKEND = str(os.getenv('CELERY_RESULT_BACKEND'))
 
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 CELERY_BEAT_SYNC_EVERY = None
 
+CELERY_TIMEZONE = TIME_ZONE
+
 CELERY_BEAT_SCHEDULE = {
-    'task__5_min_orders_auto': {
+    'task__2_min_orders_auto': {
         'task': 'apps.orders.tasks.orders_auto',
-        'schedule': crontab(minute='*/3'),
-        # 'schedule': crontab(minute='*/1'),
+        'schedule': crontab(minute='*/2'),
     },
-    'task__5_min_activate_TC': {
+    'task__2_min_activate_TC': {
         'task': 'apps.sims.tasks.simActivateTC',
-        'schedule': crontab(minute='1-59/3'),
-        # 'schedule': crontab(minute='*/1'),
+        'schedule': crontab(minute='2-59/2'),
+    },
+    'task__2_min_activate_TM': {
+        'task': 'apps.sims.tasks.simActivateTM',
+        'schedule': crontab(minute='3-59/2'),
     },
     'task__deactivate_TC': {
         'task': 'apps.sims.tasks.simDeactivateTC',
-        'schedule': crontab( hour=23, minute=50),
+        'schedule': crontab( hour=00, minute=00),
     },
-    'task__simActivateTM': {
-        'task': 'apps.sims.tasks.simActivateTM',
-        'schedule': crontab(minute='2-59/3'),
+    'task__deactivate_all': {
+        'task': 'apps.sims.tasks.simDeactivateAll',
+        'schedule': crontab( hour=00, minute=00),
+    },
+    'task__2_min_activate_CM': {
+        'task': 'apps.sims.tasks.simActivateCM',
+        'schedule': crontab(minute='4-59/2'),
     },
 }
 
 
 # API TELCON
-APITC_USERNAME = str(env('APITC_USERNAME'))
-APITC_PASSWORD = str(env('APITC_PASSWORD'))
-APITC_HTTPCONN = str(env('APITC_HTTPCONN'))
+APITC_USERNAME = str(os.getenv('APITC_USERNAME'))
+APITC_PASSWORD = str(os.getenv('APITC_PASSWORD'))
+APITC_HTTPCONN = str(os.getenv('APITC_HTTPCONN'))
+
+# API CHINA MOBILE
+APICM_KEY = str(os.getenv('APICM_KEY'))
+APICM_SECRET = str(os.getenv('APICM_SECRET'))
+APICM_URL = str(os.getenv('APICM_URL'))
+
+# API TM
+APITM_TOKEN = str(os.getenv('APITM_TOKEN'))
+APITM_URL = str(os.getenv('APITM_URL'))
+
+# API AIRALO
+APIAIRALO_KEY = str(os.getenv('APIAIRALO_KEY'))
+APIAIRALO_SECRET = str(os.getenv('APIAIRALO_SECRET'))
+APIAIRALO_URL = str(os.getenv('APIAIRALO_URL'))
 
 
-# DATA API TC
-APITM_TOKEN=str(env('APITM_TOKEN'))
-APITM_EMAIL=str(env('APITM_EMAIL'))
-APITM_HTTPCONN=str(env('APITM_HTTPCONN'))
-APITM_OPERATOR=str(env('APITM_OPERATOR'))
+# LOGGING CONFIGURATION
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {asctime} {message}',
+            'style': '{',
+        },
+        'detailed': {
+            'format': '[{asctime}] {levelname} [{name}:{lineno}] - {message}',
+            'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+    },
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'app.log'),
+            'maxBytes': 1024 * 1024 * 15,  # 15MB
+            'backupCount': 10,
+            'formatter': 'detailed',
+        },
+        'file_error': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'error.log'),
+            'maxBytes': 1024 * 1024 * 15,  # 15MB
+            'backupCount': 10,
+            'formatter': 'detailed',
+        },
+        'celery_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'celery.log'),
+            'maxBytes': 1024 * 1024 * 15,  # 15MB
+            'backupCount': 10,
+            'formatter': 'detailed',
+        },
+        'sims_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'sims.log'),
+            'maxBytes': 1024 * 1024 * 15,  # 15MB
+            'backupCount': 10,
+            'formatter': 'detailed',
+        },
+        'orders_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'orders.log'),
+            'maxBytes': 1024 * 1024 * 15,  # 15MB
+            'backupCount': 10,
+            'formatter': 'detailed',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['file_error'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'celery': {
+            'handlers': ['console', 'celery_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'apps.sims': {
+            'handlers': ['console', 'sims_file', 'file_error'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'apps.orders': {
+            'handlers': ['console', 'orders_file', 'file_error'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'apps.send_email': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'apps.users': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+    'root': {
+        'handlers': ['console', 'file', 'file_error'],
+        'level': 'INFO',
+    },
+}
