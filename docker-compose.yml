@@ -88,8 +88,8 @@ services:
 
 networks:
   public:
+    external: true
     name: public
-    driver: bridge
   internal:
     driver: bridge
 
