@@ -91,7 +91,8 @@ networks:
     external: true
     name: public
   internal:
-    driver: bridge
+    external: true
+    name: shared_backend
 
 volumes:
   redis-data:
