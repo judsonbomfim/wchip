@@ -2,6 +2,7 @@ from pathlib import Path
 import environ
 import os
 import boto3
+from urllib.parse import urlparse
 from django.contrib.messages import constants as messages
 from celery.schedules import crontab
 from datetime import timedelta
@@ -35,8 +36,29 @@ DEBUG = True
 # Certifique-se de que cast não seja sobrescrito
 ALLOWED_HOSTS = [h.strip() for h in env('ALLOWED_HOSTS', default='').split(',')]
 
+def _normalize_origin(value):
+    value = (value or '').strip()
+    if not value:
+        return ''
+    if not value.startswith(('http://', 'https://')):
+        return ''
+    parsed = urlparse(value)
+    if not parsed.scheme or not parsed.netloc:
+        return ''
+    return f'{parsed.scheme}://{parsed.netloc}'
 
-CSRF_TRUSTED_ORIGINS = [a.strip() for a in env('CSRF_TRUSTED_ORIGINS', default='').split(',')]
+
+csrf_origins_env = [
+    _normalize_origin(a)
+    for a in env('CSRF_TRUSTED_ORIGINS', default='').split(',')
+]
+csrf_origins = {origin for origin in csrf_origins_env if origin}
+
+url_painel = _normalize_origin(env('URL_PAINEL', default=''))
+if url_painel:
+    csrf_origins.add(url_painel)
+
+CSRF_TRUSTED_ORIGINS = sorted(csrf_origins)
 
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
