@@ -1,3 +1,5 @@
+import os
+
 from woocommerce import API
 import environ
 from django.conf import settings
