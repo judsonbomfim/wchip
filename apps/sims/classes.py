@@ -377,9 +377,7 @@ class ApiTC:
 
 
 class ApiCM:
-    
-    print(">>>>>>>>>>>>>>>>>>> Classe ApiCM iniciada")
-    
+        
     app_key = settings.APICM_KEY
     app_secret = settings.APICM_SECRET
 

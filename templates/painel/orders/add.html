@@ -22,12 +22,8 @@
 
                             <div class="row mb-4">
                                 <div class="col-md-6 col-xl-3">
-                                    <label class="form-label">ID Pedido*</label>
+                                    <label class="form-label">Pedido*</label>
                                     <input type="number" class="form-control" name="order_id" value="{{ request.POST.order_id }}" required>
-                                </div>
-                                <div class="col-md-6 col-xl-3">
-                                    <label class="form-label">Item do Pedido*</label>
-                                    <input type="text" class="form-control" name="item_id" value="{{ request.POST.item_id }}" required>
                                 </div>
                                 <div class="col-md-6 col-xl-6">
                                     <label class="form-label">Cliente*</label>
@@ -142,7 +138,7 @@
                             </div>
 
                             <div class="form-group d-flex gap-2">
-                                <button type="submit" class="btn btn-primary mb-3">Salvar Pedido</button>
+                                <button type="submit" class="btn btn-primary mb-3">Inserir Pedido</button>
                                 <a href="{% url 'orders_list' %}" class="btn btn-light mb-3">Cancelar</a>
                             </div>
                         </form>

@@ -126,9 +126,10 @@ def ord_add(request):
 
     if request.method == 'GET':
         return render(request, 'painel/orders/add.html', context)
-
+    
     order_id = request.POST.get('order_id')
-    item_id = request.POST.get('item_id')
+    item_cont = (Orders.objects.filter(order_id=order_id).count()) + 1  
+    item_id = order_id + f'-{item_cont}'
     client = request.POST.get('client')
     email = request.POST.get('email')
     cell_mod = request.POST.get('cell_mod')
@@ -193,7 +194,7 @@ def ord_add(request):
         )
 
     messages.success(request, f'Pedido {order.item_id} criado com sucesso!')
-    return redirect('ord_edit', id=order.id)
+    return redirect('orders_list')
 
 
 @login_required(login_url='/login/')

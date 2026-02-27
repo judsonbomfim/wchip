@@ -46,7 +46,7 @@
     </div>
   {% endif %}
   {% if request.user|can:'edit_orders' %}
-    <div class="col-md-12 mb-3">
+    <div class="col-md-12 mb-3 pt-3">
       <a href="{% url 'ord_add' %}" class="btn btn-default btn-rounded color-primary btn-primary">
         <i class="bi bi-plus-circle"></i> Novo Pedido
       </a>
