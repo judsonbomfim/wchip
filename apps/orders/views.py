@@ -575,7 +575,7 @@ def orders_activations(request):
     
     orders_all = Orders.objects.filter(activation_date__gte=days60).order_by('activation_date')
     
-    orders_df = pd.DataFrame((orders_all.values(*fields_df)))
+    orders_df = pd.DataFrame(orders_all.values(*fields_df), columns=fields_df)
     
     
     orders_df['product'] = orders_df['product'].map(product_choice_dict)
