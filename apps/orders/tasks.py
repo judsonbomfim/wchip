@@ -32,10 +32,11 @@ def order_import():
     
     # Definir números de páginas
     per_page = 100
-    order_p = apiStore.get('orders', params={'status': 'pg-confirmado,processing', 'per_page': per_page})
+    order_status_filter = ['pg-confirmado', 'processing']
+    order_p = apiStore.get('orders', params={'status': order_status_filter, 'per_page': per_page})
     
     if order_p.status_code != 200:
-        logger.error(f'[{date_now}] Erro ao buscar pedidos: {order_p.status_code}')
+        logger.error(f'[{date_now}] Erro ao buscar pedidos: {order_p.status_code} - {order_p.text}')
         return
     
     total_pages = int(order_p.headers.get('X-WP-TotalPages', 1))
@@ -45,7 +46,26 @@ def order_import():
     
     while n_page <= total_pages:
         # Pedidos com status 'processing'
-        ord = apiStore.get('orders', params={'order': 'asc', 'status': 'pg-confirmado,processing', 'per_page': per_page, 'page': n_page}).json()
+        page_response = apiStore.get(
+            'orders',
+            params={
+                'order': 'asc',
+                'status': order_status_filter,
+                'per_page': per_page,
+                'page': n_page,
+            }
+        )
+
+        if page_response.status_code != 200:
+            logger.error(f'Erro ao buscar página {n_page}: {page_response.status_code} - {page_response.text}')
+            n_page += 1
+            continue
+
+        ord = page_response.json()
+        if not isinstance(ord, list):
+            logger.error(f'Resposta inesperada na página {n_page}: {ord}')
+            n_page += 1
+            continue
 
         # Listar pedidos         
         for order in ord:
@@ -91,6 +111,9 @@ def order_import():
                     countries_i = False
                     cell_mod_i = False
                     type_sim_i = "sim"
+                    data_day_i = None
+                    days_i = None
+                    activation_date_i = None
                     # Percorrer itens do pedido
                     for i in item['meta_data']:
                         if i['key'] == 'pa_tipo-de-sim':
@@ -125,7 +148,7 @@ def order_import():
                         order_status_i = 'AS'
                     elif 'e-mail' in shipping_i:
                         shipping_i = 'EM'
-                        if (product_i == '977'):
+                        if product_i == 977:
                             order_status_i = 'AI'
                         else:
                             order_status_i = 'AS'
