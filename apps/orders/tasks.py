@@ -19,9 +19,12 @@ def order_import():
     date_now = datetime.now()
     logger.info(f'[{date_now}] Iniciando importação de pedidos')
     
-    print('----------------- Importar pedidos')
-    # Importar pedidos
-    apiStore = ApiStore.conectApiStore()
+    try:
+        apiStore = ApiStore.conectApiStore()
+        logger.info('Conexão com API da loja estabelecida com sucesso')
+    except Exception as e:
+        logger.error(f'Erro ao conectar com API da loja: {e}')
+        return
     
     global n_item_total
     n_item_total = 0
