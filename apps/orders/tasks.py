@@ -128,7 +128,6 @@ def order_import():
                             sim_t = tipe_sim[0].strip().lower()
                             if sim_t == 'esim' : type_sim_i = 'esim'
                             else: type_sim_i = 'sim'
-                            logger.info(f'type_sim_i - {type_sim_i}')    
                         if i['key'] == 'pa_franquia': data_day_i = i['value']
                         if i['key'] == 'pa_dias': days_i = i['value']
                         if 'Visitará' in i['key']:
@@ -175,8 +174,9 @@ def order_import():
                         order_status_i = 'AS'
                         
                     # Definir Operadora                   
-                    oper_sel = OperatorSelect.opSel()
+                    oper_sel = OperatorSelect.opSelSim()
                     oper_sim_i = oper_sel.get(str(product_i), '')
+                    logger.info(f'Produto {product_i} associado à operadora {oper_sim_i}')
                     
                     # Definir variáveis para salvar no banco de dados                            
                     order_add = Orders(                    
