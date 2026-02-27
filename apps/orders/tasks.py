@@ -45,6 +45,8 @@ def order_import():
     # orders_all = Orders.objects.all()
     
     while n_page <= total_pages:
+        logger.info(f'Buscando página {n_page} de pedidos')
+        
         # Pedidos com status 'processing'
         page_response = apiStore.get(
             'orders',
@@ -69,6 +71,8 @@ def order_import():
 
         # Listar pedidos         
         for order in ord:
+            logger.info(f'Processando pedido ID: {order["id"]}')
+            
             n_item = 1
             id_ord = order["id"]
             client_id_i = order['customer_id']
