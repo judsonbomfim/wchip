@@ -21,7 +21,6 @@ def order_import():
     
     try:
         apiStore = ApiStore.conectApiStore()
-        logger.info('Conexão com API da loja estabelecida com sucesso')
     except Exception as e:
         logger.error(f'Erro ao conectar com API da loja: {e}')
         return
@@ -44,11 +43,9 @@ def order_import():
     
     total_pages = int(order_p.headers.get('X-WP-TotalPages', 1))
     n_page = 1
-    logger.info(f'Total de páginas de pedidos: {total_pages}')
     # orders_all = Orders.objects.all()
     
     while n_page <= total_pages:
-        logger.info(f'Buscando página {n_page} de pedidos')
         
         # Pedidos com status 'processing'
         page_response = apiStore.get(
@@ -176,7 +173,6 @@ def order_import():
                     # Definir Operadora                   
                     oper_sel = OperatorSelect.opSelSim()
                     oper_sim_i = oper_sel.get(str(product_i), '')
-                    logger.info(f'Produto {product_i} associado à operadora {oper_sim_i}')
                     
                     # Definir variáveis para salvar no banco de dados                            
                     order_add = Orders(                    
