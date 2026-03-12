@@ -10,6 +10,9 @@ touch /djangoweb/logs/performance.log
 echo "Executando migrações..."
 python manage.py migrate
 
+echo "Sincronizando grupos e permissões de roles..."
+python manage.py sync_roles --all_permissions
+
 echo "Pulando collectstatic (desenvolvimento)..."
 # python manage.py collectstatic --noinput
 
