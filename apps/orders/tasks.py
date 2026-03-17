@@ -253,9 +253,9 @@ def order_import():
     
     # Status 
     if n_item_total == 0:
-        print('>>>>>>>>>>>>>>>>>>>>>>> Não há pedido(s) para atualizar!')
+        logger.info(f'>>>>>>>>>>>>>>>>>>>>>>> Não há pedido(s) para atualizar!')
     else:
-        print('>>>>>>>>>>>>>>>>>>>>>>> Pedidos importados com sucesso')
+        logger.info(f'>>>>>>>>>>>>>>>>>>>>>>> Pedidos importados com sucesso')
 
 
 @shared_task
@@ -325,13 +325,13 @@ def orders_up_status(ord_id, ord_s, id_user):
         status_sis_site = StatusStore.st_sis_site()
         # Só cancelar se todos os itens estiverem cancelados
         if order_itens == 0 and ord_s == 'CC':
-            print('--------------------------- Alterar STATUS Cancelled')         
+            logger.info(f'--------------------------- Alterar STATUS Cancelled')         
             update_store = {
                 'status': 'cancelled'
             }
             apiStore.put(f'orders/{order.order_id}', update_store).json()
         elif ord_s != 'CC' or ord_s != 'DE':
-            print('--------------------------- Alterar STATUS Loja')            
+            logger.info(f'--------------------------- Alterar STATUS Loja')            
             if ord_s in status_sis_site:
                 update_store = {
                     'status': status_sis_site[ord_s]
@@ -360,7 +360,7 @@ def orders_up_status(ord_id, ord_s, id_user):
 
 @shared_task
 def up_order_st_store(order_id,order_st):
-    print('>>>>>>>>>> Alterando status do site')
+    logger.info(f'>>>>>>>>>> Alterando status do site')
     apiStore = ApiStore.conectApiStore()
     update_store = {
             'status': order_st

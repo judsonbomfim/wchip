@@ -79,7 +79,7 @@ def sims_in_orders():
                 if sim_ds:
                     pass
                 else:
-                    print('>>>>>>>>>>>>>>>>>>>>>>> SIMs indisponíveis!')
+                    logger.info(f'>>>>>>>>>>>>>>>>>>>>>>> SIMs indisponíveis!')
                     continue
             
             # update order
@@ -130,7 +130,7 @@ def simActivateTC(id=None):
     today = datetime.now(tz).date()
     tomorrow = today +timedelta(days=1)
 
-    print('>>>>>>>>>> ATIVAÇÂO TC INICIADA')
+    logger.info(f'>>>>>>>>>> ATIVAÇÂO TC INICIADA')
     
     # Selecionar pedidos
     if id is None:
@@ -140,7 +140,7 @@ def simActivateTC(id=None):
             
     # Checar conexão com API
     def error_api():
-        print('>>>>>>>>>> ERRO API')
+        logger.info(f'>>>>>>>>>> ERRO API')
         # Checar Status
         UpdateOrder.upStatus(id_item,'EA')
         # Adicionar nota
@@ -209,7 +209,7 @@ def simActivateTC(id=None):
         else:
             # Alterar SIM na operadora
             if simStatus == 'Active':
-                print('simStatus == Active')
+                logger.info(f'simStatus == Active')
                 # Adicionar nota
                 NotesAdd.addNote(order,f'{iccid} já estava ativado na Telcon')
                 # Alterar Status
@@ -218,7 +218,7 @@ def simActivateTC(id=None):
                 continue
             
             elif simStatus == 'Suspended':
-                print('simStatus == Suspended')
+                logger.info(f'simStatus == Suspended')
                 payload = json.dumps({
                     "Request": {
                         "endPointId": f"{endpointId}",
@@ -236,7 +236,7 @@ def simActivateTC(id=None):
                 process = True
                 
             else:
-                print('simStatus == Other')
+                logger.info(f'simStatus == Other')
                 # Alterar status
                 UpdateOrder.upStatus(id_item,'EA')
                 NotesAdd.addNote(order,f'{iccid} com erro de ativação na Telcon. Verificar erro.')
@@ -271,7 +271,7 @@ def simActivateTC(id=None):
         # Fecha a conexão
         conn.close()
                 
-    print('>>>>>>>>>> ATIVAÇÂO TC FINALIZADA')
+    logger.info(f'>>>>>>>>>> ATIVAÇÂO TC FINALIZADA')
 
 
 @shared_task
@@ -289,10 +289,10 @@ def simDeactivateTC(id=None):
         orders_to_process = Orders.objects.filter(pk=id)
 
     if not orders_to_process.exists():
-        print('Não há pedidos que correspondam aos critérios de filtro.')
+        logger.info(f'Não há pedidos que correspondam aos critérios de filtro.')
         return
     
-    print('>>>>>>>>>> INICIANDO VERIFICAÇÃO DE DESATIVAÇÃO TC <<<<<<<<<<')
+    logger.info(f'>>>>>>>>>> INICIANDO VERIFICAÇÃO DE DESATIVAÇÃO TC <<<<<<<<<<')
 
     def error_api(order_item, iccid_val):
         print(f'>>>>>>>>>> ERRO API PARA O PEDIDO {order_item.order_id} <<<<<<<<<<')
@@ -372,7 +372,7 @@ def simDeactivateTC(id=None):
             if 'conn' in locals() and conn:
                 conn.close()
                 
-    print('>>>>>>>>>> DESATIVAÇÃO TC FINALIZADA <<<<<<<<<<')
+    logger.info(f'>>>>>>>>>> DESATIVAÇÃO TC FINALIZADA <<<<<<<<<<')
 
 
 def simDeactivateAll(id=None):
@@ -391,7 +391,7 @@ def simDeactivateAll(id=None):
     if not orders_to_process.exists():
         return
     
-    print('>>>>>>>>>> INICIANDO VERIFICAÇÃO DE DESATIVAÇÃO ALL <<<<<<<<<<')
+    logger.info(f'>>>>>>>>>> INICIANDO VERIFICAÇÃO DE DESATIVAÇÃO ALL <<<<<<<<<<')
 
     for order in orders_to_process:
         # Garante que activation_date e days não são nulos
@@ -422,7 +422,7 @@ def simDeactivateAll(id=None):
             sim_put.save()
         NotesAdd.addNote(order, f'{iccid} desativado com sucesso. Processo automático')
         
-    print('>>>>>>>>>> DESATIVAÇÃO TC FINALIZADA <<<<<<<<<<')
+    logger.info(f'>>>>>>>>>> DESATIVAÇÃO TC FINALIZADA <<<<<<<<<<')
 
 
 @shared_task
@@ -432,7 +432,7 @@ def simActivateTM(id=None):
     today = datetime.now(tz).date()
     tomorrow = today + timedelta(days=1)
     
-    print('>>>>>>>>>> ATIVAÇÂO TM INICIADA')
+    logger.info(f'>>>>>>>>>> ATIVAÇÂO TM INICIADA')
     
     # Selecionar pedidos
     if id is None:
@@ -506,7 +506,7 @@ def simActivateTM(id=None):
         conn.close()
         
                 
-    print('>>>>>>>>>> ATIVAÇÂO TM FINALIZADA')
+    logger.info(f'>>>>>>>>>> ATIVAÇÂO TM FINALIZADA')
 
 
 @shared_task
@@ -522,7 +522,7 @@ def simActivateCM(id=None):
     tz = pytz.timezone("Europe/Lisbon")
     today = datetime.now(tz).date()
 
-    print('>>>>>>>>>> ATIVAÇÂO CM INICIADA')
+    logger.info(f'>>>>>>>>>> ATIVAÇÂO CM INICIADA')
     
     # Selecionar pedidos
     if id is None:
@@ -535,7 +535,7 @@ def simActivateCM(id=None):
         api_token = ApiCM.get_token()
         
         if api_token == "error":
-            print('>>>>>>>>>> ERRO DE TOKEN')
+            logger.info(f'>>>>>>>>>> ERRO DE TOKEN')
             return
     
     for order in orders_all:
@@ -629,7 +629,7 @@ def simActivateCM(id=None):
 
         conn.close()
 
-    print('>>>>>>>>>> ATIVAÇÂO CM FINALIZADA')
+    logger.info(f'>>>>>>>>>> ATIVAÇÂO CM FINALIZADA')
 
 
     
@@ -638,7 +638,7 @@ def simActivateCM(id=None):
     today = timezone.now()
     today_2h = (today + timedelta(hours=2)).date()
 
-    print('>>>>>>>>>> ATIVAÇÂO T-MOBILE INICIADA')
+    logger.info(f'>>>>>>>>>> ATIVAÇÂO T-MOBILE INICIADA')
     
     # Selecionar pedidos
     if id is None:
@@ -722,7 +722,7 @@ def simActivateAR(id=None):
     timezone = pytz.timezone(settings.TIME_ZONE)
     today = datetime.now(timezone).date()
     
-    print('>>>>>>>>>> ATIVAÇÂO CM INICIADA')
+    logger.info(f'>>>>>>>>>> ATIVAÇÂO CM INICIADA')
     
     # Selecionar pedidos
     if id is None:
@@ -735,7 +735,7 @@ def simActivateAR(id=None):
         api_token = ApiAR.getToken()
         
         if api_token == "error":
-            print('>>>>>>>>>> ERRO DE TOKEN')
+            logger.info(f'>>>>>>>>>> ERRO DE TOKEN')
             return
     
     token_api = ApiTC.get_token()
@@ -821,6 +821,6 @@ def simActivateAR(id=None):
             )            
             
             
-    print('>>>>>>>>>> ATIVAÇÃO AR FINALIZADA')
+    logger.info(f'>>>>>>>>>> ATIVAÇÃO AR FINALIZADA')
 
     

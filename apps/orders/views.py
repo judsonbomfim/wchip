@@ -222,7 +222,7 @@ def ord_edit(request,id):
         
     if request.method == 'POST':
         
-        print('>>>>>>>>>> EDITAR PEDIDO')
+        logger.info(f'>>>>>>>>>> EDITAR PEDIDO')
         
         global msg_info
         msg_info = []
@@ -271,7 +271,7 @@ def ord_edit(request,id):
         # Insert SIM in Order
         def insertSIM(ord_st=None):
             sim_up = Sims.objects.filter(sim_status='DS', type_sim=type_sim, operator=operator).first()
-            print('>>>>>>>>>> SIM UP:',sim_up)
+            logger.info(f'>>>>>>>>>> SIM UP:',sim_up)
             if sim_up:
                 sim_put = Sims.objects.get(pk=sim_up.id)
                 if order_sim != '':
@@ -290,11 +290,11 @@ def ord_edit(request,id):
                 order_put.save()
             else:       
                 msg_error.append(f'Não há estoque de {operator} - {type_sim} no sistema')
-                print('>>>>>>>>>> Não há estoque de SIMs')
+                logger.info(f'>>>>>>>>>> Não há estoque de SIMs')
                         
         # Liberar SIMs
         if ord_st == 'CC' or ord_st == 'DE' or ord_st == 'RE':
-            print('>>>>>>>>>> Liberar SIMs')
+            logger.info(f'>>>>>>>>>> Liberar SIMs')
             if order_sim != '':
                 # Change TC
                 if order.id_sim.operator == 'TC':

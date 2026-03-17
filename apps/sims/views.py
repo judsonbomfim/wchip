@@ -383,7 +383,7 @@ def delSimTC(request):
         else:
             print(f'SIM {sim_iccid} não deletado!')
     
-    print('>>>>>>>>>>>>>>>>>>> FINALIZADO')
+    logger.info(f'>>>>>>>>>>>>>>>>>>> FINALIZADO')
     return HttpResponse('SIMs deletados com sucesso')
 
 
@@ -394,24 +394,24 @@ def delSimTC(request):
 #     simsTC = Sims.objects.all().filter(sim_status='TC')
 #     orders = Orders.objects.all()
 
-#     print('>>>>>> SIMs Ativados sem pedidos')
-#     print('----------------------------------')
+#     logger.info(f'>>>>>> SIMs Ativados sem pedidos')
+#     logger.info(f'----------------------------------')
 #     for simAT in simsAT:    
 #         if orders.filter(id_sim__sim=simAT.sim):
 #             continue
 #         else:
 #             print(simAT.sim,simAT.type_sim)
             
-#     print('>>>>>> SIMs Disponíveis com pedidos')
-#     print('----------------------------------')
+#     logger.info(f'>>>>>> SIMs Disponíveis com pedidos')
+#     logger.info(f'----------------------------------')
 #     for simDS in simsDS:
 #         if orders.filter(id_sim__sim=simDS.sim):
 #             print(simDS.sim,simDS.type_sim)
 #         else:
 #             continue
     
-#     print('>>>>>> SIMs Troca com pedidos')
-#     print('----------------------------------')
+#     logger.info(f'>>>>>> SIMs Troca com pedidos')
+#     logger.info(f'----------------------------------')
 #     for simTC in simsTC:
 #         if orders.filter(id_sim__sim=simTC.sim):
 #             print(simTC.sim,simDS.type_sim)
