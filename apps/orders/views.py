@@ -560,7 +560,7 @@ def orders_activations(request):
     ord_st_f = None
 
         
-    fields_df = ['id', 'item_id','client', 'id_sim__sim', 'id_sim__link', 'id_sim__type_sim', 'id_sim__operator', 'product', 'data_day', 'countries', 'days', 'cell_mod', 'cell_eid', 'cell_imei', 'activation_date', 'order_status']
+    fields_df = ['id', 'item_id','client', 'id_sim__sim', 'id_sim__link', 'id_sim__type_sim', 'id_sim__operator', 'oper_sim', 'product', 'data_day', 'countries', 'days', 'cell_mod', 'cell_eid', 'cell_imei', 'activation_date', 'order_status']
 
     product_choice_dict = dict(Orders.product.field.choices)
     data_choice_dict = dict(Orders.data_day.field.choices)
@@ -576,6 +576,12 @@ def orders_activations(request):
     
     orders_df['product'] = orders_df['product'].map(product_choice_dict)
     orders_df['data_day'] = orders_df['data_day'].map(data_choice_dict)
+    orders_df['id_sim__operator'] = orders_df['id_sim__operator'].fillna('')
+    orders_df['oper_sim'] = orders_df['oper_sim'].fillna('')
+    orders_df['id_sim__operator'] = orders_df['id_sim__operator'].where(
+        orders_df['id_sim__operator'] != '',
+        orders_df['oper_sim']
+    )
     orders_df['activation_date'] = pd.to_datetime(orders_df['activation_date'])
     orders_df['return_date'] = orders_df['activation_date'] + pd.to_timedelta(orders_df['days'], unit='d') - pd.to_timedelta(1, unit='d')
     
@@ -651,11 +657,10 @@ def orders_activations(request):
         ord = len(orders_l[orders_l['order_status'] == ord_s[0]])
         ord_st_list.append((ord_s[0],ord_s[1],ord))
         
-    # Listar ativações
-    today = datetime.now().date()
-    activList = orders_df[orders_df['activation_date'].dt.date >= today]
+    # Listar ativações pendentes por operadora
+    activList = orders_df[orders_df['order_status'] == 'AA']
     activList = activList.groupby(['id_sim__operator']).size().reset_index(name='countActiv')
-    countActivAll = countActivAll = activList['countActiv'].sum()
+    countActivAll = activList['countActiv'].sum()
     try: countActivTM = activList[activList['id_sim__operator'] == 'TM']['countActiv'].values[0]
     except: countActivTM = 0
     try: countActivCM = activList[activList['id_sim__operator'] == 'CM']['countActiv'].values[0]
