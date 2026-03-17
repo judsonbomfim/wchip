@@ -34,7 +34,11 @@ def order_import():
     # Definir números de páginas
     per_page = 100
     order_status_filter = ['pg-confirmado', 'processing']
-    order_p = apiStore.get('orders', params={'status': order_status_filter, 'per_page': per_page})
+    try:
+        order_p = apiStore.get('orders', params={'status': order_status_filter, 'per_page': per_page})
+    except Exception as e:
+        logger.error(f'[{date_now}] Erro ao buscar pedidos na loja: {e}', exc_info=True)
+        return
     
     if order_p.status_code != 200:
         logger.error(f'[{date_now}] Erro ao buscar pedidos: {order_p.status_code} - {order_p.text}')
@@ -47,17 +51,23 @@ def order_import():
     logger.info(f'[{date_now}] Iniciando importação de pedidos')
         
     while n_page <= total_pages:
+        logger.info(f'Buscando página {n_page} de {total_pages}')
         
         # Pedidos com status 'processing'
-        page_response = apiStore.get(
-            'orders',
-            params={
-                'order': 'asc',
-                'status': order_status_filter,
-                'per_page': per_page,
-                'page': n_page,
-            }
-        )
+        try:
+            page_response = apiStore.get(
+                'orders',
+                params={
+                    'order': 'asc',
+                    'status': order_status_filter,
+                    'per_page': per_page,
+                    'page': n_page,
+                }
+            )
+        except Exception as e:
+            logger.error(f'Erro ao buscar página {n_page} na loja: {e}', exc_info=True)
+            n_page += 1
+            continue
 
         if page_response.status_code != 200:
             logger.error(f'Erro ao buscar página {n_page}: {page_response.status_code} - {page_response.text}')

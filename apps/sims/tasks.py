@@ -16,6 +16,7 @@ from django.utils import timezone
 import pandas as pd
 from django.core.exceptions import ObjectDoesNotExist
 import requests
+from django.core.cache import cache
 
 # Configurar logger para este módulo
 logger = logging.getLogger('apps.sims')
@@ -166,8 +167,6 @@ def simActivateTC(id=None):
         day = order.days
         dataDay = order.data_day
         product = order.product
-        condition = order.condition
-        
         # Variaveis globais        
         endpointId = None
         simStatus = None
@@ -215,12 +214,7 @@ def simActivateTC(id=None):
                 NotesAdd.addNote(order,f'{iccid} já estava ativado na Telcon')
                 # Alterar Status
                 UpdateOrder.upStatus(id_item,'AT')
-                UpdateStore.upStore(
-                    order_id = order_id,
-                    item_id_store = order.item_id_store if order.item_id_store else None,
-                    _status = 'AT',
-                    status_g = 'AT',
-                )               
+                UpdateStore.upStore(order_id=order_id, status_g='AT')
                 continue
             
             elif simStatus == 'Suspended':
@@ -265,12 +259,7 @@ def simActivateTC(id=None):
             if resultCode == 0:
                 # Alterar status
                 UpdateOrder.upStatus(id_item,'AT')
-                UpdateStore.upStore(
-                    order_id = order_id,
-                    item_id_store = order.item_id_store if order.item_id_store else None,
-                    _status = 'AT',
-                    status_g = 'AT',
-                )
+                UpdateStore.upStore(order_id=order_id, status_g='AT')
                 # Adicionar nota
                 NotesAdd.addNote(order,f'{note} TC: {resultDescription}')
             else:
@@ -364,12 +353,7 @@ def simDeactivateTC(id=None):
                 print(f'Pedido {order.order_id} desativado com sucesso.')
                 if id is None:
                     UpdateOrder.upStatus(order.id, 'DE')
-                    UpdateStore.upStore(
-                        order_id=order.order_id,
-                        item_id_store=order.item_id_store if order.item_id_store else None,
-                        _status='DE',
-                        status_g='DE',
-                    )
+                    UpdateStore.upStore(order_id=order.order_id, status_g='DE')
                     sim_put = Sims.objects.get(pk=order.id_sim.id)
                     sim_put.sim_status = 'DE'
                     sim_put.save()
@@ -432,12 +416,7 @@ def simDeactivateAll(id=None):
 
         if id is None:
             UpdateOrder.upStatus(order.id, 'DE')
-            UpdateStore.upStore(
-                order_id=order.order_id,
-                item_id_store=order.item_id_store if order.item_id_store else None,
-                _status='DE',
-                status_g='DE',
-            )
+            UpdateStore.upStore(order_id=order.order_id, status_g='DE')
             sim_put = Sims.objects.get(pk=order.id_sim.id)
             sim_put.sim_status = 'DE'
             sim_put.save()
@@ -509,12 +488,7 @@ def simActivateTM(id=None):
             if response_data['code'] == 0:
                 # Alterar status
                 UpdateOrder.upStatus(id_item,'AT')
-                UpdateStore.upStore(
-                    order_id = order_id,
-                    item_id_store = order.item_id_store if order.item_id_store else None,
-                    _status = 'AT',
-                    status_g = 'AT',
-                )
+                UpdateStore.upStore(order_id=order_id, status_g='AT')
                 # Adicionar nota
                 NotesAdd.addNote(order,f'{iccid} Enviado para ativação na T-Mobile')
             else:
@@ -651,12 +625,7 @@ def simActivateCM(id=None):
                 NotesAdd.addNote(order, note)
                 # Alterar status do sistema
                 UpdateOrder.upStatus(order_item, 'AT')
-                UpdateStore.upStore(
-                    order_id = order_id,
-                    item_id_store = order.item_id_store if order.item_id_store else None,
-                    _status = 'AT',
-                    status_g = 'AT',
-                )
+                UpdateStore.upStore(order_id=order_id, status_g='AT')
 
         conn.close()
 

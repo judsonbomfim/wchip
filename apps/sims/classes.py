@@ -1,12 +1,12 @@
 import base64
 from datetime import datetime
-from functools import cache
 import hashlib
 import http.client
 import json
 import time
 from urllib.parse import urlparse
 from django.conf import settings
+from django.core.cache import cache
 import pytz
 import requests
 

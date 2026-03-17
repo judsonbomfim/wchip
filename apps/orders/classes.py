@@ -45,7 +45,7 @@ class ApiStore():
             consumer_secret = str(os.getenv('consumer_secret')),
             wp_api = True,
             version = 'wc/v3',
-            timeout = 5000
+            timeout = int(os.getenv('WOOCOMMERCE_TIMEOUT', '30'))
         )
         return wcapi
 
