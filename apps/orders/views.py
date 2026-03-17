@@ -425,10 +425,6 @@ def ord_edit(request,id):
                 addNote(f'E-mail enviado com sucesso!')
                 messages.success(request,'E-mail enviado com sucesso!')     
         
-        if type_sim == 'esim' or esim_v == True:
-            # Enviar eSIM para site
-            ApiStore.updateEsimStore(order_id) 
-        
         for msg_e in msg_error:
             messages.error(request,msg_e)
         for msg_o in msg_info:
@@ -657,7 +653,7 @@ def orders_activations(request):
         
     # Listar ativações
     today = datetime.now().date()
-    activList = orders_l[orders_l['activation_date'].dt.date > today]
+    activList = orders_df[orders_df['activation_date'].dt.date >= today]
     activList = activList.groupby(['id_sim__operator']).size().reset_index(name='countActiv')
     countActivAll = countActivAll = activList['countActiv'].sum()
     try: countActivTM = activList[activList['id_sim__operator'] == 'TM']['countActiv'].values[0]
@@ -666,6 +662,8 @@ def orders_activations(request):
     except: countActivCM = 0
     try: countActivTC = activList[activList['id_sim__operator'] == 'TC']['countActiv'].values[0]
     except: countActivTC = 0
+    try: countActivVR = activList[activList['id_sim__operator'] == 'VR']['countActiv'].values[0]
+    except: countActivVR = 0
     
     
     # Save in session
@@ -697,6 +695,8 @@ def orders_activations(request):
         'countActivTM': countActivTM,
         'countActivCM': countActivCM,
         'countActivTC': countActivTC,
+        'countActivVR': countActivVR,
+
     }
     return render(request, 'painel/orders/activations.html', context)
     

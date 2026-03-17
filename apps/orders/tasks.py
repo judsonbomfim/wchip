@@ -17,7 +17,6 @@ logger = logging.getLogger('apps.orders')
 @shared_task
 def order_import():
     date_now = datetime.now()
-    logger.info(f'[{date_now}] Iniciando importação de pedidos')
     
     try:
         apiStore = ApiStore.conectApiStore()
@@ -45,6 +44,8 @@ def order_import():
     n_page = 1
     # orders_all = Orders.objects.all()
     
+    logger.info(f'[{date_now}] Iniciando importação de pedidos')
+        
     while n_page <= total_pages:
         
         # Pedidos com status 'processing'
@@ -71,7 +72,6 @@ def order_import():
 
         # Listar pedidos         
         for order in ord:
-            logger.info(f'Processando pedido ID: {order["id"]}')
             
             n_item = 1
             id_ord = order["id"]
@@ -82,6 +82,8 @@ def order_import():
             if id_sis:
                 continue
             else: pass
+
+            logger.info(f'Processando pedido ID: {order["id"]}')
             
             # Listar itens do pedido
             for item in order['line_items']:
