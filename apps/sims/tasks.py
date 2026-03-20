@@ -646,11 +646,14 @@ def simActivateAR(id=None):
     today = datetime.now(tz).date()
     tomorrow = today +timedelta(days=1)
     
-    logger.info(f'>>>>>>>>>> ATIVAÇÂO CM INICIADA')
+    logger.info(f'>>>>>>>>>> ATIVAÇÂO AR INICIADA')
     
     # Selecionar pedidos
     if id is None:
         orders_all = Orders.objects.filter(order_status='AA', id_sim='351', activation_date__lte=tomorrow)
+        if not orders_all.exists():
+            logger.info(f'>>>>>>>>>> Nenhum pedidos encontrados para ativação AR')
+            return
     else:
         orders_all = Orders.objects.filter(pk=id)    
     
@@ -677,7 +680,7 @@ def simActivateAR(id=None):
         order_client = order.client
         list_plan = []
         
-        print(f'>>>>>>>>>> ATIVANDO SIM {order_sim} - {order_id}')
+        logger.info(f'>>>>>>>>>> ATIVANDO SIM {order_sim} - {order_id}')
         
         def errorData(data_dict=None):
             # Adicionar Nota
