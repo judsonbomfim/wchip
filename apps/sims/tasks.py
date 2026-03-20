@@ -93,7 +93,7 @@ def sims_in_orders():
             elif type_sim_i == 'sim': status_ord = 'ES'
             
             order_put = Orders.objects.get(pk=id_id_i)
-            order_put.id_sim_id = sim_ds.id            
+            order_put.id_sim = sim_ds.id            
             order_put.order_status = status_ord
             order_put.save()
             
@@ -113,14 +113,20 @@ def sims_in_orders():
             # Atualizar pedido no site
             status_sis_site = StatusStore.st_sis_site()
             if status_ord in status_sis_site:
-                update_store = {
-                    'status': status_sis_site[status_ord]
-                }                
-                
-            apiStore = ApiStore.conectApiStore()
-            apiStore.put(f'orders/{order_id_i}', update_store)
-                             
-            msg_info.append(f'Pedido {order_id_i} atualizados com sucesso')
+                try:
+                    apiStore = ApiStore.conectApiStore()
+                    update_store = {
+                        'status': status_sis_site[status_ord]
+                    }
+                    apiStore.put(f'orders/{order_id_i}', update_store)
+                    logger.info(f'Pedido {order_id_i} atualizado com sucesso no WooCommerce - Status: {status_ord}')
+                    msg_info.append(f'Pedido {order_id_i} atualizado com sucesso')
+                except Exception as e:
+                    logger.error(f'Erro ao atualizar pedido {order_id_i} no WooCommerce: {e}', exc_info=True)
+                    msg_error.append(f'Erro ao atualizar pedido {order_id_i} no site: {e}')
+            else:
+                logger.warning(f'Pedido {order_id_i}: Status "{status_ord}" não mapeado no WooCommerce')
+                msg_error.append(f'Pedido {order_id_i}: Status não mapeado')
             
             n_item_total += 1
     
