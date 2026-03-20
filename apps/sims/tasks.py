@@ -75,7 +75,7 @@ def sims_in_orders():
                 sim_ds = Sims.objects.all().get(pk=0)
                 addNote(f'eSIM EUA - SIM padrão adicionado')
             elif oper_sel_i == 'AR':
-                sim_ds = Sims.objects.all().get(pk=0)
+                sim_ds = Sims.objects.all().get(pk=351)
                 addNote(f'AIRALO - SIM padrão adicionado')
             else:
                 sim_ds = Sims.objects.all().order_by('id').filter(operator=oper_sel_i, type_sim=type_sim_i, sim_status='DS').first()
@@ -650,7 +650,7 @@ def simActivateAR(id=None):
     
     # Selecionar pedidos
     if id is None:
-        orders_all = Orders.objects.filter(order_status='AA', id_sim__operator='AR', activation_date__lte=tomorrow)
+        orders_all = Orders.objects.filter(order_status='AA', id_sim='351', activation_date__lte=tomorrow)
     else:
         orders_all = Orders.objects.filter(pk=id)    
     
