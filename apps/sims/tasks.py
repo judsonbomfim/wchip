@@ -74,6 +74,9 @@ def sims_in_orders():
             if esim_eua:
                 sim_ds = Sims.objects.all().get(pk=0)
                 addNote(f'eSIM EUA - SIM padrão adicionado')
+            elif oper_sel_i == 'AR':
+                sim_ds = Sims.objects.all().get(pk=0)
+                addNote(f'AIRALO - SIM padrão adicionado')
             else:
                 sim_ds = Sims.objects.all().order_by('id').filter(operator=oper_sel_i, type_sim=type_sim_i, sim_status='DS').first()
                 if sim_ds:
@@ -640,13 +643,14 @@ def simActivateCM(id=None):
 def simActivateAR(id=None):
     
     timezone = pytz.timezone(settings.TIME_ZONE)
-    today = datetime.now(timezone).date()
+    today = datetime.now(tz).date()
+    tomorrow = today +timedelta(days=1)
     
     logger.info(f'>>>>>>>>>> ATIVAÇÂO CM INICIADA')
     
     # Selecionar pedidos
     if id is None:
-        orders_all = Orders.objects.filter(order_status='AA', id_sim__operator='AR', activation_date__lte=today)
+        orders_all = Orders.objects.filter(order_status='AA', id_sim__operator='AR', activation_date__lte=tomorrow)
     else:
         orders_all = Orders.objects.filter(pk=id)    
     
