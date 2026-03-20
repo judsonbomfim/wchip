@@ -148,21 +148,26 @@ def simActivateTC(id=None):
         error = 'error_apiResult'
         return error
     
-    token_api = ApiTC.get_token()
+    try:
+        token_api = ApiTC.get_token()
+    except Exception as e:
+        logger.error(f'>>>>>>>>>> ERRO ao obter token TC: {e}', exc_info=True)
+        return
+
     time.sleep(0.5)
-    conn = http.client.HTTPSConnection(settings.APITC_HTTPCONN)
     headers = ApiTC.get_headers(token_api)
-        
+
     for order in orders_all:
+        conn = http.client.HTTPSConnection(settings.APITC_HTTPCONN)
                         
         order = Orders.objects.get(pk=order.id)
         order_id = order.order_id
-        print(f'>>>>>>>>>>>>>>>>>>>>> Ativando {order_id}')
+        logger.info(f'>>>>>>>>>> TC - Processando pedido {order_id}')
         id_item = order.id
         try:
             iccid = order.id_sim.sim
         except Exception:
-            iccid = None
+            logger.warning(f'Pedido {order_id} sem SIM associado. Pulando.')
             continue
         day = order.days
         dataDay = order.data_day
@@ -172,7 +177,6 @@ def simActivateTC(id=None):
         simStatus = None
         note = ''
         process = False
-        token_api = None
                 
         # Verificar EndPointID / Status
         try:
@@ -455,7 +459,7 @@ def simActivateTM(id=None):
         days = order.days
                 
         # Dados para a solicitação
-        url = "https://usasimactivation.com/activation/index/submit"
+        url = settings.APITM_URL
         parsed_url = urlparse(url)
         payload = json.dumps({
             "active_time": activation_date.strftime("%Y-%m-%d"),
@@ -467,7 +471,7 @@ def simActivateTM(id=None):
             "customer_email": "",
             "comment": "",
             "carrier": "T-Mobile",
-            "token": "ba8cbf5fd3c288c21d6725b532f04d73"
+            "token": settings.APITM_TOKEN
         })        
         
         # Cabeçalhos da solicitação
@@ -630,90 +634,6 @@ def simActivateCM(id=None):
         conn.close()
 
     logger.info(f'>>>>>>>>>> ATIVAÇÂO CM FINALIZADA')
-
-
-    
-    from apps.orders.tasks import up_order_st_store
-    
-    today = timezone.now()
-    today_2h = (today + timedelta(hours=2)).date()
-
-    logger.info(f'>>>>>>>>>> ATIVAÇÂO T-MOBILE INICIADA')
-    
-    # Selecionar pedidos
-    if id is None:
-        orders_all = Orders.objects.filter(order_status='AA', id_sim__operator='TM', activation_date__lte=today_2h)
-    else:
-        orders_all = Orders.objects.filter(pk=id)
-
-    for order in orders_all:
-        
-        order = Orders.objects.get(pk=order.id)
-        order_id = order.order_id
-        id_item = order.id
-        order_product = order.product
-        order_date = (order.activation_date).isoformat()
-        order_day = order.days
-        order_type = order.id_sim.type_sim
-        order_iccid = (order.id_sim.sim or '').rstrip('F')
-        order_imei = order.cell_imei or ''
-        order_eid = order.cell_eid or ''
-        
-        # Selecionar plano  
-        if order_product == '977' and order_type == 'sim':
-            product = 594
-        elif order_product == '977' and order_type == 'esim':
-            product = 595
-        elif order_product == '980' and order_type == 'sim':
-            product = 656
-        elif order_product == '980' and order_type == 'esim':
-            product = 657              
-        
-        # Dados para a solicitação
-        url = settings.APITM_HTTPCONN
-        parsed_url = urlparse(url)
-        payload = json.dumps({
-            "operator": settings.APITM_OPERATOR,
-            "phone_number": order_iccid,
-            "product": product, # Product ID
-            "activate_at": order_date, # Activate date (greater or equal to current date) 
-            "days": order_day,
-            "imei": order_imei,
-            "eid": order_eid,
-            "client": { # Client data 
-                "email": settings.APITM_EMAIL,
-            },
-            "token": settings.APITM_TOKEN
-        })        
-
-        # Conectar API
-        headers = {
-            'Content-Type': 'application/json'
-        }
-        conn = http.client.HTTPSConnection(parsed_url.netloc)
-        conn.request("POST", parsed_url.path, payload, headers)
-        res = conn.getresponse()
-        data = res.read()
-        response_data = json.loads(data.decode("utf-8"))
-        conn.close()
-        
-        print(f'>>>>>>>>>> response_data ----- {response_data}')
-
-        # Verifica o código de resposta           
-        if 'code' not in response_data:
-            # Alterar status
-            UpdateOrder.upStatus(id_item,'AT')
-            up_order_st_store.delay(order_id,'ativado')
-            StatusStore.upStatus(order_id,'ativado')
-            # Adicionar nota
-            note = f'{order_iccid} enviado com sucesso na T-mobile'
-            hash_value = response_data['hash']
-            NotesAdd.addNote(order,f'{note} TM: {hash_value}')
-        else:
-            # Alterar status
-            UpdateOrder.upStatus(id_item,'EA')
-            # Adicionar nota
-            NotesAdd.addNote(order,f'TM: {response_data}')
             
 
 @shared_task
@@ -737,8 +657,6 @@ def simActivateAR(id=None):
         if api_token == "error":
             logger.info(f'>>>>>>>>>> ERRO DE TOKEN')
             return
-    
-    token_api = ApiTC.get_token()
     
     for order in orders_all:
         
@@ -787,7 +705,7 @@ def simActivateAR(id=None):
         files = []
         headers = {
         'Accept': 'application/json',
-        'Authorization': f'Bearer {token_api}'
+        'Authorization': f'Bearer {api_token}'
         }
 
         try:
@@ -797,12 +715,13 @@ def simActivateAR(id=None):
             errorData(str(e))
             continue
         
-        if response['meta']['message'] != "success":
-            errorData(response['meta']['message'])
+        response_json = response.json()
+        if response_json.get('meta', {}).get('message') != "success":
+            errorData(response_json)
             continue
         else:
-            iccid = response['data']['sims'][0]['iccid']
-            qrcode = response['data']['sims'][0]['qrcode_url']
+            iccid = response_json['data']['sims'][0]['iccid']
+            qrcode = response_json['data']['sims'][0]['qrcode_url']
             # Inserir no estoque
             id_sim = ApiAR.addESimAR(iccid, qrcode)
             sim = Sims.objects.get(pk=id_sim)
