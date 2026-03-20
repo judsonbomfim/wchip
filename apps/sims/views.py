@@ -1,3 +1,5 @@
+from venv import logger
+
 from django.contrib.auth.decorators import login_required
 from rolepermissions.decorators import has_permission_decorator
 from django.shortcuts import render

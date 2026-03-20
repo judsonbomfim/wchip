@@ -1,3 +1,5 @@
+from venv import logger
+
 from django.contrib.auth.models import User
 from rolepermissions.decorators import has_permission_decorator
 import csv
@@ -15,6 +17,7 @@ from apps.sims.tasks import simDeactivateTC, simActivateTC
 from .classes import ApiStore, StatusStore, DateFormats
 from .tasks import orders_up_status
 import pandas as pd
+
 
 
 #Date today

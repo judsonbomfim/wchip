@@ -252,7 +252,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     'task__2_min_activate_TM': {
         'task': 'apps.sims.tasks.simActivateTM',
-        'schedule': crontab(minute='3-59/2'),
+        'schedule': crontab(minute='2-59/2'),
     },
     'task__deactivate_TC': {
         'task': 'apps.sims.tasks.simDeactivateTC',
@@ -264,7 +264,11 @@ CELERY_BEAT_SCHEDULE = {
     },
     'task__2_min_activate_CM': {
         'task': 'apps.sims.tasks.simActivateCM',
-        'schedule': crontab(minute='4-59/2'),
+        'schedule': crontab(minute='2-59/2'),
+    },
+    'task__2_min_activate_AR': {
+        'task': 'apps.sims.tasks.simActivateAR',
+        'schedule': crontab(minute='2-59/2'),
     },
 }
 
