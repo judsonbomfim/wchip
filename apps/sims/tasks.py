@@ -663,7 +663,7 @@ def simActivateAR(id=None):
         # Gerar Token
         try:
             api_token = ApiAR.getToken()
-            logger.info(f'>>>>>>>>>> TOKEN GERADO')
+            logger.info(f'>>>>>>>>>> TOKEN GERADO {api_token}')
         except Exception as e:
             logger.error(str(e), exc_info=True)
             logger.info(f'>>>>>>>>>> ERRO DE TOKEN')
@@ -695,7 +695,12 @@ def simActivateAR(id=None):
             UpdateOrder.upStatus(order_item, 'EA')
         
         # Selecionar plano
-        plan_code = ApiAR.selPlan(order_day, order_data, order_product)
+        try:
+            plan_code = ApiAR.selPlan(order_day, order_data, order_product)
+        except Exception as e:
+            logger.error(str(e), exc_info=True)
+            plan_code = None
+
         
         # Verificar se plan_code foi definido
         if plan_code is None:
@@ -729,9 +734,11 @@ def simActivateAR(id=None):
         
         response_json = response.json()
         if response_json.get('meta', {}).get('message') != "success":
+            logger.error(f'Erro na resposta da API Airalo: {response_json}')
             errorData(response_json)
             continue
         else:
+            logger.info(f'Ativação AR bem-sucedida para o pedido {order_id}. Resposta da API: {response_json}')
             iccid = response_json['data']['sims'][0]['iccid']
             qrcode = response_json['data']['sims'][0]['qrcode_url']
             # Inserir no estoque
