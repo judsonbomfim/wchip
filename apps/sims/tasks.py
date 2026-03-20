@@ -660,11 +660,12 @@ def simActivateAR(id=None):
         orders_all = Orders.objects.filter(pk=id)    
     
     if orders_all != None:
-        logger.info(f'>>>>>>>>>> GERANDO TOKEN PARA ATIVAÇÃO AR')
         # Gerar Token
-        api_token = ApiAR.getToken()
-        
-        if api_token == "error":
+        try:
+            api_token = ApiAR.getToken()
+            logger.info(f'>>>>>>>>>> TOKEN GERADO')
+        except Exception as e:
+            logger.error(str(e), exc_info=True)
             logger.info(f'>>>>>>>>>> ERRO DE TOKEN')
             return
     
