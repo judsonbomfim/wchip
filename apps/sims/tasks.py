@@ -697,6 +697,7 @@ def simActivateAR(id=None):
         # Selecionar plano
         try:
             plan_code = ApiAR.selPlan(order_day, order_data, order_product)
+            logger.info(f'>>>>>>>>>> PLANO SELECIONADO PARA O PEDIDO {order_id}: {plan_code}')
         except Exception as e:
             logger.error(str(e), exc_info=True)
             plan_code = None
@@ -711,6 +712,7 @@ def simActivateAR(id=None):
 
         # URL do endpoint
         url_api = f'{settings.APIAIRALO_URL}/aep/APP_createOrder_SBO/v1'
+        logger.info(f'>>>>>>>>>> URL API: {url_api}')
         
         # Usar multipart/form-data em vez de JSON
         payload = {
