@@ -711,7 +711,7 @@ def simActivateAR(id=None):
             continue
 
         # URL do endpoint
-        url_api = f'{settings.APIAIRALO_URL}/v2/orders'
+        url_api = f'{settings.APIAIRALO_URL}/orders'
         logger.info(f'>>>>>>>>>> URL API: {url_api}')
 
         payload = {
