@@ -711,10 +711,9 @@ def simActivateAR(id=None):
             continue
 
         # URL do endpoint
-        url_api = f'{settings.APIAIRALO_URL}/aep/APP_createOrder_SBO/v1'
+        url_api = f'{settings.APIAIRALO_URL}/v2/orders'
         logger.info(f'>>>>>>>>>> URL API: {url_api}')
-        
-        # Usar multipart/form-data em vez de JSON
+
         payload = {
             "quantity": "1",
             "package_id": plan_code,
@@ -728,7 +727,7 @@ def simActivateAR(id=None):
         }
 
         try:
-            response = requests.request("POST", url_api, headers=headers, data=payload, files=files)
+            response = requests.post(url_api, headers=headers, json=payload, timeout=30)
         except Exception as e:
             logger.error(str(e), exc_info=True)
             errorData(str(e))
