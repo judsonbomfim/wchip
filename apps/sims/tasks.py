@@ -656,6 +656,7 @@ def simActivateAR(id=None):
             logger.info(f'>>>>>>>>>> Nenhum pedidos encontrados para ativação AR')
             return
     else:
+        logger.info(f'>>>>>>>>>> SELECIONANDO PEDIDO ESPECÍFICO PARA ATIVAÇÃO AR: ID {id}')
         orders_all = Orders.objects.filter(pk=id)    
     
     if orders_all != None:
