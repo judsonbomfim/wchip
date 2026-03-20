@@ -320,7 +320,14 @@ def ord_edit(request,id):
             
             sims_all = Sims.objects.all().filter(sim=sim)
             if sims_all:
-                    messages.info(request,f'O SIM {sim} já está cadastrado no sistema')
+                # Attualizar SIM
+                sim_put = Sims.objects.get(sim=sim)            
+                sim_put.sim_status = 'AT'
+                sim_put.save()
+                # Atualizar pedido
+                order_put = Orders.objects.get(pk=order.id)
+                order_put.id_sim_id = sim_put
+                order_put.save()
             else:
                 # Save SIMs - Insert Stock
                 add_sim = Sims( 

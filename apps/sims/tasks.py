@@ -651,12 +651,10 @@ def simActivateAR(id=None):
     # Selecionar pedidos
     if id is None:
         orders_all = Orders.objects.filter(order_status='AA', id_sim=351, activation_date__lte=tomorrow)
-        logger.info(f'>>>>>>>>>> SELECIONANDO TODOS OS PEDIDOS PARA ATIVAÇÃO AR: {orders_all.count()} pedidos encontrados')
         if not orders_all.exists():
             logger.info(f'>>>>>>>>>> Nenhum pedidos encontrados para ativação AR')
             return
     else:
-        logger.info(f'>>>>>>>>>> SELECIONANDO PEDIDO ESPECÍFICO PARA ATIVAÇÃO AR: ID {id}')
         orders_all = Orders.objects.filter(pk=id)    
     
     if orders_all != None:
@@ -684,9 +682,7 @@ def simActivateAR(id=None):
         order_sim = order.id_sim.sim
         order_client = order.client
         list_plan = []
-        
-        logger.info(f'>>>>>>>>>> ATIVANDO SIM {order_sim} - {order_id}')
-        
+                
         def errorData(data_dict=None):
             # Adicionar Nota
             note = f'Erro ao ativar o SIM {order_sim}. Verificar manualmente. ERRO: {data_dict}'
@@ -697,7 +693,6 @@ def simActivateAR(id=None):
         # Selecionar plano
         try:
             plan_code = ApiAR.selPlan(order_day, order_data, order_product)
-            logger.info(f'>>>>>>>>>> PLANO SELECIONADO PARA O PEDIDO {order_id}: {plan_code}')
         except Exception as e:
             logger.error(str(e), exc_info=True)
             plan_code = None
@@ -712,7 +707,6 @@ def simActivateAR(id=None):
 
         # URL do endpoint
         url_api = f'{settings.APIAIRALO_URL}/orders'
-        logger.info(f'>>>>>>>>>> URL API: {url_api}')
 
         payload = {
             "quantity": "1",
@@ -739,7 +733,6 @@ def simActivateAR(id=None):
             errorData(response_json)
             continue
         else:
-            logger.info(f'Ativação AR bem-sucedida para o pedido {order_id}. Resposta da API: {response_json}')
             iccid = response_json['data']['sims'][0]['iccid']
             qrcode = response_json['data']['sims'][0]['qrcode_url']
             # Inserir no estoque
