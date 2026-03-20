@@ -747,8 +747,8 @@ class ApiAR:
         url_api = f'{settings.APIAIRALO_URL}/token'
 
         payload_token = {
-            "client_id": settings.APIAIRALO_CLIENT_ID,
-            "client_secret": settings.APIAIRALO_CLIENT_SECRET,
+            "client_id": settings.APIAIRALO_KEY,
+            "client_secret": settings.APIAIRALO_SECRET,
         }
 
         headers_token = {
