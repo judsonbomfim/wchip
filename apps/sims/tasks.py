@@ -650,8 +650,8 @@ def simActivateAR(id=None):
     
     # Selecionar pedidos
     if id is None:
-        logger.info(f'>>>>>>>>>> SELECIONANDO PEDIDOS PARA ATIVAÇÃO AR')
         orders_all = Orders.objects.filter(order_status='AA', id_sim=351, activation_date__lte=tomorrow)
+        logger.info(f'>>>>>>>>>> SELECIONANDO TODOS OS PEDIDOS PARA ATIVAÇÃO AR: {orders_all.count()} pedidos encontrados')
         if not orders_all.exists():
             logger.info(f'>>>>>>>>>> Nenhum pedidos encontrados para ativação AR')
             return
@@ -660,6 +660,7 @@ def simActivateAR(id=None):
         orders_all = Orders.objects.filter(pk=id)    
     
     if orders_all != None:
+        logger.info(f'>>>>>>>>>> GERANDO TOKEN PARA ATIVAÇÃO AR')
         # Gerar Token
         api_token = ApiAR.getToken()
         
@@ -668,6 +669,7 @@ def simActivateAR(id=None):
             return
     
     for order in orders_all:
+        logger.info(f'>>>>>>>>>> INICIANDO ATIVAÇÃO AR PARA O PEDIDO {order.order_id}')
         
         # Aguardar 1 segundo
         time.sleep(0.5)
