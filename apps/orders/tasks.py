@@ -2,6 +2,8 @@ from django.contrib.auth.models import User
 from celery import shared_task
 from django.utils.text import slugify
 from datetime import datetime, timedelta
+
+from apps.sims.tasks import sims_in_orders
 from .classes import ApiStore, NotesAdd, StatusStore, DateFormats, UpdateOrder
 from apps.orders.models import Orders, Notes
 from apps.sims.models import Sims
