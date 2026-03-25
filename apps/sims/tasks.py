@@ -7,7 +7,6 @@ import json
 from django.conf import settings
 import pytz
 
-from apps.orders.tasks import orders_up_status
 from .classes import ApiCM, ApiTC, ApiAR, OperatorSelect
 from apps.orders.models import Orders, Notes
 from apps.orders.classes import ApiStore, StatusStore, NotesAdd, UpdateOrder, UpdateStore
@@ -134,6 +133,7 @@ def sims_in_orders():
 
 @shared_task
 def simActivateTC(id=None):
+    from apps.orders.tasks import orders_up_status
     
     # dia anterior
     tz = pytz.timezone(settings.TIME_ZONE)

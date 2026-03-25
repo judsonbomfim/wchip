@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 from .classes import ApiStore, NotesAdd, StatusStore, DateFormats, UpdateOrder
 from apps.orders.models import Orders, Notes
 from apps.sims.models import Sims
-from apps.sims.tasks import sims_in_orders, simDeactivateTC, simActivateTC
 from apps.sims.classes import OperatorSelect
 import time
 from apps.send_email.tasks import send_email_sims
@@ -16,6 +15,8 @@ logger = logging.getLogger('apps.orders')
 
 @shared_task
 def order_import():
+    from apps.sims.tasks import sims_in_orders, simDeactivateTC, simActivateTC
+    
     date_now = datetime.now()
     
     try:
@@ -269,6 +270,7 @@ def orders_auto():
 
 @shared_task
 def orders_up_status(ord_id, ord_s, id_user):
+    from apps.sims.tasks import simDeactivateTC, simActivateTC
 
     ord_id = ord_id
     ord_s = ord_s
