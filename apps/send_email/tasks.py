@@ -1,3 +1,4 @@
+from venv import logger
 from celery import shared_task
 from django.shortcuts import redirect
 from django.core.mail import EmailMultiAlternatives
@@ -15,6 +16,8 @@ def send_email_sims(id=None):
         orders_all = Orders.objects.filter(order_status='EE')
     else:
         orders_all = Orders.objects.filter(pk=id)
+    
+    logger.info(f">>>>>>>>>>>>>>>>>>> Iniciando envio de email para {len(orders_all)} pedidos com status 'EE'")
         
     url_site = settings.URL_CDN
     url_img = f'{url_site}/email/'
@@ -35,6 +38,8 @@ def send_email_sims(id=None):
         try: type_sim = order.id_sim.type_sim
         except: continue            
         countries = order.countries
+        
+        logger.info(f">>>>>>>>>>>>>>>>>>> Enviando email para pedido #{order_id} - Cliente: {name} - E-mail: {client_email}")
         
         context = {
             'url_site': url_site,
@@ -68,46 +73,36 @@ def send_email_sims(id=None):
         email.attach_alternative(html_content, "text/html")
         email.send()
         
-        if order_st != 'CN':
-            if product_plan == '980' or product_plan == '977':
-                # Update Order
-                order = Orders.objects.get(pk=id)
-                order.order_status = 'AI'
-                order.save()
-                # Update Store
-            else:
-                # Update Order
-                order = Orders.objects.get(pk=id)
-                order.order_status = 'AA'
-                order.save()
-                # Update Store
-                apiStore = ApiStore.conectApiStore()
-                status_def_sis = StatusStore.st_sis_site()            
-                update_store = {
-                    'status': status_def_sis['AA']
-                }
-                apiStore.put(f'orders/{order.order_id}', update_store).json()
+        logger.info(f">>>>>>>>>>>>>>>>>>> E-mail enviado com sucesso para pedido #{order_id}")
         
-            # Add note
-            add_note = Notes( 
-                id_item = order,
-                id_user = None,
-                note = 'E-mail enviado com sucesso!',
-                type_note = 'S',
-            )
-            add_note.save()
-        else:
-            # Add note
-            add_note = Notes( 
-                id_item = order,
-                id_user = None,
-                note = 'E-mail não enviado',
-                type_note = 'S',
-            )
-            add_note.save()
-    
-    url_site = settings.URL_CDN
-    url_img = f'{url_site}/email/'
+        # if order_st != 'CN' and type_sim == 'esim':
+        #     if product_plan == '980' or product_plan == '977':
+        #         # Update Order
+        #         order = Orders.objects.get(pk=id)
+        #         order.order_status = 'AI'
+        #         order.save()
+        #         # Update Store
+        #     else:
+        #         # Update Order
+        #         order = Orders.objects.get(pk=id)
+        #         order.order_status = 'AA'
+        #         order.save()
+        #         # Update Store
+        #         apiStore = ApiStore.conectApiStore()
+        #         status_def_sis = StatusStore.st_sis_site()            
+        #         update_store = {
+        #             'status': status_def_sis['AA']
+        #         }
+        #         apiStore.put(f'orders/{order.order_id}', update_store).json()
+        
+        # Add note
+        add_note = Notes( 
+            id_item = order,
+            id_user = None,
+            note = 'E-mail enviado com sucesso!',
+            type_note = 'S',
+        )
+        add_note.save()
 
 @shared_task
 def send_tracking(id=None):
