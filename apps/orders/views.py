@@ -359,8 +359,8 @@ def ord_edit(request,id):
                     up_plan = True # verificação para nota
         
         
-        if tracking != order.tracking:
-            send_tracking(id=order.id)           
+        # if tracking != order.tracking:
+        #     send_tracking(id=order.id)           
             
                     
         # Update Order
@@ -429,7 +429,7 @@ def ord_edit(request,id):
                     addNote(f'Alterado de {order.get_order_status_display()} para {st[1]}')
             
             # Enviar email
-            if (ord_st == 'AA' or ord_st == 'AT') and operator != 'AR':
+            if ord_st == 'AT' or (ord_st == 'AA' and operator != 'AR'):
                 send_email_sims(id=order_id)
                 
                 addNote(f'E-mail enviado com sucesso!')

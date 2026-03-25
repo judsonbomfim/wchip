@@ -354,7 +354,7 @@ def orders_up_status(ord_id, ord_s, id_user):
                 addNote(f'Alterado de {st[1]} para {order.get_order_status_display()}')
         
         # Enviar email
-        if ord_s == 'AT':
+        if ord_s == 'AT' or (ord_s == 'AA' and sim_put.operator != 'AR'):            
             send_email_sims.delay(id=order.id)
         # if ord_s == 'CN' and (type_sim == 'sim' or order_plan == 'USA'):
         #     send_email_sims.delay(id=order.id)
