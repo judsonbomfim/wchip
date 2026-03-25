@@ -6,6 +6,8 @@ import http.client
 import json
 from django.conf import settings
 import pytz
+
+from apps.orders.tasks import orders_up_status
 from .classes import ApiCM, ApiTC, ApiAR, OperatorSelect
 from apps.orders.models import Orders, Notes
 from apps.orders.classes import ApiStore, StatusStore, NotesAdd, UpdateOrder, UpdateStore
@@ -225,7 +227,7 @@ def simActivateTC(id=None):
                 # Adicionar nota
                 NotesAdd.addNote(order,f'{iccid} já estava ativado na Telcon')
                 # Alterar Status
-                UpdateOrder.upStatus(id_item,'AT')
+                orders_up_status(id_item,'AT')
                 UpdateStore.upStore(order_id=order_id, status_g='AT')
                 continue
             
