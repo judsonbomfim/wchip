@@ -11,6 +11,8 @@ from apps.orders.classes import ApiStore, StatusStore
 @shared_task
 def send_email_sims(id=None):
     
+    logger.info(f">>>>>>>>>>>>>>>>>>> Tarefa send_email_sims iniciada para id: {id}")
+    
     orders_all = None
     if id == None:
         orders_all = Orders.objects.filter(order_status='EE')
