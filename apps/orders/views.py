@@ -429,7 +429,7 @@ def ord_edit(request,id):
                     addNote(f'Alterado de {order.get_order_status_display()} para {st[1]}')
             
             # Enviar email
-            if ord_st == 'CN' and type_sim == 'sim':
+            if (ord_st == 'AA' or ord_st == 'AT') and operator != 'AR':
                 send_email_sims(id=order_id)
                 
                 addNote(f'E-mail enviado com sucesso!')

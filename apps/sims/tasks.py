@@ -9,7 +9,6 @@ import pytz
 from .classes import ApiCM, ApiTC, ApiAR, OperatorSelect
 from apps.orders.models import Orders, Notes
 from apps.orders.classes import ApiStore, StatusStore, NotesAdd, UpdateOrder, UpdateStore
-from apps.send_email.tasks import send_email_sims
 from apps.sims.models import Sims
 from datetime import datetime, timedelta
 from django.utils import timezone
