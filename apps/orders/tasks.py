@@ -355,7 +355,7 @@ def orders_up_status(ord_id, ord_s, id_user):
         
         # Enviar email
         if ord_s == 'AT' or (ord_s == 'AA' and sim_put.operator != 'AR'):            
-            send_email_sims.delay(id=order.id)
+            send_email_sims.delay(id=order_id)
         # if ord_s == 'CN' and (type_sim == 'sim' or order_plan == 'USA'):
         #     send_email_sims.delay(id=order.id)
 

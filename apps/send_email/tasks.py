@@ -68,7 +68,7 @@ def send_email_sims(id=None):
         email.attach_alternative(html_content, "text/html")
         email.send()
         
-        if order_st != 'CN' and type_sim == 'esim':
+        if order_st != 'CN':
             if product_plan == '980' or product_plan == '977':
                 # Update Order
                 order = Orders.objects.get(pk=id)
@@ -88,14 +88,23 @@ def send_email_sims(id=None):
                 }
                 apiStore.put(f'orders/{order.order_id}', update_store).json()
         
-        # Add note
-        add_note = Notes( 
-            id_item = order,
-            id_user = None,
-            note = 'E-mail enviado com sucesso!',
-            type_note = 'S',
-        )
-        add_note.save()
+            # Add note
+            add_note = Notes( 
+                id_item = order,
+                id_user = None,
+                note = 'E-mail enviado com sucesso!',
+                type_note = 'S',
+            )
+            add_note.save()
+        else:
+            # Add note
+            add_note = Notes( 
+                id_item = order,
+                id_user = None,
+                note = 'E-mail não enviado',
+                type_note = 'S',
+            )
+            add_note.save()
     
     url_site = settings.URL_CDN
     url_img = f'{url_site}/email/'
