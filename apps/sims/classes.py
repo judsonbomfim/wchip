@@ -338,7 +338,7 @@ class ApiTC:
                 }
             })    
             conn = http.client.HTTPSConnection(settings.APITC_HTTPCONN)
-            conn.request("POST", "/api/ChangePlan", payload, headers)
+            conn.request("POST", "/api/SubscribeAddon", payload, headers)
             res_plan = conn.getresponse()
             data_plan = res_plan.read()
             conn.close()
