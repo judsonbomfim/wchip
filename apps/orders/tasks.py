@@ -273,7 +273,7 @@ def orders_auto():
 
 @shared_task
 def orders_up_status(ord_id, ord_s, id_user=None):
-    from apps.sims.tasks import simDeactivateTC, simActivateTC
+    from apps.sims.tasks import simDeactivateTC
     from apps.send_email.tasks import send_email_sims
 
     ord_id = ord_id
@@ -319,17 +319,8 @@ def orders_up_status(ord_id, ord_s, id_user=None):
                 sim_put.sim_status = 'DE'
                 sim_put.save()
  
-        # Ativar SIM TC
-        if ord_s == 'AT' and order.id_sim.operator == 'TC':
-            if order.order_status == 'EA':
-                # Alterar status
-                UpdateOrder.upStatus(order.id,'AT')
-                up_order_st_store.delay(order.id,'ativado')
-                StatusStore.upStatus(order.id,'ativado')
-                # Adicionar nota
-                NotesAdd.addNote(order,f'SIM ativado')
-            else:
-                simActivateTC(id=order.id)
+        # Evita recursao: a ativacao em operadora e feita por sims.tasks,
+        # aqui apenas centralizamos a mudanca de status e pos-processamento.
         
         # Ver. Status Cancelled in items
         order_itens = 0
