@@ -226,7 +226,7 @@ def simActivateTC(id=None):
                 # Adicionar nota
                 NotesAdd.addNote(order,f'{iccid} já estava ativado na Telcon')
                 # Alterar Status
-                orders_up_status.delay(order.id, 'AT', None)
+                orders_up_status.delay(order.id, 'AT')
                 continue
             
             elif simStatus == 'Suspended':
@@ -270,7 +270,7 @@ def simActivateTC(id=None):
             
             if resultCode == 0:
                 # Alterar status
-                orders_up_status.delay(order.id, 'AT', None)
+                orders_up_status.delay(order.id, 'AT')
                 # Adicionar nota
                 NotesAdd.addNote(order,f'{note} TC: {resultDescription}')
             else:
@@ -365,7 +365,7 @@ def simDeactivateTC(id=None):
             if resultCode == 0:
                 print(f'Pedido {order.order_id} desativado com sucesso.')
                 if id is None:
-                    orders_up_status.delay(order.id, 'DE', None)
+                    orders_up_status.delay(order.id, 'DE')
                     sim_put = Sims.objects.get(pk=order.id_sim.id)
                     sim_put.sim_status = 'DE'
                     sim_put.save()
@@ -428,7 +428,7 @@ def simDeactivateAll(id=None):
             continue
 
         if id is None:
-            orders_up_status.delay(order.id, 'DE', None)
+            orders_up_status.delay(order.id, 'DE')
             sim_put = Sims.objects.get(pk=order.id_sim.id)
             sim_put.sim_status = 'DE'
             sim_put.save()
@@ -500,7 +500,7 @@ def simActivateTM(id=None):
         if 'code' in response_data:
             if response_data['code'] == 0:
                 # Alterar status
-                orders_up_status.delay(order.id, 'AT', None)
+                orders_up_status.delay(order.id, 'AT')
                 # Adicionar nota
                 NotesAdd.addNote(order,f'{iccid} Enviado para ativação na T-Mobile')
             else:

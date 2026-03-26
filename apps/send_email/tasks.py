@@ -21,7 +21,7 @@ def send_email_sims(id=None):
     else:
         orders_all = Orders.objects.filter(pk=id)
     
-    logger.info(f">>>>>>>>>>>>>>>>>>> Iniciando envio de email para {len(orders_all)} pedidos com status 'EE'")
+    logger.info(f">>>>>>>>>>>>>>>>>>> Iniciando envio de email para {len(orders_all)} pedidos")
         
     url_site = settings.URL_CDN
     url_img = f'{url_site}/email/'
