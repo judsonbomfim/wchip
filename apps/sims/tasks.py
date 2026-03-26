@@ -6,9 +6,6 @@ import http.client
 import json
 from django.conf import settings
 import pytz
-
-from apps.orders.tasks import orders_up_status
-
 from .classes import ApiCM, ApiTC, ApiAR, OperatorSelect
 from apps.orders.models import Orders, Notes
 from apps.orders.classes import ApiStore, StatusStore, NotesAdd, UpdateOrder, UpdateStore
@@ -290,6 +287,8 @@ def simActivateTC(id=None):
 
 @shared_task
 def simDeactivateTC(id=None):
+    from apps.orders.tasks import orders_up_status
+    
 
     timezone = pytz.timezone(settings.TIME_ZONE)
 
@@ -389,6 +388,7 @@ def simDeactivateTC(id=None):
 
 
 def simDeactivateAll(id=None):
+    from apps.orders.tasks import orders_up_status
 
     timezone = pytz.timezone(settings.TIME_ZONE)
 
@@ -439,6 +439,7 @@ def simDeactivateAll(id=None):
 
 @shared_task
 def simActivateTM(id=None):
+    from apps.orders.tasks import orders_up_status
           
     tz = pytz.timezone(settings.TIME_ZONE)
     today = datetime.now(tz).date()
