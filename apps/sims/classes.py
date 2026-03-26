@@ -331,8 +331,10 @@ class ApiTC:
             plan_list = next((item[2] for item in planList.get(product, []) if item[0] == day and item[1] == dataDay), None)      
             payload = json.dumps({
                 "Request": {
-                    "endPointId": endpointId,
-                    "planId": plan_list
+                    "requestParam": {
+                        "endPointId": endpointId,
+                        "planId": plan_list                        
+                    }
                 }
             })    
             conn = http.client.HTTPSConnection(settings.APITC_HTTPCONN)
