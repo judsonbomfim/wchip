@@ -73,31 +73,14 @@ def send_email_sims(id=None):
             [client_email],
         )
         email.attach_alternative(html_content, "text/html")
-        email.send()
         
-        logger.info(f">>>>>>>>>>>>>>>>>>> E-mail enviado com sucesso para pedido #{order_id}")
+        try:
+            email.send()
+            logger.info(f">>>>>>>>>>>>>>>>>>> E-mail enviado com sucesso para pedido #{order_id}")
+        except Exception as e:
+            logger.error(f">>>>>>>>>>>>>>>>>>> ERRO ao enviar email para pedido #{order_id} - Cliente: {client_email} - Erro: {str(e)}", exc_info=True)
+            continue
         
-        # if order_st != 'CN' and type_sim == 'esim':
-        #     if product_plan == '980' or product_plan == '977':
-        #         # Update Order
-        #         order = Orders.objects.get(pk=id)
-        #         order.order_status = 'AI'
-        #         order.save()
-        #         # Update Store
-        #     else:
-        #         # Update Order
-        #         order = Orders.objects.get(pk=id)
-        #         order.order_status = 'AA'
-        #         order.save()
-        #         # Update Store
-        #         apiStore = ApiStore.conectApiStore()
-        #         status_def_sis = StatusStore.st_sis_site()            
-        #         update_store = {
-        #             'status': status_def_sis['AA']
-        #         }
-        #         apiStore.put(f'orders/{order.order_id}', update_store).json()
-        
-        # Add note
         add_note = Notes( 
             id_item = order,
             id_user = None,
@@ -150,9 +133,13 @@ def send_tracking(id=None):
             [client_email],
         )
         email.attach_alternative(html_content, "text/html")
-        email.send()
         
-        # Add note
+        try:
+            email.send()
+            logger.info(f">>>>>>>>>>>>>>>>>>> E-mail de rastreio enviado com sucesso para pedido #{order_id}")
+        except Exception as e:
+            logger.error(f">>>>>>>>>>>>>>>>>>> ERRO ao enviar email de rastreio para pedido #{order_id} - Cliente: {client_email} - Erro: {str(e)}", exc_info=True)
+            continue
         add_note = Notes( 
             id_item = order,
             id_user = None,
