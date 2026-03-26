@@ -328,15 +328,27 @@ class ApiTC:
           
         # Verificar Planos    
         try:
-            plan_list = next((item[2] for item in planList.get(product, []) if item[0] == day and item[1] == dataDay), None)      
+            day = str(day)
+            dataDay = str(dataDay).strip().lower()
+            product = str(product).strip()
+            end_point_id = str(endpointId).strip() if endpointId is not None else ''
+
+            plan_list = next((item[2] for item in planList.get(product, []) if item[0] == day and item[1] == dataDay), None)
+
+            if not end_point_id or not plan_list:
+                logger.error(
+                    f">>>>>>>>>>>>>>>>>>> Parâmetros obrigatórios ausentes para SubscribeAddon: endPointId='{end_point_id}', planId='{plan_list}', day='{day}', dataDay='{dataDay}', product='{product}'"
+                )
+                return 0
+
             payload = json.dumps({
                 "Request": {
                     "requestParam": {
-                        "endPointId": endpointId,
-                        "planId": plan_list                        
+                        "endPointId": end_point_id,
+                        "planId": str(plan_list)
                     }
                 }
-            })    
+            })
             conn = http.client.HTTPSConnection(settings.APITC_HTTPCONN)
             conn.request("POST", "/api/SubscribeAddon", payload, headers)
             res_plan = conn.getresponse()
