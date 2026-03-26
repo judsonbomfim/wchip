@@ -1,4 +1,4 @@
-from venv import logger
+import logging
 from celery import shared_task
 from django.shortcuts import redirect
 from django.core.mail import EmailMultiAlternatives
@@ -7,6 +7,8 @@ from django.utils.html import strip_tags
 from django.conf import settings
 from apps.orders.models import Orders, Notes
 from apps.orders.classes import ApiStore, StatusStore
+
+logger = logging.getLogger('apps.send_email')
 
 @shared_task
 def send_email_sims(id=None):
