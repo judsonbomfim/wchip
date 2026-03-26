@@ -332,9 +332,7 @@ class ApiTC:
             payload = json.dumps({
                 "Request": {
                     "endPointId": endpointId,
-                    "requestParam": {
-                        "planId": plan_list
-                    }
+                    "planId": plan_list
                 }
             })    
             conn = http.client.HTTPSConnection(settings.APITC_HTTPCONN)
