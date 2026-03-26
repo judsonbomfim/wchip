@@ -7,6 +7,8 @@ import json
 from django.conf import settings
 import pytz
 
+from apps.orders.tasks import orders_up_status
+
 from .classes import ApiCM, ApiTC, ApiAR, OperatorSelect
 from apps.orders.models import Orders, Notes
 from apps.orders.classes import ApiStore, StatusStore, NotesAdd, UpdateOrder, UpdateStore
@@ -227,8 +229,7 @@ def simActivateTC(id=None):
                 # Adicionar nota
                 NotesAdd.addNote(order,f'{iccid} já estava ativado na Telcon')
                 # Alterar Status
-                orders_up_status(id_item,'AT')
-                UpdateStore.upStore(order_id=order_id, status_g='AT')
+                orders_up_status(order.id, 'AT', None)
                 continue
             
             elif simStatus == 'Suspended':
@@ -272,8 +273,7 @@ def simActivateTC(id=None):
             
             if resultCode == 0:
                 # Alterar status
-                UpdateOrder.upStatus(id_item,'AT')
-                UpdateStore.upStore(order_id=order_id, status_g='AT')
+                orders_up_status(order.id, 'AT', None)
                 # Adicionar nota
                 NotesAdd.addNote(order,f'{note} TC: {resultDescription}')
             else:
@@ -366,8 +366,7 @@ def simDeactivateTC(id=None):
             if resultCode == 0:
                 print(f'Pedido {order.order_id} desativado com sucesso.')
                 if id is None:
-                    UpdateOrder.upStatus(order.id, 'DE')
-                    UpdateStore.upStore(order_id=order.order_id, status_g='DE')
+                    orders_up_status(order.id, 'DE', None)
                     sim_put = Sims.objects.get(pk=order.id_sim.id)
                     sim_put.sim_status = 'DE'
                     sim_put.save()
@@ -429,8 +428,7 @@ def simDeactivateAll(id=None):
             continue
 
         if id is None:
-            UpdateOrder.upStatus(order.id, 'DE')
-            UpdateStore.upStore(order_id=order.order_id, status_g='DE')
+            orders_up_status(order.id, 'DE', None)
             sim_put = Sims.objects.get(pk=order.id_sim.id)
             sim_put.sim_status = 'DE'
             sim_put.save()
@@ -501,8 +499,7 @@ def simActivateTM(id=None):
         if 'code' in response_data:
             if response_data['code'] == 0:
                 # Alterar status
-                UpdateOrder.upStatus(id_item,'AT')
-                UpdateStore.upStore(order_id=order_id, status_g='AT')
+                orders_up_status(order.id, 'AT', None)
                 # Adicionar nota
                 NotesAdd.addNote(order,f'{iccid} Enviado para ativação na T-Mobile')
             else:

@@ -9,7 +9,6 @@ from apps.orders.models import Orders, Notes
 from apps.sims.models import Sims
 from apps.sims.classes import OperatorSelect
 import time
-from apps.send_email.tasks import send_email_sims
 import logging
 
 # Configurar logger para este módulo
@@ -263,6 +262,8 @@ def order_import():
 
 @shared_task
 def orders_auto():
+    from apps.send_email.tasks import send_email_sims
+
     logger.info('Iniciando orders_auto')
     order_import.delay()
     time.sleep(5)
@@ -271,18 +272,30 @@ def orders_auto():
     send_email_sims.delay()
 
 @shared_task
-def orders_up_status(ord_id, ord_s, id_user):
+def orders_up_status(ord_id, ord_s, id_user=None):
     from apps.sims.tasks import simDeactivateTC, simActivateTC
+    from apps.send_email.tasks import send_email_sims
 
     ord_id = ord_id
     ord_s = ord_s
     
-    for o_id in ord_id:
+    if isinstance(ord_id, (int, str)):
+        ord_ids = [ord_id]
+    else:
+        ord_ids = ord_id
+
+    user = None
+    if id_user is not None:
+        try:
+            user = User.objects.get(pk=id_user)
+        except User.DoesNotExist:
+            user = None
+
+    for o_id in ord_ids:
         
         logger.info(f'Processando order ID: {o_id}')
         
         order = Orders.objects.get(pk=o_id)
-        user = User.objects.get(pk=id_user)
         
         order_id = order.id
         order_st = order.order_status
