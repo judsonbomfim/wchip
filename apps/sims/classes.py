@@ -125,7 +125,6 @@ class ApiTC:
     # Pl0an Change
     @staticmethod
     def planChange(endpointId,headers,day,dataDay,product):
-        logger.info(f">>>>>>>>>>>>>>>>>>> Iniciando plano change para endpointId: {endpointId}, day: {day}, dataDay: {dataDay}, product: {product}")
         time.sleep(0.5)        
         planList = {}
 
@@ -354,7 +353,6 @@ class ApiTC:
             res_plan = conn.getresponse()
             data_plan = res_plan.read()
             conn.close()
-            logger.info(f">>>>>>>>>>>>>>>>>>> Plano alterado: {data_plan}")
         except KeyError:
             data_plan = 0
             logger.error(f">>>>>>>>>>>>>>>>>>> Plano não encontrado para os parâmetros: day={day}, dataDay={dataDay}, product={product}")

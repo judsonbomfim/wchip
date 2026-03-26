@@ -18,9 +18,7 @@ def send_email_sims(id=None):
         orders_all = Orders.objects.filter(order_status='EE')
     else:
         orders_all = Orders.objects.filter(pk=id)
-    
-    logger.info(f">>>>>>>>>>>>>>>>>>> Iniciando envio de email para {len(orders_all)} pedidos")
-        
+            
     url_site = settings.URL_CDN
     url_img = f'{url_site}/email/'
 
@@ -40,9 +38,7 @@ def send_email_sims(id=None):
         try: type_sim = order.id_sim.type_sim
         except: continue            
         countries = order.countries
-        
-        logger.info(f">>>>>>>>>>>>>>>>>>> Enviando email para pedido #{order_id} - Cliente: {name} - E-mail: {client_email}")
-        
+                
         context = {
             'url_site': url_site,
             'url_img': url_img,
