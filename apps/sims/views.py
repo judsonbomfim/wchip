@@ -34,6 +34,24 @@ def upload_file_to_s3(file):
     s3.upload_fileobj(file, bucket_name, file_path)
     return default_storage.url(file_path)
 
+def delete_sim_file(link):
+    if not link or link == '-':
+        return False
+
+    file_path = link.strip()
+    if file_path.startswith(settings.URL_CDN):
+        file_path = file_path.replace(settings.URL_CDN, '', 1)
+
+    file_path = file_path.lstrip('/')
+    if not file_path:
+        return False
+
+    if default_storage.exists(file_path):
+        default_storage.delete(file_path)
+        return True
+
+    return False
+
 @login_required(login_url='/login/')
 @has_permission_decorator('view_sims')
 def sims_list(request):
@@ -388,6 +406,29 @@ def delSimTC(request):
     logger.info(f'>>>>>>>>>>>>>>>>>>> FINALIZADO')
     return HttpResponse('SIMs deletados com sucesso')
 
+@login_required(login_url='/login/')
+def delSimCM(request):
+    sims = Sims.objects.filter(operator='CM', sim_status='DS')
+
+    deleted_sims = 0
+    deleted_files = 0
+    skipped_sims = 0
+
+    for sim in sims:
+        if sim.orders_set.exists():
+            skipped_sims += 1
+            continue
+
+        if delete_sim_file(sim.link):
+            deleted_files += 1
+
+        sim.delete()
+        deleted_sims += 1
+
+    return HttpResponse(
+        f'SIMs CM deletados com sucesso. Registros removidos: {deleted_sims}. '
+        f'Arquivos removidos: {deleted_files}. Ignorados: {skipped_sims}.'
+    )
 
 # @login_required(login_url='/login/')
 # def verify_sim(request):
