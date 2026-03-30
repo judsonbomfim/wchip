@@ -84,6 +84,8 @@ def sims_in_orders():
                 sim_ds = Sims.objects.all().order_by('id').filter(operator=oper_sel_i, type_sim=type_sim_i, sim_status='DS').first()
                 logger.info(f'Pedido {order_id_i} - SIM selecionado: {sim_ds.sim if sim_ds else "Nenhum SIM disponível"}')
                 if sim_ds:
+                    logger.info(f'Pedido {order_id_i} - SIM {sim_ds.sim} encontrado para atribuição.')
+                    logger.info(f'Pedido {order_id_i} - SIM {sim_ds.sim} atribuído ao pedido.')
                     pass
                 else:
                     logger.info(f'>>>>>>>>>>>>>>>>>>>>>>> SIMs indisponíveis para pedido {order_id_i}!')
@@ -92,6 +94,7 @@ def sims_in_orders():
             # update order
             # Save SIMs
             if type_sim_i == 'esim' and not esim_eua:
+                logger.info(f'Pedido {order_id_i} - Tipo SIM é eSIM, mas não é EUA. Verificando disponibilidade de SIM físico para atribuição.')
                 status_ord = 'AA'
             elif esim_eua: status_ord = 'AI'
             elif type_sim_i == 'sim': status_ord = 'ES'
@@ -100,6 +103,7 @@ def sims_in_orders():
             order_put.id_sim = sim_ds.id            
             order_put.order_status = status_ord
             order_put.save()
+            logger.info(f'Pedido {order_id_i} atualizado com SIM {sim_ds.sim if sim_ds else "N/A"} e status {status_ord}.')
             
             # Verification esim x eua
             if esim_eua:
