@@ -82,7 +82,7 @@ def sims_in_orders():
                 addNote(f'AIRALO - SIM padrão adicionado')
             else:
                 sim_ds = Sims.objects.all().order_by('id').filter(operator=oper_sel_i, type_sim=type_sim_i, sim_status='DS').first()
-                logger.info(f'Pedido {order_id_i} - SIM selecionado: {sim_ds.sim if sim_ds else "Nenhum SIM disponível"}')
+                logger.info(f'Pedido {order_id_i} - SIM selecionado: {sim_ds.sim if sim_ds else "Nenhum SIM disponível"} / {sim_ds.id}')
                 if sim_ds:
                     logger.info(f'Pedido {order_id_i} - SIM {sim_ds.sim} encontrado para atribuição.')
                     logger.info(f'Pedido {order_id_i} - SIM {sim_ds.sim} atribuído ao pedido.')
@@ -94,7 +94,7 @@ def sims_in_orders():
             # update order
             # Save SIMs
             if type_sim_i == 'esim' and not esim_eua:
-                logger.info(f'Pedido {order_id_i} - Tipo SIM é eSIM, mas não é EUA. Verificando disponibilidade de SIM físico para atribuição.')
+                logger.info(f'Pedido {order_id_i} - Tipo SIM é eSIM, mas não é EUA.')
                 status_ord = 'AA'
             elif esim_eua: status_ord = 'AI'
             elif type_sim_i == 'sim': status_ord = 'ES'
