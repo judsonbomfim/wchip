@@ -68,11 +68,10 @@ def sims_in_orders():
             # Definir Operadora
             if type_sim_i == 'sim':        
                 oper_sel = OperatorSelect.opSelSim()
-                logger.info(f'Pedido {order_id_i} - Seleção de operadora para SIM físico: {oper_sel}')
             else:
                 oper_sel = OperatorSelect.opSelESim()
-                logger.info(f'Pedido {order_id_i} - Seleção de operadora para eSIM: {oper_sel}')
             oper_sel_i = oper_sel.get(str(product_i), '')
+            logger.info(f'Pedido {order_id_i} - Operadora selecionada: {oper_sel_i}')
                         
             # Select SIM
             if esim_eua:
@@ -83,6 +82,7 @@ def sims_in_orders():
                 addNote(f'AIRALO - SIM padrão adicionado')
             else:
                 sim_ds = Sims.objects.all().order_by('id').filter(operator=oper_sel_i, type_sim=type_sim_i, sim_status='DS').first()
+                logger.info(f'Pedido {order_id_i} - SIM selecionado: {sim_ds.sim if sim_ds else "Nenhum SIM disponível"}')
                 if sim_ds:
                     pass
                 else:
