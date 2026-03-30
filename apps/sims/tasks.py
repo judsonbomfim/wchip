@@ -42,6 +42,8 @@ def sims_in_orders():
         type_sim_i = ord.type_sim
         id_sim_i = id_item_i.id_sim
         esim_eua = type_sim_i == 'esim' and (product_i == 'chip-internacional-eua')
+        
+        logger.info(f'Processando pedido {order_id_i} - Produto: {product_i} - Tipo SIM: {type_sim_i} - SIM associado: {"Sim" if id_sim_i else "Não"}')
 
         
         # Se já houver SIM   
@@ -53,6 +55,7 @@ def sims_in_orders():
                     id_item_i.order_status = 'AA'
                 id_item_i.save()
         else:    
+            logger.info(f'Pedido {order_id_i} SIM. Iniciando processo de atribuição.')
             # Notes
             def addNote(t_note):
                 add_sim = Notes( 
@@ -65,8 +68,10 @@ def sims_in_orders():
             # Definir Operadora
             if type_sim_i == 'sim':        
                 oper_sel = OperatorSelect.opSelSim()
+                logger.info(f'Pedido {order_id_i} - Seleção de operadora para SIM físico: {oper_sel}')
             else:
                 oper_sel = OperatorSelect.opSelESim()
+                logger.info(f'Pedido {order_id_i} - Seleção de operadora para eSIM: {oper_sel}')
             oper_sel_i = oper_sel.get(str(product_i), '')
                         
             # Select SIM
@@ -81,7 +86,7 @@ def sims_in_orders():
                 if sim_ds:
                     pass
                 else:
-                    logger.info(f'>>>>>>>>>>>>>>>>>>>>>>> SIMs indisponíveis!')
+                    logger.info(f'>>>>>>>>>>>>>>>>>>>>>>> SIMs indisponíveis para pedido {order_id_i}!')
                     continue
             
             # update order
