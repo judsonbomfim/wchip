@@ -7,7 +7,6 @@ import json
 from django.conf import settings
 import pytz
 
-from apps.orders.tasks import orders_up_status
 from .classes import ApiCM, ApiTC, ApiAR, OperatorSelect
 from apps.orders.models import Orders, Notes
 from apps.orders.classes import ApiStore, StatusStore, NotesAdd, UpdateOrder, UpdateStore
@@ -25,7 +24,8 @@ logger = logging.getLogger('apps.sims')
 
 @shared_task
 def sims_in_orders():
-    
+    from apps.orders.tasks import orders_up_status
+
     orders = Orders.objects.filter(order_status='AS')
     
     global n_item_total
@@ -121,7 +121,8 @@ def sims_in_orders():
 
             addNote(f'(e)SIM {_sim} adicionado')
             
-            # Atualizar pedido no site            
+            # Atualizar pedido no site
+                        
             orders_up_status.delay(id_id_i, status_ord)
             
             n_item_total += 1
