@@ -82,7 +82,8 @@ def sims_in_orders():
                 addNote(f'AIRALO - SIM padrão adicionado')
             else:
                 sim_ds = Sims.objects.all().order_by('id').filter(operator=oper_sel_i, type_sim=type_sim_i, sim_status='DS').first()
-                logger.info(f'Pedido {order_id_i} - SIM selecionado: {sim_ds.sim if sim_ds else "Nenhum SIM disponível"} / {sim_ds.id}')
+                sim_log = f'{sim_ds.sim} / {sim_ds.id}' if sim_ds else 'Nenhum SIM disponível'
+                logger.info(f'Pedido {order_id_i} - SIM selecionado: {sim_log}')
                 if sim_ds:
                     logger.info(f'Pedido {order_id_i} - SIM {sim_ds.sim} encontrado para atribuição.')
                     logger.info(f'Pedido {order_id_i} - SIM {sim_ds.sim} atribuído ao pedido.')
@@ -100,7 +101,7 @@ def sims_in_orders():
             elif type_sim_i == 'sim': status_ord = 'ES'
             
             order_put = Orders.objects.get(pk=id_id_i)
-            order_put.id_sim = sim_ds.id            
+            order_put.id_sim = sim_ds
             order_put.order_status = status_ord
             order_put.save()
             logger.info(f'Pedido {order_id_i} atualizado com SIM {sim_ds.sim if sim_ds else "N/A"} e status {status_ord}.')
