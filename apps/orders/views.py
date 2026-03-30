@@ -414,13 +414,7 @@ def ord_edit(request,id):
         if ord_st != order.order_status:
             # Alterar status
             # Status sis : Status Loja
-            status_sis_site = StatusStore.st_sis_site()
-            if ord_st in status_sis_site:            
-                
-                update_store = {
-                    'status': status_sis_site[ord_st]
-                }
-            apiStore.put(f'orders/{order.order_id}', update_store).json()
+            orders_up_status.delay([order.id], ord_st, request.user.id)
             
             # Salvar notas    
             ord_status = Orders.order_status.field.choices

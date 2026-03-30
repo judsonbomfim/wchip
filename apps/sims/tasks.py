@@ -6,6 +6,8 @@ import http.client
 import json
 from django.conf import settings
 import pytz
+
+from apps.orders.tasks import orders_up_status
 from .classes import ApiCM, ApiTC, ApiAR, OperatorSelect
 from apps.orders.models import Orders, Notes
 from apps.orders.classes import ApiStore, StatusStore, NotesAdd, UpdateOrder, UpdateStore
@@ -119,23 +121,8 @@ def sims_in_orders():
 
             addNote(f'(e)SIM {_sim} adicionado')
             
-            # Atualizar pedido no site
-            status_sis_site = StatusStore.st_sis_site()
-            if status_ord in status_sis_site:
-                try:
-                    apiStore = ApiStore.conectApiStore()
-                    update_store = {
-                        'status': status_sis_site[status_ord]
-                    }
-                    apiStore.put(f'orders/{order_id_i}', update_store)
-                    logger.info(f'Pedido {order_id_i} atualizado com sucesso no WooCommerce - Status: {status_ord}')
-                    msg_info.append(f'Pedido {order_id_i} atualizado com sucesso')
-                except Exception as e:
-                    logger.error(f'Erro ao atualizar pedido {order_id_i} no WooCommerce: {e}', exc_info=True)
-                    msg_error.append(f'Erro ao atualizar pedido {order_id_i} no site: {e}')
-            else:
-                logger.warning(f'Pedido {order_id_i}: Status "{status_ord}" não mapeado no WooCommerce')
-                msg_error.append(f'Pedido {order_id_i}: Status não mapeado')
+            # Atualizar pedido no site            
+            orders_up_status.delay(id_id_i, status_ord)
             
             n_item_total += 1
     
