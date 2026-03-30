@@ -146,6 +146,7 @@ def ord_add(request):
     cell_imei = request.POST.get('cell_imei')
     cell_eid = request.POST.get('cell_eid')
     tracking = request.POST.get('tracking')
+    countries = request.POST.get('countries') == 'True'
     ord_st = request.POST.get('ord_st_f')
     ord_note = request.POST.get('ord_note')
 
@@ -186,6 +187,7 @@ def ord_add(request):
         oper_sim=operator,
         id_sim=id_sim,
         tracking=tracking,
+        countries=countries,
     )
 
     if ord_note:
