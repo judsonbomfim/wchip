@@ -262,6 +262,7 @@ def order_import():
 @shared_task
 def orders_auto():
     from apps.send_email.tasks import send_email_sims
+    from apps.sims.tasks import sims_in_orders
 
     logger.info('Iniciando orders_auto')
     order_import.delay()
