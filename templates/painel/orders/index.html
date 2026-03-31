@@ -168,10 +168,10 @@
                     {% endif %}
 
                     {% if order.id_sim.type_sim == 'esim' %}
-                      {% if operation %}
-                        <a href="{{ url_cdn }}{{ order.id_sim.link }}" target="_blank"><i class="bi bi-qr-code text-primary ps-2" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Ver QRCode"></i></a>
-                      {% else %}
+                      {% if order.id_sim.operator == 'AR' %}
                         <a href="{{ order.id_sim.link }}" target="_blank"><i class="bi bi-qr-code text-primary ps-2" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Ver QRCode"></i></a>
+                      {% else %}
+                        <a href="{{ url_cdn }}{{ order.id_sim.link }}" target="_blank"><i class="bi bi-qr-code text-primary ps-2" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Ver QRCode"></i></a>
                       {% endif %}
                     {% endif %}
 
