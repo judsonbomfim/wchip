@@ -38,6 +38,7 @@ def send_email_sims(id=None):
         try: type_sim = order.id_sim.type_sim
         except: continue            
         countries = order.countries
+        operation = order.id_sim.operator
                 
         context = {
             'url_site': url_site,
@@ -52,6 +53,7 @@ def send_email_sims(id=None):
             'type_sim': type_sim,
             'countries': countries,
             'tracking': order.tracking,
+            'operation': operation,
         }
         html_content = render_to_string('painel/emails/send_email.html', context)
         text_content = strip_tags(html_content)
