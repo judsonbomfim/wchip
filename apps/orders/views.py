@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.conf import settings
+from django.db import DataError
 from apps.orders.models import Orders, Notes
 from apps.sims.models import Sims
 from apps.send_email.tasks import send_email_sims, send_tracking
@@ -113,6 +114,7 @@ def orders_list(request):
 @login_required(login_url='/login/')
 @has_permission_decorator('edit_orders')
 def ord_add(request):
+    max_bigint = 9223372036854775807
     ord_status = Orders.order_status.field.choices
     ord_product = Orders.product.field.choices
     ord_data_day = Orders.data_day.field.choices
@@ -130,9 +132,7 @@ def ord_add(request):
     if request.method == 'GET':
         return render(request, 'painel/orders/add.html', context)
     
-    order_id = request.POST.get('order_id')
-    item_cont = (Orders.objects.filter(order_id=order_id).count()) + 1  
-    item_id = order_id + f'-{item_cont}'
+    order_id = (request.POST.get('order_id') or '').strip()
     client = request.POST.get('client')
     email = request.POST.get('email')
     cell_mod = request.POST.get('cell_mod')
@@ -150,9 +150,28 @@ def ord_add(request):
     ord_st = request.POST.get('ord_st_f')
     ord_note = request.POST.get('ord_note')
 
-    if not order_id or not item_id or not client or not product or not data_day or not days_value or not activation_date or not ord_st:
+    if not order_id or not client or not product or not data_day or not days_value or not activation_date or not ord_st:
         messages.error(request, 'Preencha todos os campos obrigatórios para criar o pedido.')
         return render(request, 'painel/orders/add.html', context)
+
+    try:
+        order_id_int = int(order_id)
+    except ValueError:
+        messages.error(request, 'O número do pedido precisa ser numérico.')
+        return render(request, 'painel/orders/add.html', context)
+
+    if order_id_int < 0 or order_id_int > max_bigint:
+        messages.error(request, 'Número do pedido fora do limite suportado.')
+        return render(request, 'painel/orders/add.html', context)
+
+    try:
+        days_int = int(days_value)
+    except ValueError:
+        messages.error(request, 'Selecione um número de dias válido.')
+        return render(request, 'painel/orders/add.html', context)
+
+    item_cont = Orders.objects.filter(order_id=order_id_int).count() + 1
+    item_id = f'{order_id_int}-{item_cont}'
 
     id_sim = None
     if sim:
@@ -168,27 +187,31 @@ def ord_add(request):
             sim_status='AT',
         )
 
-    order = Orders.objects.create(
-        order_id=int(order_id),
-        item_id=item_id,
-        client=client,
-        email=email,
-        product=product,
-        data_day=data_day,
-        qty=1,
-        days=int(days_value),
-        cell_mod=cell_mod,
-        cell_imei=cell_imei,
-        cell_eid=cell_eid,
-        activation_date=activation_date,
-        order_date=datetime.now(),
-        order_status=ord_st,
-        type_sim=type_sim,
-        oper_sim=operator,
-        id_sim=id_sim,
-        tracking=tracking,
-        countries=countries,
-    )
+    try:
+        order = Orders.objects.create(
+            order_id=order_id_int,
+            item_id=item_id,
+            client=client,
+            email=email,
+            product=product,
+            data_day=data_day,
+            qty=1,
+            days=days_int,
+            cell_mod=cell_mod,
+            cell_imei=cell_imei,
+            cell_eid=cell_eid,
+            activation_date=activation_date,
+            order_date=datetime.now(),
+            order_status=ord_st,
+            type_sim=type_sim,
+            oper_sim=operator,
+            id_sim=id_sim,
+            tracking=tracking,
+            countries=countries,
+        )
+    except DataError:
+        messages.error(request, 'Erro de limite de dados no banco. Execute as migrações do app orders e tente novamente.')
+        return render(request, 'painel/orders/add.html', context)
 
     if ord_note:
         Notes.objects.create(
