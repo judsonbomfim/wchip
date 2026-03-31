@@ -73,7 +73,7 @@ SHIPMENTS = [
 
 class Orders(models.Model):
     id = models.AutoField(primary_key=True)
-    order_id = models.IntegerField(default=0)
+    order_id = models.BigIntegerField(default=0)
     item_id = models.CharField(max_length=15)
     client_id = models.IntegerField(null=True)  # Temporariamente permitindo nulo
     client = models.CharField(max_length=70)

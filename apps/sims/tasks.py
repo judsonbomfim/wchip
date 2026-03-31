@@ -639,7 +639,7 @@ def simActivateAR(id=None):
     
     tz = pytz.timezone(settings.TIME_ZONE)
     today = datetime.now(tz).date()
-    tomorrow = today +timedelta(days=1)
+    tomorrow = today +timedelta(days=80)
     
     logger.info(f'>>>>>>>>>> ATIVAÇÂO AR INICIADA')
     
