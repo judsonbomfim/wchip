@@ -45,9 +45,6 @@ def sims_in_orders():
         id_sim_i = id_item_i.id_sim
         esim_eua = type_sim_i == 'esim' and (product_i == 'chip-internacional-eua')
         
-        logger.info(f'Processando pedido {order_id_i} - Produto: {product_i} - Tipo SIM: {type_sim_i} - SIM associado: {"Sim" if id_sim_i else "Não"}')
-
-        
         # Se já houver SIM   
         if id_sim_i != None:
             if ord.order_status == 'AS':
@@ -57,7 +54,6 @@ def sims_in_orders():
                     id_item_i.order_status = 'AA'
                 id_item_i.save()
         else:    
-            logger.info(f'Pedido {order_id_i} SIM. Iniciando processo de atribuição.')
             # Notes
             def addNote(t_note):
                 add_sim = Notes( 
@@ -73,7 +69,6 @@ def sims_in_orders():
             else:
                 oper_sel = OperatorSelect.opSelESim()
             oper_sel_i = oper_sel.get(str(product_i), '')
-            logger.info(f'Pedido {order_id_i} - Operadora selecionada: {oper_sel_i}')
                         
             # Select SIM
             if esim_eua:
@@ -85,10 +80,8 @@ def sims_in_orders():
             else:
                 sim_ds = Sims.objects.all().order_by('id').filter(operator=oper_sel_i, type_sim=type_sim_i, sim_status='DS').first()
                 sim_log = f'{sim_ds.sim} / {sim_ds.id}' if sim_ds else 'Nenhum SIM disponível'
-                logger.info(f'Pedido {order_id_i} - SIM selecionado: {sim_log}')
                 if sim_ds:
                     logger.info(f'Pedido {order_id_i} - SIM {sim_ds.sim} encontrado para atribuição.')
-                    logger.info(f'Pedido {order_id_i} - SIM {sim_ds.sim} atribuído ao pedido.')
                     pass
                 else:
                     logger.info(f'>>>>>>>>>>>>>>>>>>>>>>> SIMs indisponíveis para pedido {order_id_i}!')
@@ -106,7 +99,6 @@ def sims_in_orders():
             order_put.id_sim = sim_ds
             order_put.order_status = status_ord
             order_put.save()
-            logger.info(f'Pedido {order_id_i} atualizado com SIM {sim_ds.sim if sim_ds else "N/A"} e status {status_ord}.')
             
             # Verification esim x eua
             if esim_eua:
@@ -202,7 +194,7 @@ def simActivateTC(id=None):
             UpdateOrder.upStatus(id_item,'EA')
             NotesAdd.addNote(order,f'{iccid} Plano não alterado. Verificar plano {dataDay} - TC: Plano não encontrado.')
             continue
-        NotesAdd.addNote(order,f'{iccid} Plano alterado para {dataDay} - TELCOM: {json.loads(data_plan)}')    
+        NotesAdd.addNote(order,f'{iccid} Plano alterado para {dataDay}')    
 
         if simStatus == 'Pre-Active':
             # Ativar SIM na operadora

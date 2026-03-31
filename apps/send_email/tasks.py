@@ -50,7 +50,8 @@ def send_email_sims(id=None):
             'days': days,
             'product_plan': product_plan,
             'type_sim': type_sim,
-            'countries': countries,        
+            'countries': countries,
+            'tracking': order.tracking,
         }
         html_content = render_to_string('painel/emails/send_email.html', context)
         text_content = strip_tags(html_content)
