@@ -783,100 +783,113 @@ class ApiAR:
             return token_api
 
     @staticmethod
-    def selPlan(day, dataDay, product):
+    def selPlan(day, dataDay, product, paises):
         
-        planList = {
-            # Europa Flex (E)
-            "4816": [
-                ["7", "1gb-periodo", "eu-connect-in-7days-1gb"],
-                ["15", "2gb-periodo", "eu-connect-in-15days-2gb"],
-                ["30", "3gb-periodo", "eu-connect-in-30days-3gb"],
-                ["30", "5gb-periodo", "eu-connect-in-30days-5gb"],
-                ["30", "10gb-periodo", "eu-connect-in-30days-10gb"],
-                ["30", "20gb-periodo", "eu-connect-in-30days-20gb"],
-            ],
-            # EUA Flex
-            "976": [
-                ["7", "1gb-periodo", "change-in-7days-1gb"],
-                ["15", "2gb-periodo", "change-in-15days-2gb"],
-                ["30", "3gb-periodo", "change-in-30days-3gb"],
-                ["30", "5gb-periodo", "change-in-30days-5gb"],
-                ["30", "10gb-periodo", "change-in-30days-10gb"],
-                ["30", "20gb-periodo", "change-in-30days-20gb"],
-            ], 
-            # A. Norte Flex
-            "981": [
-                ["7", "1gb-periodo", "americanmex-in-7days-1gb"],
-                ["15", "2gb-periodo", "americanmex-in-15days-2gb"],
-                ["30", "3gb-periodo", "americanmex-in-30days-3gb"],
-                ["30", "5gb-periodo", "americanmex-in-30days-5gb"],
-                ["30", "10gb-periodo", "americanmex-in-30days-10gb"],
-                ["30", "20gb-periodo", "americanmex-in-30days-20gb"],
-            ],
-            # A. Sul Flex
-            "3734": [
-                ["7", "1gb-periodo", "latamlink-7days-1gb"],
-                ["15", "2gb-periodo", "latamlink-15days-2gb"],
-                ["30", "3gb-periodo", "latamlink-30days-3gb"],
-                ["30", "5gb-periodo", "latamlink-30days-5gb"],
-                ["30", "10gb-periodo", "latamlink-30days-10gb"],
-                ["30", "20gb-periodo", "latamlink-30days-20gb"],
-            ],
-            # Caribe Flex
-            "4718": [
-                ["7", "1gb-periodo", "island-hopper-in-7days-1gb"],
-                ["15", "2gb-periodo", "island-hopper-in-15days-2gb"],
-                ["30", "3gb-periodo", "island-hopper-in-30days-3gb"],
-                ["30", "5gb-periodo", "island-hopper-in-30days-5gb"],
-                ["30", "10gb-periodo", "island-hopper-in-30days-10gb"],
-                ["30", "20gb-periodo", "island-hopper-in-30days-20gb"],
-            ],
-            # Oceania Flex
-            "4735": [
-                ["7", "1gb-periodo", "oceanlink-in-7days-1gb"],
-                ["15", "2gb-periodo", "oceanlink-in-15days-2gb"],
-                ["30", "3gb-periodo", "oceanlink-in-30days-3gb"],
-                ["30", "5gb-periodo", "oceanlink-in-30days-5gb"],
-                ["30", "10gb-periodo", "oceanlink-in-30days-10gb"],
-                ["30", "20gb-periodo", "oceanlink-in-30days-20gb"],
-            ],
-            # Japão Flex
-            "4740": [
-                ["7", "1gb-periodo", "moshi-moshi-7days-1gb"],
-                ["15", "2gb-periodo", "moshi-moshi-15days-2gb"],
-                ["30", "3gb-periodo", "moshi-moshi-30days-3gb"],
-                ["30", "5gb-periodo", "moshi-moshi-30days-5gb"],
-                ["30", "10gb-periodo", "moshi-moshi-30days-10gb"],
-                ["30", "20gb-periodo", "moshi-moshi-30days-20gb"],
-            ],
-            # Africa Flex
-            "4763": [
-                ["7", "1gb-periodo", "hello-africa-in-7days-1gb"],
-                ["15", "2gb-periodo", "hello-africa-in-15days-2gb"],
-                ["30", "3gb-periodo", "hello-africa-in-30days-3gb"],
-                ["30", "5gb-periodo", "hello-africa-in-30days-5gb"],
-                ["30", "10gb-periodo", "hello-africa-in-30days-10gb"],
-                ["30", "20gb-periodo", "hello-africa-in-30days-20gb"],
-            ],
-            # Asia Flex
-            "4768": [
-                ["7", "1gb-periodo", "asialink-7days-1gb-"],
-                ["15", "2gb-periodo", "asialink-15days-2gb"],
-                ["30", "3gb-periodo", "asialink-30days-3gb-"],
-                ["30", "5gb-periodo", "asialink-30days-5gb-"],
-                ["30", "10gb-periodo", "asialink-30days-10gb-"],
-                ["30", "20gb-periodo", "asialink-30days-20gb-"],
-            ],
-            # Oriente Flex
-            "4769": [
-                ["7", "1gb-periodo", "menalink-7days-1gb"],
-                ["15", "2gb-periodo", "menalink-15days-2gb"],
-                ["30", "3gb-periodo", "menalink-30days-3gb"],
-                ["30", "5gb-periodo", "menalink-30days-5gb"],
-                ["30", "10gb-periodo", "menalink-30days-10gb"],
-                ["30", "20gb-periodo", "menalink-30days-20gb"],
-            ],
-        }
+        if paises == None:
+            planList = {
+                # Europa Flex (E)
+                "4816": [
+                    ["7", "1gb-periodo", "eu-connect-in-7days-1gb"],
+                    ["15", "2gb-periodo", "eu-connect-in-15days-2gb"],
+                    ["30", "3gb-periodo", "eu-connect-in-30days-3gb"],
+                    ["30", "5gb-periodo", "eu-connect-in-30days-5gb"],
+                    ["30", "10gb-periodo", "eu-connect-in-30days-10gb"],
+                    ["30", "20gb-periodo", "eu-connect-in-30days-20gb"],
+                ],
+                # EUA Flex
+                "976": [
+                    ["7", "1gb-periodo", "change-in-7days-1gb"],
+                    ["15", "2gb-periodo", "change-in-15days-2gb"],
+                    ["30", "3gb-periodo", "change-in-30days-3gb"],
+                    ["30", "5gb-periodo", "change-in-30days-5gb"],
+                    ["30", "10gb-periodo", "change-in-30days-10gb"],
+                    ["30", "20gb-periodo", "change-in-30days-20gb"],
+                ], 
+                # A. Norte Flex
+                "981": [
+                    ["7", "1gb-periodo", "americanmex-in-7days-1gb"],
+                    ["15", "2gb-periodo", "americanmex-in-15days-2gb"],
+                    ["30", "3gb-periodo", "americanmex-in-30days-3gb"],
+                    ["30", "5gb-periodo", "americanmex-in-30days-5gb"],
+                    ["30", "10gb-periodo", "americanmex-in-30days-10gb"],
+                    ["30", "20gb-periodo", "americanmex-in-30days-20gb"],
+                ],
+                # A. Sul Flex
+                "3734": [
+                    ["7", "1gb-periodo", "latamlink-7days-1gb"],
+                    ["15", "2gb-periodo", "latamlink-15days-2gb"],
+                    ["30", "3gb-periodo", "latamlink-30days-3gb"],
+                    ["30", "5gb-periodo", "latamlink-30days-5gb"],
+                    ["30", "10gb-periodo", "latamlink-30days-10gb"],
+                    ["30", "20gb-periodo", "latamlink-30days-20gb"],
+                ],
+                # Caribe Flex
+                "4718": [
+                    ["7", "1gb-periodo", "island-hopper-in-7days-1gb"],
+                    ["15", "2gb-periodo", "island-hopper-in-15days-2gb"],
+                    ["30", "3gb-periodo", "island-hopper-in-30days-3gb"],
+                    ["30", "5gb-periodo", "island-hopper-in-30days-5gb"],
+                    ["30", "10gb-periodo", "island-hopper-in-30days-10gb"],
+                    ["30", "20gb-periodo", "island-hopper-in-30days-20gb"],
+                ],
+                # Oceania Flex
+                "4735": [
+                    ["7", "1gb-periodo", "oceanlink-in-7days-1gb"],
+                    ["15", "2gb-periodo", "oceanlink-in-15days-2gb"],
+                    ["30", "3gb-periodo", "oceanlink-in-30days-3gb"],
+                    ["30", "5gb-periodo", "oceanlink-in-30days-5gb"],
+                    ["30", "10gb-periodo", "oceanlink-in-30days-10gb"],
+                    ["30", "20gb-periodo", "oceanlink-in-30days-20gb"],
+                ],
+                # Japão Flex
+                "4740": [
+                    ["7", "1gb-periodo", "moshi-moshi-7days-1gb"],
+                    ["15", "2gb-periodo", "moshi-moshi-15days-2gb"],
+                    ["30", "3gb-periodo", "moshi-moshi-30days-3gb"],
+                    ["30", "5gb-periodo", "moshi-moshi-30days-5gb"],
+                    ["30", "10gb-periodo", "moshi-moshi-30days-10gb"],
+                    ["30", "20gb-periodo", "moshi-moshi-30days-20gb"],
+                ],
+                # Africa Flex
+                "4763": [
+                    ["7", "1gb-periodo", "hello-africa-in-7days-1gb"],
+                    ["15", "2gb-periodo", "hello-africa-in-15days-2gb"],
+                    ["30", "3gb-periodo", "hello-africa-in-30days-3gb"],
+                    ["30", "5gb-periodo", "hello-africa-in-30days-5gb"],
+                    ["30", "10gb-periodo", "hello-africa-in-30days-10gb"],
+                    ["30", "20gb-periodo", "hello-africa-in-30days-20gb"],
+                ],
+                # Asia Flex
+                "4768": [
+                    ["7", "1gb-periodo", "asialink-7days-1gb-"],
+                    ["15", "2gb-periodo", "asialink-15days-2gb"],
+                    ["30", "3gb-periodo", "asialink-30days-3gb-"],
+                    ["30", "5gb-periodo", "asialink-30days-5gb-"],
+                    ["30", "10gb-periodo", "asialink-30days-10gb-"],
+                    ["30", "20gb-periodo", "asialink-30days-20gb-"],
+                ],
+                # Oriente Flex
+                "4769": [
+                    ["7", "1gb-periodo", "menalink-7days-1gb"],
+                    ["15", "2gb-periodo", "menalink-15days-2gb"],
+                    ["30", "3gb-periodo", "menalink-30days-3gb"],
+                    ["30", "5gb-periodo", "menalink-30days-5gb"],
+                    ["30", "10gb-periodo", "menalink-30days-10gb"],
+                    ["30", "20gb-periodo", "menalink-30days-20gb"],
+                ],
+            }
+        else:
+            planList = {
+                # Europa Flex (E)
+                "4816": [
+                    ["7", "1gb-periodo", "eurolink-7days-1gb"],
+                    ["15", "2gb-periodo", "eurolink-15days-2gb"],
+                    ["30", "3gb-periodo", "eurolink-30days-3gb"],
+                    ["30", "5gb-periodo", "eurolink-30days-5gb"],
+                    ["30", "10gb-periodo", "eurolink-30days-10gb"],
+                    ["30", "20gb-periodo", "eurolink-30days-20gb"],
+                ],
+            }
           
         # Verificar Planos    
         try:
