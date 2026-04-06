@@ -783,9 +783,21 @@ class ApiAR:
             return token_api
 
     @staticmethod
-    def selPlan(day, dataDay, product, paises):
+    def selPlan(day, dataDay, product, paises, voz):
         
-        if paises == None:
+        if voz == True:
+            planList = {
+                # EUA Flex
+                "976": [
+                    ["7", "1gb-periodo", "change-plus-7days-1gb"],
+                    ["15", "2gb-periodo", "change-plus-15days-2gb"],
+                    ["30", "3gb-periodo", "change-plus-30days-3gb"],
+                    ["30", "5gb-periodo", "change-plus-30days-5gb"],
+                    ["30", "10gb-periodo", "change-plus-30days-10gb"],
+                    ["30", "20gb-periodo", "change-plus-30days-20gb"],
+                ], 
+            }
+        elif paises == None:
             planList = {
                 # Europa Flex (E)
                 "4816": [
@@ -878,7 +890,7 @@ class ApiAR:
                     ["30", "20gb-periodo", "menalink-30days-20gb"],
                 ],
             }
-        else:
+        elif paises == True:
             planList = {
                 # Europa Flex (E)
                 "4816": [
@@ -890,6 +902,7 @@ class ApiAR:
                     ["30", "20gb-periodo", "eurolink-30days-20gb"],
                 ],
             }
+          
           
         # Verificar Planos    
         try:

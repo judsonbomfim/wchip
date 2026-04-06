@@ -126,6 +126,7 @@ def order_import():
                     # Definir valor padrão para variáveis
                     ord_chip_nun_i = '-'
                     countries_i = False
+                    voice_i = False
                     cell_mod_i = False
                     type_sim_i = "sim"
                     data_day_i = None
@@ -143,6 +144,9 @@ def order_import():
                         if 'Visitará' in i['key']:
                             if i['display_value'] == 'Sim': countries_i = True 
                             else: countries_i = False
+                        if 'Voz' in i['key']:
+                            if i['display_value'] == 'Sim': voice_i = True
+                            else: voice_i = False
                         if i['key'] == 'Data de Ativação': activation_date_i = i['value']
                         if i['key'] == 'Modelo e marca de celular': cell_mod_i = i['value']
                         if i['key'] == 'Número de pedido ou do chip': ord_chip_nun_i = i['value']
@@ -200,6 +204,7 @@ def order_import():
                         coupon = coupon_i,
                         days = days_i,
                         countries = countries_i,
+                        voice_i = voice_i,
                         cell_mod = cell_mod_i,
                         ord_chip_nun = ord_chip_nun_i,
                         shipping = shipping_i,

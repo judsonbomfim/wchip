@@ -121,6 +121,7 @@
             <th class="userDatatable-title">Op.</th>
             <th class="userDatatable-title">Produto</th>
             <th class="userDatatable-title text-center">Países</th>
+            <th class="userDatatable-title text-center">V0z</th>
             <th class="userDatatable-title text-center">Dias</th>
             <th class="userDatatable-title">Rastreio</th>
             <th class="userDatatable-title text-center">Ativação</th>
@@ -186,6 +187,15 @@
                 <td class="text-center">
                   <div class="userDatatable-content">
                     {% if order.countries == 0 %}
+                      -
+                    {% else %}
+                      <span class="badge badge-round badge-lg alert-success">Sim</span>
+                    {% endif %}
+                  </div>
+                </td>
+                <td class="text-center">
+                  <div class="userDatatable-content">
+                    {% if order.voice == 0 %}
                       -
                     {% else %}
                       <span class="badge badge-round badge-lg alert-success">Sim</span>

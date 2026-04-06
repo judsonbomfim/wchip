@@ -75,7 +75,7 @@ class Orders(models.Model):
     id = models.AutoField(primary_key=True)
     order_id = models.BigIntegerField(default=0)
     item_id = models.CharField(max_length=40)
-    client_id = models.IntegerField(null=True)  # Temporariamente permitindo nulo
+    client_id = models.IntegerField(null=True)
     client = models.CharField(max_length=70)
     email = models.CharField(max_length=70, null=True, blank=True)
     product = models.CharField(max_length=50, choices=PRODUCT)
@@ -84,6 +84,7 @@ class Orders(models.Model):
     coupon = models.CharField(max_length=25, default='')
     days = models.IntegerField()
     countries = models.BooleanField(default=False)
+    voice = models.BooleanField(default=False)
     cell_mod = models.CharField(max_length=45, null=True, blank=True)
     cell_imei = models.CharField(max_length=35, null=True, blank=True)
     cell_eid = models.CharField(max_length=35, null=True, blank=True)

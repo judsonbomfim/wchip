@@ -677,6 +677,7 @@ def simActivateAR(id=None):
         order_sim = order.id_sim.sim
         order_client = order.client
         order_paises = order.countries
+        order_voz = order.voice
         list_plan = []
                 
         def errorData(data_dict=None):
@@ -688,7 +689,7 @@ def simActivateAR(id=None):
         
         # Selecionar plano
         try:
-            plan_code = ApiAR.selPlan(order_day, order_data, order_product, order_paises)
+            plan_code = ApiAR.selPlan(order_day, order_data, order_product, order_paises, order_voz)
         except Exception as e:
             logger.error(str(e), exc_info=True)
             plan_code = None
