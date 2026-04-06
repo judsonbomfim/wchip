@@ -72,7 +72,7 @@ def sims_in_orders():
                         
             # Select SIM
             if esim_eua:
-                sim_ds = Sims.objects.all().get(pk=0)
+                sim_ds = Sims.objects.all().get(pk=465)
                 addNote(f'eSIM EUA - SIM padrão adicionado')
             elif oper_sel_i == 'AR':
                 sim_ds = Sims.objects.all().get(pk=351)
