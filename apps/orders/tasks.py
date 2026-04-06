@@ -141,12 +141,8 @@ def order_import():
                             else: type_sim_i = 'sim'
                         if i['key'] == 'pa_franquia': data_day_i = i['value']
                         if i['key'] == 'pa_dias': days_i = i['value']
-                        if 'Visitará' in i['key']:
-                            if i['display_value'] == 'Sim': countries_i = True 
-                            else: countries_i = False
-                        if 'Voz' in i['key']:
-                            if i['display_value'] == 'Sim': voice_i = True
-                            else: voice_i = False
+                        if i['key'] == 'Adicionar Países': countries_i = True
+                        if i['key'] == '+ Plano de Voz': voice_i = True
                         if i['key'] == 'Data de Ativação': activation_date_i = i['value']
                         if i['key'] == 'Modelo e marca de celular': cell_mod_i = i['value']
                         if i['key'] == 'Número de pedido ou do chip': ord_chip_nun_i = i['value']
