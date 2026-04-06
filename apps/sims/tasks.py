@@ -43,7 +43,7 @@ def sims_in_orders():
         product_i = ord.product
         type_sim_i = ord.type_sim
         id_sim_i = id_item_i.id_sim
-        esim_eua = type_sim_i == 'esim' and (product_i == 'chip-internacional-eua')
+        esim_eua = type_sim_i == 'esim' and (product_i == '977') # EUA Ilimitado
         
         # Se já houver SIM   
         if id_sim_i != None:

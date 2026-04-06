@@ -145,6 +145,14 @@
                                 </div>
                             </div>
 
+                            <div class="row mb-4">
+                                <div class="col-md-12">
+                                    <label class="form-label d-block">Voz</label>
+                                    <input type="checkbox" class="btn-check" name="voice" id="voice" value="True" {% if request.POST.voice %}checked{% endif %}>
+                                    <label class="btn btn-outline-primary" for="voice">+ Plano de Voz</label>
+                                </div>
+                            </div>
+
                             <div class="form-group d-flex gap-2">
                                 <button type="submit" class="btn btn-primary mb-3">Inserir Pedido</button>
                                 <a href="{% url 'orders_list' %}" class="btn btn-light mb-3">Cancelar</a>

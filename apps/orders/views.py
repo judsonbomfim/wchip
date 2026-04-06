@@ -147,6 +147,7 @@ def ord_add(request):
     cell_eid = request.POST.get('cell_eid')
     tracking = request.POST.get('tracking')
     countries = request.POST.get('countries') == 'True'
+    voice = request.POST.get('voice') == 'True'
     ord_st = request.POST.get('ord_st_f')
     ord_note = request.POST.get('ord_note')
 
@@ -208,6 +209,7 @@ def ord_add(request):
             id_sim=id_sim,
             tracking=tracking,
             countries=countries,
+            voice=voice,
         )
     except DataError:
         messages.error(request, 'Erro de limite de dados no banco. Execute as migrações do app orders e tente novamente.')
