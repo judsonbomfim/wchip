@@ -123,7 +123,6 @@
             <th class="userDatatable-title text-center">Países</th>
             <th class="userDatatable-title text-center">V0z</th>
             <th class="userDatatable-title text-center">Dias</th>
-            <th class="userDatatable-title">Rastreio</th>
             <th class="userDatatable-title text-center">Ativação</th>
             <th class="userDatatable-title text-center">Término</th>
             <th class="userDatatable-title text-center">Status</th>
@@ -204,11 +203,6 @@
                 </td>
                 <td>
                   <div class="userDatatable-content">{{ order.days }}</div>
-                </td>
-                <td>
-                  <div class="userDatatable-content">
-                    {% if order.id_sim %}{{ order.tracking }}{% endif %}
-                  </div>
                 </td>
                 <td class="text-center">
                   <div class="userDatatable-content">{{ order.activation_date|date:'d/m/Y' }}</div>
