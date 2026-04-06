@@ -154,6 +154,28 @@ def order_import():
                     order_status_i = 'AS'
                     
                     order_date_i = DateFormats.dateHour(order['date_created'])
+
+                    if days_i is not None:
+                        try:
+                            days_i = int(days_i)
+                        except (TypeError, ValueError):
+                            logger.error(
+                                f'Pedido {order_id_i} item {item_id_i} com pa_dias inválido: {days_i}'
+                            )
+                            msg_error.append(f'Pedido {order_id_i} com pa_dias inválido')
+                            q_i += 1
+                            n_item += 1
+                            continue
+
+                    if not data_day_i or days_i is None or not activation_date_i:
+                        logger.error(
+                            f'Pedido {order_id_i} item {item_id_i} sem metadados obrigatórios: '
+                            f'data_day={data_day_i}, days={days_i}, activation_date={activation_date_i}'
+                        )
+                        msg_error.append(f'Pedido {order_id_i} sem metadados obrigatórios')
+                        q_i += 1
+                        n_item += 1
+                        continue
                     # notes_i = 0
                     
                     # Definir status do pedido
@@ -191,37 +213,44 @@ def order_import():
                     oper_sel = OperatorSelect.opSelSim()
                     oper_sim_i = oper_sel.get(str(product_i), '')
                     
-                    # Definir variáveis para salvar no banco de dados                            
-                    order_add = Orders(                    
-                        order_id = order_id_i,
-                        item_id = item_id_i,
-                        client_id = client_id_i,
-                        client = client_i,
-                        email = email_i,
-                        product = product_i,
-                        data_day = data_day_i,
-                        qty = qty_i,
-                        coupon = coupon_i,
-                        days = days_i,
-                        countries = countries_i,
-                        voice_i = voice_i,
-                        cell_mod = cell_mod_i,
-                        ord_chip_nun = ord_chip_nun_i,
-                        shipping = shipping_i,
-                        order_date = order_date_i,
-                        activation_date = activation_date_i,
-                        order_status = order_status_i,
-                        type_sim = type_sim_i,
-                        oper_sim = oper_sim_i
-                        # notes = notes_i
-                    )
-                    
-                    # Salvar itens no banco de dados
-                    register = order_add.save()
                     try:
-                        register
-                    except:
-                        msg_error.append(f'Pedido {order_id_i} deu um erro ao importar')
+                        # Definir variáveis para salvar no banco de dados
+                        order_add = Orders(
+                            order_id = order_id_i,
+                            item_id = item_id_i,
+                            client_id = client_id_i,
+                            client = client_i,
+                            email = email_i,
+                            product = product_i,
+                            data_day = data_day_i,
+                            qty = qty_i,
+                            coupon = coupon_i,
+                            days = days_i,
+                            countries = countries_i,
+                            voice = voice_i,
+                            cell_mod = cell_mod_i,
+                            ord_chip_nun = ord_chip_nun_i,
+                            shipping = shipping_i,
+                            order_date = order_date_i,
+                            activation_date = activation_date_i,
+                            order_status = order_status_i,
+                            type_sim = type_sim_i,
+                            oper_sim = oper_sim_i
+                            # notes = notes_i
+                        )
+                        order_add.full_clean()
+                        order_add.save()
+                    except Exception:
+                        logger.error(
+                            f'Erro ao importar pedido {order_id_i} item {item_id_i}: '
+                            f'produto={product_i}, shipping={shipping_i}, data_day={data_day_i}, '
+                            f'days={days_i}, activation_date={activation_date_i}, type_sim={type_sim_i}',
+                            exc_info=True,
+                        )
+                        msg_error.append(f'Pedido {order_id_i} deu erro ao importar')
+                        q_i += 1
+                        n_item += 1
+                        continue
                     
                     # id_user = None
                     # if getpass.getuser():
@@ -245,7 +274,11 @@ def order_import():
                         }
                         try:
                             apiStore.put(f'orders/{order_id_i}', status_ped).json()
-                        except:
+                        except Exception:
+                            logger.error(
+                                f'Falha ao atualizar status na loja para pedido {order_id_i}',
+                                exc_info=True,
+                            )
                             msg_error.append(f'{order_id_i} - Falha ao atualizar status na loja!')
                     
                     # Definir variáveis
