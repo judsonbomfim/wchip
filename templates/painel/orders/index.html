@@ -181,7 +181,7 @@
                   <div class="userDatatable-content">{{ order.id_sim.operator }}</div>
                 </td>
                 <td>
-                  <div class="userDatatable-content">{{ order.get_product_display }} {{ order.get_data_day_display }}</div>
+                  <div class="userDatatable-content">{{ order.get_product_display }} {% if order.get_data_day_display != "Ilimitado" %} - {{ order.get_data_day_display }}{% endif %}</div>
                 </td>
                 <td class="text-center">
                   <div class="userDatatable-content">
@@ -217,7 +217,7 @@
                   <div class="userDatatable-content">
                     {% if request.user|can:'edit_orders' %}
                       <a href="{% url 'ord_edit' order.id %}"><i class="bi bi-pencil-square pe-1 text-info" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Editar"></i></a>
-                      {% if order.id_sim != None %}
+                      {% if order.id_sim != None or order.product == "977" %}
                         <a href="{% url 'send_email' order.id %}"><i class="bi bi-envelope-at pe-1 text-primary" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Enviar e-mail"></i></a>
                       {% endif %}
                     {% endif %}

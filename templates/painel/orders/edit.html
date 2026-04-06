@@ -22,8 +22,15 @@
                                 <span>Nome - <b>{{ order.client }}</b></span><br>
                                 <span>E-mail - {{ order.email }}</span><br>
                                 <span>Celular: - {{ order.cell_mod }}</span><br>
+                                {% if order.cell_imei %}
                                 <span>IMEI - {{ order.cell_imei }}</span><br>
+                                {% endif %}
+                                {% if order.cell_eid %}
                                 <span>EID - {{ order.cell_eid }}</span><br>
+                                {% endif %}
+                                {% if order.countries == True %}
+                                <span>Países - SIM</span><br>
+                                {% endif %}
                             </div>
                         </div>
                         <br>
