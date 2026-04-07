@@ -797,7 +797,7 @@ class ApiAR:
                     ["30", "20gb-periodo", "change-plus-30days-20gb"],
                 ], 
             }
-        elif paises == None:
+        elif paises == False:
             planList = {
                 # Europa Flex (E)
                 "4816": [
