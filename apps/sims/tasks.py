@@ -656,7 +656,6 @@ def simActivateAR(id=None):
         # Gerar Token
         try:
             api_token = ApiAR.getToken()
-            logger.info(f'>>>>>>>>>> TOKEN GERADO {api_token}')
         except Exception as e:
             logger.error(str(e), exc_info=True)
             logger.info(f'>>>>>>>>>> ERRO DE TOKEN')
