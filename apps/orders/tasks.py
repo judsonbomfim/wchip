@@ -181,29 +181,19 @@ def order_import():
                     # ('EV', 'Entrega VIP'),
                     # ('SD', 'SEDEX'),
                     
-                    if 'Grátis' in shipping_i:
-                        shipping_i = 'FG'
-                        order_status_i = 'AS'
-                    elif 'e-mail' in shipping_i:
-                        shipping_i = 'EM'
-                        if product_i == 977:
-                            order_status_i = 'AI'
-                        else:
-                            order_status_i = 'AS'
-                    elif 'Pac' in shipping_i:
-                        shipping_i = 'PC'
-                        order_status_i = 'AS'
-                    elif 'SEDEX' in shipping_i:
-                        shipping_i = 'SD'
-                        order_status_i = 'AS'
-                    elif 'Loggi' in shipping_i:
-                        shipping_i = 'LG'
-                        order_status_i = 'AS'
-                    elif 'SP' in shipping_i:
-                        shipping_i = 'RS'
-                        order_status_i = 'RS'
-                    elif type_sim_i == "esim":
-                        order_status_i = 'AS'
+                    # Definir status do pedido
+                    if 'AEROPORTO' in shipping_i:
+                        shipping_i = 'Entr. Aeroporto'
+                        order_status_i = 'AG'
+                    elif 'VIP' in shipping_i:
+                        shipping_i = 'Entr. VIP'
+                        order_status_i = 'MB'
+                    elif type_sim_i == 'sim':
+                        order_status_i = 'ES'
+                    elif type_sim_i == 'esim':
+                        order_status_i = 'AS'  
+                    
+                    shipping_i = shipping_i[:40]
                         
                     # Definir Operadora                   
                     oper_sel = OperatorSelect.opSelSim()
