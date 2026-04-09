@@ -188,10 +188,10 @@ def order_import():
                     elif 'VIP' in shipping_i:
                         shipping_i = 'Entr. VIP'
                         order_status_i = 'MB'
-                    elif type_sim_i == 'sim':
-                        order_status_i = 'ES'
                     elif type_sim_i == 'esim':
-                        order_status_i = 'AS'  
+                        order_status_i = 'AS'
+                    else:
+                        order_status_i = 'AS'    
                     
                     shipping_i = shipping_i[:40]
                         
