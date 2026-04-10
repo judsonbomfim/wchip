@@ -141,6 +141,7 @@ def ord_add(request):
     data_day = request.POST.get('data_day')
     type_sim = request.POST.get('type_sim')
     operator = request.POST.get('operator')
+    shipping = (request.POST.get('shipping') or '').strip()
     sim = request.POST.get('sim')
     activation_date = request.POST.get('activation_date')
     cell_imei = request.POST.get('cell_imei')
@@ -151,7 +152,7 @@ def ord_add(request):
     ord_st = request.POST.get('ord_st_f')
     ord_note = request.POST.get('ord_note')
 
-    if not order_id or not client or not product or not data_day or not days_value or not activation_date or not ord_st:
+    if not order_id or not client or not product or not data_day or not days_value or not activation_date or not ord_st or not shipping:
         messages.error(request, 'Preencha todos os campos obrigatórios para criar o pedido.')
         return render(request, 'painel/orders/add.html', context)
 
@@ -169,6 +170,10 @@ def ord_add(request):
         days_int = int(days_value)
     except ValueError:
         messages.error(request, 'Selecione um número de dias válido.')
+        return render(request, 'painel/orders/add.html', context)
+
+    if len(shipping) > 40:
+        messages.error(request, 'O frete deve ter no máximo 40 caracteres.')
         return render(request, 'painel/orders/add.html', context)
 
     item_cont = Orders.objects.filter(order_id=order_id_int).count() + 1
@@ -204,6 +209,7 @@ def ord_add(request):
             activation_date=activation_date,
             order_date=datetime.now(),
             order_status=ord_st,
+            shipping=shipping,
             type_sim=type_sim,
             oper_sim=operator,
             id_sim=id_sim,
@@ -679,7 +685,6 @@ def orders_activations(request):
 
     sims = Sims.objects.all()
     ord_status = Orders.order_status.field.choices
-    shipp_list = Orders.shipping.field.choices
     oper_list = Sims.operator.field.choices
 
     # Listar status dos pedidos
@@ -722,7 +727,6 @@ def orders_activations(request):
         'orders': orders,
         'sims': sims,
         'ord_st_list': ord_st_list,
-        'shipp_list': shipp_list,
         'oper_list': oper_list,
         'ord_status': ord_status,        
         'url_filter': url_filter,

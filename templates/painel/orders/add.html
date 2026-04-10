@@ -128,10 +128,14 @@
 
                             <div class="row mb-4">
                                 <div class="col-md-6 col-xl-6">
+                                    <label class="form-label">Frete*</label>
+                                    <input type="text" class="form-control" name="shipping" value="{{ request.POST.shipping }}" maxlength="40" placeholder="Ex.: Motoboy, Correios, e-mail" required>
+                                </div>
+                                <div class="col-md-6 col-xl-6">
                                     <label class="form-label">Rastreio</label>
                                     <input type="text" class="form-control" name="tracking" value="{{ request.POST.tracking }}">
                                 </div>
-                                <div class="col-md-6 col-xl-6">
+                                <div class="col-md-12 col-xl-12 mt-3">
                                     <label class="form-label">Nota do pedido</label>
                                     <input type="text" class="form-control" name="ord_note" value="{{ request.POST.ord_note }}" placeholder="Observações sobre o cadastro manual">
                                 </div>
