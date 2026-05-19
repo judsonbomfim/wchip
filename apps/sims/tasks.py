@@ -574,7 +574,7 @@ def simActivateCM(id=None):
         # Verificar se plan_code foi definido
         if plan_code is None:
             # Inserir nota e alterar status do sistema
-            NotesAdd.addNote(order, "Nenhum plano correspondente encontrado para order_day e order_data.")
+            NotesAdd.addNote(order, f"Nenhum plano correspondente encontrado para {order_day} e {order_data}.")
             errorData()
             continue
 
@@ -689,6 +689,7 @@ def simActivateAR(id=None):
         # Selecionar plano
         try:
             plan_code = ApiAR.selPlan(order_day, order_data, order_product, order_paises, order_voz)
+            logger.info(f'Plano selecionado para o pedido {order.order_id}: {plan_code}')
         except Exception as e:
             logger.error(str(e), exc_info=True)
             plan_code = None
@@ -697,7 +698,7 @@ def simActivateAR(id=None):
         # Verificar se plan_code foi definido
         if plan_code is None:
             # Inserir nota e alterar status do sistema
-            NotesAdd.addNote(order, "Nenhum plano correspondente encontrado para order_day e order_data.")
+            NotesAdd.addNote(order, f"Nenhum plano correspondente encontrado para {order_day} e {order_data}.")
             errorData()
             continue
 
