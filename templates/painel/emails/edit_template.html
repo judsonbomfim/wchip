@@ -11,15 +11,22 @@
 	<form method="post">
 		{% csrf_token %}
 
-		<ul class="nav nav-tabs mb-3" id="emailTemplatesTabs" role="tablist">
+		<div class="mb-3" id="emailTemplatesTabs" role="tablist" aria-label="Templates de e-mail">
 			{% for item in templates_data %}
-				<li class="nav-item" role="presentation">
-					<button class="nav-link {% if forloop.first %}active{% endif %}" id="tab-{{ item.slug }}" data-bs-toggle="tab" data-bs-target="#pane-{{ item.slug }}" type="button" role="tab" aria-controls="pane-{{ item.slug }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">
-						{{ item.name }}
-					</button>
-				</li>
+				<button
+					class="btn btn-outline-primary m-1 email-template-tab {% if forloop.first %}active{% endif %}"
+					id="tab-{{ item.slug }}"
+					data-bs-toggle="tab"
+					data-bs-target="#pane-{{ item.slug }}"
+					type="button"
+					role="tab"
+					aria-controls="pane-{{ item.slug }}"
+					aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+				>
+					{{ item.name }}
+				</button>
 			{% endfor %}
-		</ul>
+		</div>
 
 		<div class="tab-content" id="emailTemplatesTabsContent">
 			{% for item in templates_data %}
@@ -50,6 +57,28 @@
 	<script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/lang/summernote-pt-BR.min.js"></script>
 	<script>
 		(function() {
+			const tabButtons = document.querySelectorAll('.email-template-tab[data-bs-toggle="tab"]');
+
+			function syncTabButtonStyles(activeButton) {
+				tabButtons.forEach(function(btn) {
+					btn.classList.add('btn-outline-primary');
+					btn.classList.remove('btn-primary', 'text-white');
+				});
+
+				if (activeButton) {
+					activeButton.classList.remove('btn-outline-primary');
+					activeButton.classList.add('btn-primary', 'text-white');
+				}
+			}
+
+			tabButtons.forEach(function(btn) {
+				btn.addEventListener('shown.bs.tab', function(event) {
+					syncTabButtonStyles(event.target);
+				});
+			});
+
+			syncTabButtonStyles(document.querySelector('.email-template-tab.active'));
+
 			const editors = document.querySelectorAll('.js-summernote');
 			editors.forEach(function(el) {
 				$(el).summernote({
