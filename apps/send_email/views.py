@@ -1,24 +1,40 @@
+import logging
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from apps.send_email.tasks import send_email_sims
+from kombu.exceptions import OperationalError
+from apps.send_email.tasks import send_email_sims, send_tracking as send_tracking_task
 from apps.send_email.models import Templates
+
+logger = logging.getLogger('apps.send_email')
 
 @login_required(login_url='/login/')
 def send_email(request,id):
-    send_email_sims.delay(id=id)    
-    messages.success(request,f'E-mail enviado com sucesso!!')
+    try:
+        send_email_sims.delay(id=id)
+        messages.success(request, 'E-mail enfileirado com sucesso!')
+    except OperationalError:
+        logger.exception('Falha na fila Celery ao enfileirar envio do pedido #%s', id)
+        send_email_sims(id=id)
+        messages.warning(request, 'Fila indisponivel. E-mail enviado em modo direto.')
+    except Exception:
+        logger.exception('Erro inesperado ao enfileirar envio do pedido #%s', id)
+        messages.error(request, 'Nao foi possivel iniciar o envio de e-mail.')
     return redirect('orders_list')    
 
 
 @login_required(login_url='/login/')
-def send_email_esims():
+def send_email_esims(request):
     send_email_sims.delay()
+    messages.success(request, 'Envio em lote enfileirado com sucesso!')
+    return redirect('orders_list')
 
 
 @login_required(login_url='/login/')
-def send_tracking():
-    send_tracking.delay()
+def send_tracking(request):
+    send_tracking_task.delay()
+    messages.success(request, 'Envio de rastreio enfileirado com sucesso!')
+    return redirect('orders_list')
 
     
 @login_required(login_url='/login/')

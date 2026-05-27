@@ -67,7 +67,18 @@ def send_email_sims(id=None):
             'esim_other_content': email_templates.get('esim_other', ''),
             'sim_all_content': email_templates.get('sim_all', ''),
         }
-        html_content = render_to_string('painel/emails/send_email.html', context)
+        try:
+            html_content = render_to_string('painel/emails/send_email.html', context)
+        except Exception as e:
+            logger.error(
+                '>>>>>>>>>>>>>>>>>>> ERRO ao renderizar template do pedido #%s - Cliente: %s - Erro: %s',
+                order_id,
+                client_email,
+                str(e),
+                exc_info=True,
+            )
+            continue
+
         text_content = strip_tags(html_content)
         if type_sim == 'esim':
             subject = f"Entrega do eSIM PEDIDO #{order_id}"
