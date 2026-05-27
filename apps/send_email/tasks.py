@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from celery import shared_task
 from django.shortcuts import redirect
 from django.core.mail import EmailMultiAlternatives
@@ -12,10 +13,42 @@ from apps.send_email.models import Templates
 logger = logging.getLogger('apps.send_email')
 
 
+def _load_templates_from_filesystem():
+    templates_dir = Path(settings.BASE_DIR) / 'templates' / 'painel' / 'emails' / 'partials'
+    mapping = {
+        'esim_eua': templates_dir / 'esim_eua.html',
+        'esim_other': templates_dir / 'esim_other.html',
+        'sim_all': templates_dir / 'sim_all.html',
+    }
+
+    file_templates = {}
+    for slug, file_path in mapping.items():
+        try:
+            file_templates[slug] = file_path.read_text(encoding='utf-8')
+        except Exception as e:
+            logger.error('Erro ao ler template de arquivo %s: %s', file_path, str(e), exc_info=True)
+            file_templates[slug] = ''
+
+    return file_templates
+
+
 def _get_email_templates():
-    """Carrega os três templates de e-mail do banco de uma só vez."""
-    qs = Templates.objects.filter(slug__in=['esim_eua', 'esim_other', 'sim_all'])
-    return {t.slug: t.content for t in qs}
+    """Carrega templates do banco com fallback para os arquivos legados."""
+    try:
+        qs = Templates.objects.filter(slug__in=['esim_eua', 'esim_other', 'sim_all'])
+        db_templates = {t.slug: t.content for t in qs}
+    except Exception as e:
+        logger.error('Erro ao carregar templates do banco. Usando fallback em arquivos: %s', str(e), exc_info=True)
+        return _load_templates_from_filesystem()
+
+    if len(db_templates) < 3:
+        logger.warning('Templates incompletos no banco. Complementando com arquivos legados.')
+        file_templates = _load_templates_from_filesystem()
+        for slug, content in file_templates.items():
+            if slug not in db_templates or not db_templates[slug].strip():
+                db_templates[slug] = content
+
+    return db_templates
 
 
 @shared_task
