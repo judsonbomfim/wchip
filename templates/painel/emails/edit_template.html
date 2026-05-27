@@ -11,13 +11,12 @@
 	<form method="post">
 		{% csrf_token %}
 
-		<div class="mb-3" id="emailTemplatesTabs" role="tablist" aria-label="Templates de e-mail">
+		<div class="mb-3 d-flex flex-wrap align-items-center" id="emailTemplatesTabs" role="tablist" aria-label="Templates de e-mail">
 			{% for item in templates_data %}
 				<button
 					class="btn btn-outline-primary m-1 email-template-tab {% if forloop.first %}active{% endif %}"
 					id="tab-{{ item.slug }}"
-					data-bs-toggle="tab"
-					data-bs-target="#pane-{{ item.slug }}"
+					data-pane="pane-{{ item.slug }}"
 					type="button"
 					role="tab"
 					aria-controls="pane-{{ item.slug }}"
@@ -57,27 +56,49 @@
 	<script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/lang/summernote-pt-BR.min.js"></script>
 	<script>
 		(function() {
-			const tabButtons = document.querySelectorAll('.email-template-tab[data-bs-toggle="tab"]');
+			const tabButtons = document.querySelectorAll('.email-template-tab');
+			const tabPanes = document.querySelectorAll('#emailTemplatesTabsContent .tab-pane');
 
 			function syncTabButtonStyles(activeButton) {
 				tabButtons.forEach(function(btn) {
 					btn.classList.add('btn-outline-primary');
 					btn.classList.remove('btn-primary', 'text-white');
+					btn.setAttribute('aria-selected', 'false');
+					btn.classList.remove('active');
 				});
 
 				if (activeButton) {
 					activeButton.classList.remove('btn-outline-primary');
 					activeButton.classList.add('btn-primary', 'text-white');
+					activeButton.setAttribute('aria-selected', 'true');
+					activeButton.classList.add('active');
+				}
+			}
+
+			function syncTabPane(activeButton) {
+				const paneId = activeButton ? activeButton.getAttribute('data-pane') : null;
+				tabPanes.forEach(function(pane) {
+					pane.classList.remove('show', 'active');
+				});
+
+				if (paneId) {
+					const activePane = document.getElementById(paneId);
+					if (activePane) {
+						activePane.classList.add('show', 'active');
+					}
 				}
 			}
 
 			tabButtons.forEach(function(btn) {
-				btn.addEventListener('shown.bs.tab', function(event) {
-					syncTabButtonStyles(event.target);
+				btn.addEventListener('click', function() {
+					syncTabButtonStyles(btn);
+					syncTabPane(btn);
 				});
 			});
 
-			syncTabButtonStyles(document.querySelector('.email-template-tab.active'));
+			const firstTab = document.querySelector('.email-template-tab');
+			syncTabButtonStyles(firstTab);
+			syncTabPane(firstTab);
 
 			const editors = document.querySelectorAll('.js-summernote');
 			editors.forEach(function(el) {
