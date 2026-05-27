@@ -249,10 +249,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'apps.sims.tasks.simActivateTC',
         'schedule': crontab(minute='2-59/2'),
     },
-    'task__2_min_activate_TM': {
-        'task': 'apps.sims.tasks.simActivateTM',
+    'task__2_min_activate_EO': { # T-mobile/ Verizon
+        'task': 'apps.sims.tasks.simActivateEO',
         'schedule': crontab(minute='2-59/2'),
-    },
+    }, 
     'task__deactivate_TC': {
         'task': 'apps.sims.tasks.simDeactivateTC',
         'schedule': crontab( hour=00, minute=00),
@@ -282,9 +282,9 @@ APICM_KEY = str(os.getenv('APICM_KEY'))
 APICM_SECRET = str(os.getenv('APICM_SECRET'))
 APICM_URL = str(os.getenv('APICM_URL'))
 
-# API TM
-APITM_TOKEN = str(os.getenv('APITM_TOKEN'))
-APITM_URL = str(os.getenv('APITM_URL'))
+# API TM / VERIZON
+APIEO_TOKEN = str(os.getenv('APIEO_TOKEN'))
+APIEO_URL = str(os.getenv('APIEO_URL'))
 
 # API AIRALO
 APIAIRALO_KEY = str(os.getenv('APIAIRALO_KEY'))

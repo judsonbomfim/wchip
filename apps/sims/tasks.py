@@ -43,7 +43,7 @@ def sims_in_orders():
         product_i = ord.product
         type_sim_i = ord.type_sim
         id_sim_i = id_item_i.id_sim
-        esim_eua = type_sim_i == 'esim' and (product_i == '977') # EUA Ilimitado
+        esim_eua = type_sim_i == 'esim' and (product_i == '001') # EUA Ilimitado
         
         # Se já houver SIM   
         if id_sim_i != None:
@@ -77,6 +77,9 @@ def sims_in_orders():
             elif oper_sel_i == 'AR':
                 sim_ds = Sims.objects.all().get(pk=351)
                 addNote(f'AIRALO - SIM padrão adicionado')
+            elif oper_sel_i == 'VR':
+                sim_ds = Sims.objects.all().get(pk=1537)
+                addNote(f'VERIZON - SIM padrão adicionado')
             else:
                 sim_ds = Sims.objects.all().order_by('id').filter(operator=oper_sel_i, type_sim=type_sim_i, sim_status='DS').first()
                 sim_log = f'{sim_ds.sim} / {sim_ds.id}' if sim_ds else 'Nenhum SIM disponível'
@@ -428,18 +431,18 @@ def simDeactivateAll(id=None):
 
 
 @shared_task
-def simActivateTM(id=None):
+def simActivateEO(id=None):
     from apps.orders.tasks import orders_up_status
           
     tz = pytz.timezone(settings.TIME_ZONE)
     today = datetime.now(tz).date()
     tomorrow = today + timedelta(days=1)
     
-    logger.info(f'>>>>>>>>>> ATIVAÇÂO TM INICIADA')
+    logger.info(f'>>>>>>>>>> ATIVAÇÂO EO INICIADA')
     
     # Selecionar pedidos
     if id is None:
-        orders_all = Orders.objects.filter(order_status='AA', id_sim__operator='TM', activation_date__lte=tomorrow)
+        orders_all = Orders.objects.filter(order_status='AA', id_sim__operator__in=['TM', 'VR'], activation_date__lte=tomorrow)
     else:
         orders_all = Orders.objects.filter(pk=id)        
     
@@ -448,6 +451,7 @@ def simActivateTM(id=None):
         order = Orders.objects.get(pk=order.id)
         order_id = order.order_id
         id_item = order.id
+        operator = order.id_sim.operator
         if order.id_sim.type_sim == 'sim':
             iccid = order.id_sim.sim
             imei = ""
@@ -456,21 +460,36 @@ def simActivateTM(id=None):
             imei = order.cell_imei
         activation_date = order.activation_date
         days = order.days
+        plan = '$50'
+        carrier = 'T-mobile' if operator == 'TM' else 'Verizon MVNO'
+        
+        if operator == 'TM':
+            if days in [5, 6]:
+                days = 7
+            elif days in [7.8,9,10,11,12,13]:
+                pass
+            elif days >= 20:
+                days = 30
+                plan = '$50B'
+        elif operator == 'VR':
+            if days in [5, 6]:
+                days = 7
+            elif days in [7.8,9,10,11,12,13]:
+                pass
+            elif days >= 14:
+                days = 30
                 
         # Dados para a solicitação
-        url = settings.APITM_URL
+        url = settings.APIEO_URL
         parsed_url = urlparse(url)
         payload = json.dumps({
-            "active_time": activation_date.strftime("%Y-%m-%d"),
-            "sim": iccid,
-            "plan": "$50",
+            "plan": plan,
+            "carrier": carrier,
             "day": days,
+            "sim": iccid,
+            "active_time": activation_date.strftime("%Y-%m-%d"),
             "imei": imei,
-            "area": "",
-            "customer_email": "",
-            "comment": "",
-            "carrier": "T-Mobile",
-            "token": settings.APITM_TOKEN
+            "token": settings.APIEO_TOKEN
         })        
         
         # Cabeçalhos da solicitação
@@ -487,28 +506,22 @@ def simActivateTM(id=None):
         # Decodifica a resposta
         response_data = json.loads(data.decode("utf-8"))
         # Verifica o código de resposta
-        if 'code' in response_data:
-            if response_data['code'] == 0:
-                # Alterar status
-                orders_up_status.delay(order.id, 'AT')
-                # Adicionar nota
-                NotesAdd.addNote(order,f'{iccid} Enviado para ativação na T-Mobile')
-            else:
-                # Alterar status
-                UpdateOrder.upStatus(id_item,'EA')
-                # Adicionar nota
-                NotesAdd.addNote(order,f'Houve um erro ao ativar o SIM {iccid}. Verificar manualmente. {response_data}')
+        if response_data.get('success') == True:
+            # Alterar status
+            orders_up_status.delay(order.id, 'AT')
+            # Adicionar nota
+            NotesAdd.addNote(order,f'{iccid} Enviado para ativação na T-Mobile/Verizon')
         else:
             # Alterar status
             UpdateOrder.upStatus(id_item,'EA')
             # Adicionar nota
-            NotesAdd.addNote(order,f'Código não identificado ao ativar o SIM {iccid}. Verificar manualmente.{response_data}')
+            NotesAdd.addNote(order,f'Houve um erro ao ativar o SIM {iccid}. Verificar manualmente. {response_data}')
 
         # Fecha a conexão
         conn.close()
         
                 
-    logger.info(f'>>>>>>>>>> ATIVAÇÂO TM FINALIZADA')
+    logger.info(f'>>>>>>>>>> ATIVAÇÂO EO FINALIZADA')
 
 
 @shared_task

@@ -29,6 +29,15 @@
                 </li>
                 {% endif %}
 
+                {% if request.user|can:'view_orders' %}
+                <li class="{% urL_active request '/email/templates/editar/' %}">
+                    <a href="{% url 'email_templates_edit' %}">
+                        <i class="nav-icon bi bi-envelope"></i>
+                        <span class="menu-text">Templates de E-mail</span>
+                    </a>
+                </li>
+                {% endif %}
+
                 {% if request.user|can:'list_activations' %}
                 <li class="has-child open">
                     <a>

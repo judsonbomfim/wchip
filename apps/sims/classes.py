@@ -31,10 +31,11 @@ class OperatorSelect():
             '981': 'TC',
             '980': 'CM',
             '976': 'AR',
-            '977': 'TM',
+            '977': 'TM', #
             '975': 'CM', 
             '974': 'TC', #
             '971': 'TC', 
+            '001': 'TM', 
         } 
         return operSelSim
 
@@ -53,10 +54,11 @@ class OperatorSelect():
             '981': 'AR', #
             '980': 'CM',
             '976': 'AR',
-            '977': 'TM',
+            '977': 'VR', #
             '975': 'CM', 
             '4816': 'AR', #
             '971': 'TC', 
+            '001': 'TM', 
         } 
         return operSelESim
 

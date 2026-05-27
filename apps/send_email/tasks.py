@@ -7,8 +7,16 @@ from django.utils.html import strip_tags
 from django.conf import settings
 from apps.orders.models import Orders, Notes
 from apps.orders.classes import ApiStore, StatusStore
+from apps.send_email.models import Templates
 
 logger = logging.getLogger('apps.send_email')
+
+
+def _get_email_templates():
+    """Carrega os três templates de e-mail do banco de uma só vez."""
+    qs = Templates.objects.filter(slug__in=['esim_eua', 'esim_other', 'sim_all'])
+    return {t.slug: t.content for t in qs}
+
 
 @shared_task
 def send_email_sims(id=None):
@@ -22,7 +30,8 @@ def send_email_sims(id=None):
     url_site = settings.URL_CDN
     url_img = f'{url_site}/email/'
 
-    
+    email_templates = _get_email_templates()
+
     for order in orders_all:
         id = order.id
         name = order.client
@@ -54,6 +63,9 @@ def send_email_sims(id=None):
             'countries': countries,
             'tracking': order.tracking,
             'operator': operator,
+            'esim_eua_content': email_templates.get('esim_eua', ''),
+            'esim_other_content': email_templates.get('esim_other', ''),
+            'sim_all_content': email_templates.get('sim_all', ''),
         }
         html_content = render_to_string('painel/emails/send_email.html', context)
         text_content = strip_tags(html_content)

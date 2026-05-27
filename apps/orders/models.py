@@ -20,6 +20,7 @@ PRODUCT = [
     ('4816', 'Europa Flex (E)'),
     ('974', 'Europa Flex (F)'),
     ('971', 'Europa Controle'),
+    ('001', 'EUA T-mobile'),
 ]
 
 DATA = [

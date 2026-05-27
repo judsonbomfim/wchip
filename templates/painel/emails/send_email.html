@@ -53,10 +53,10 @@
                 <td align="left" style="padding:0;Margin:0;font-size:0px">
                   {% if type_sim == 'sim' %}
                     <img class="adapt-img" src="{{ url_img }}worldchip_sim_email.png" alt style="display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic" width="200" />
-                  {% elif product_plan == '980' or product_plan == '977' %}
+                  {% elif product_plan == '001' or product_plan == '977' %}
                     <img class="adapt-img" src="{{ url_img }}qrcode_tmobile.jpg" alt style="display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic" width="220" />
-                  {% elif operator == 'AR' %}
-                    <img class="adapt-img" src="{{ qrcode }}" alt style="display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic" width="220" />
+                  {% comment %} {% elif operator == 'AR' %}
+                    <img class="adapt-img" src="{{ qrcode }}" alt style="display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic" width="220" /> {% endcomment %}
                   {% else %}
                     <img class="adapt-img" src="{{ url_site }}{{ qrcode }}" alt style="display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic" width="220" />
                   {% endif %}
@@ -122,13 +122,17 @@
               <tr>
                 <td align="left" style="padding:0;Margin:0">
                   {% if type_sim == 'esim' %}
-                    {% if product_plan == 'USA' or product_plan == 'USA 30 Dias' %}
-                      {% include 'painel/emails/partials/esim_eua.html' %}
+                    {% if product_plan == '976' or product_plan == '977' or product_plan == '001' %}
+                      {{ esim_eua_content|safe }}
                     {% else %}
-                      {% include 'painel/emails/partials/esim_other.html' %}
+                      {{ esim_other_content|safe }}
                     {% endif %}
                   {% else %}
-                    {% include 'painel/emails/partials/sim_all.html' %}
+                    {% if tracking %}
+                      <p><strong>Rastreio</strong> - {{ tracking }}</p>
+                      <br>
+                    {% endif %}
+                    {{ sim_all_content|safe }}
                   {% endif %}
                   <br />
                   <hr />
