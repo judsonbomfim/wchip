@@ -481,30 +481,35 @@ def simActivateEO(id=None):
                 
         # Dados para a solicitação
         url = settings.APIEO_URL
-        parsed_url = urlparse(url)
-        payload = json.dumps({
-            "plan": plan,
+        payload = {
+            "planName": plan,
             "carrier": carrier,
-            "day": days,
+            "day": int(days),
             "sim": iccid,
             "active_time": activation_date.strftime("%Y-%m-%d"),
             "imei": imei,
-        })        
+        }
+        
+        logger.info(f'Pedido {order_id} - Enviando solicitação de ativação para EO: {payload}')
         
         # Cabeçalhos da solicitação
         headers = {
             'Content-Type': 'application/json',
             'Authorization': f'Bearer {settings.APIEO_TOKEN}'
         }
-        # Estabelece a conexão HTTPS
-        conn = http.client.HTTPSConnection(parsed_url.netloc)
-        # Envia a solicitação POST
-        conn.request("POST", parsed_url.path, payload, headers)
-        # Obtém a resposta
-        res = conn.getresponse()
-        data = res.read()
-        # Decodifica a resposta
-        response_data = json.loads(data.decode("utf-8"))
+        try:
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            response_data = response.json()
+        except ValueError:
+            response_data = {
+                'success': False,
+                'error': response.text if 'response' in locals() else 'Resposta invalida da API EO'
+            }
+        except Exception as e:
+            response_data = {
+                'success': False,
+                'error': str(e)
+            }
         # Verifica o código de resposta
         if response_data.get('success') == True:
             # Alterar status
@@ -517,9 +522,6 @@ def simActivateEO(id=None):
             # Adicionar nota
             NotesAdd.addNote(order,f'Houve um erro ao ativar o SIM {iccid}. Verificar manualmente. {response_data}')
 
-        # Fecha a conexão
-        conn.close()
-        
                 
     logger.info(f'>>>>>>>>>> ATIVAÇÂO EO FINALIZADA')
 
