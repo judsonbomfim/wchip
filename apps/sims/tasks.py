@@ -460,10 +460,11 @@ def simActivateEO(id=None):
             imei = order.cell_imei
         activation_date = order.activation_date
         days = order.days
-        plan = '$50'
         carrier = 'T-mobile' if operator == 'TM' else 'Verizon MVNO'
+        plan = ''
         
         if operator == 'TM':
+            plan = '$50'            
             if days in [5, 6]:
                 days = 7
             elif days in [7.8,9,10,11,12,13]:
@@ -472,6 +473,7 @@ def simActivateEO(id=None):
                 days = 30
                 plan = '$50B'
         elif operator == 'VR':
+            plan = '50$'
             if days in [5, 6]:
                 days = 7
             elif days in [7.8,9,10,11,12,13]:
