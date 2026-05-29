@@ -489,12 +489,12 @@ def simActivateEO(id=None):
             "sim": iccid,
             "active_time": activation_date.strftime("%Y-%m-%d"),
             "imei": imei,
-            "token": settings.APIEO_TOKEN
         })        
         
         # Cabeçalhos da solicitação
         headers = {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {settings.APIEO_TOKEN}'
         }
         # Estabelece a conexão HTTPS
         conn = http.client.HTTPSConnection(parsed_url.netloc)
