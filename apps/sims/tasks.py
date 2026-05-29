@@ -488,8 +488,9 @@ def simActivateEO(id=None):
             "carrier": carrier,
             "day": int(days),
             "sim": iccid,
-            "active_time": activation_date.strftime("%Y-%m-%d"),
+            "activationDate": activation_date.strftime("%Y-%m-%d"),
             "imei": imei,
+            'comment': order_id
         }
         
         logger.info(f'Pedido {order_id} - Enviando solicitação de ativação para EO: {payload}')
