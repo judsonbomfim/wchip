@@ -467,7 +467,7 @@ def simActivateEO(id=None):
             plan = '$50'            
             if days in [5, 6]:
                 days = 7
-            elif days in [7.8,9,10,11,12,13]:
+            elif days in [7, 8, 9, 10, 11, 12, 13]:
                 pass
             elif days >= 20:
                 days = 30
@@ -476,8 +476,8 @@ def simActivateEO(id=None):
             plan = '50$'
             if days in [5, 6]:
                 days = 7
-            elif days in [7.8,9,10,11,12,13]:
-                pass
+            elif days in [7, 8, 9, 10, 11, 12, 13]:
+                days = days
             elif days >= 14:
                 days = 30
                 
@@ -492,6 +492,19 @@ def simActivateEO(id=None):
             "imei": imei,
             'comment': order_id
         }
+
+        required_fields = ["planName", "carrier", "day", "sim"]
+        missing_fields = [field for field in required_fields if not payload.get(field)]
+        if missing_fields:
+            logger.error(
+                'EO payload invalido para pedido %s. Campos ausentes: %s | payload=%s',
+                order_id,
+                ', '.join(missing_fields),
+                payload,
+            )
+            UpdateOrder.upStatus(id_item,'EA')
+            NotesAdd.addNote(order, f'Erro EO: campos obrigatorios ausentes ({", ".join(missing_fields)}).')
+            continue
         
         logger.info(f'Pedido {order_id} - Enviando solicitação de ativação para EO: {payload}')
         
@@ -502,13 +515,17 @@ def simActivateEO(id=None):
         }
         try:
             response = requests.post(url, headers=headers, json=payload, timeout=30)
-            response_data = response.json()
+            status_code = response.status_code
+            response_text = response.text
+            response_data = response.json() if response_text else {}
         except ValueError:
+            status_code = response.status_code if 'response' in locals() else None
             response_data = {
                 'success': False,
                 'error': response.text if 'response' in locals() else 'Resposta invalida da API EO'
             }
         except Exception as e:
+            status_code = None
             response_data = {
                 'success': False,
                 'error': str(e)
@@ -520,10 +537,23 @@ def simActivateEO(id=None):
             # Adicionar nota
             NotesAdd.addNote(order,f'{iccid} Enviado para ativação na T-Mobile/Verizon')
         else:
+            error_msg = (
+                response_data.get('error')
+                or response_data.get('message')
+                or response_data.get('detail')
+                or (response_text if 'response_text' in locals() and response_text else 'Sem detalhe retornado pela API EO')
+            )
+            logger.error(
+                'Falha EO pedido=%s status=%s payload=%s response=%s',
+                order_id,
+                status_code,
+                payload,
+                response_data if response_data else response_text if 'response_text' in locals() else 'sem resposta',
+            )
             # Alterar status
             UpdateOrder.upStatus(id_item,'EA')
             # Adicionar nota
-            NotesAdd.addNote(order,f'Houve um erro ao ativar o SIM {iccid}. Verificar manualmente. {response_data}')
+            NotesAdd.addNote(order, f'Houve um erro ao ativar o SIM {iccid}. Verificar manualmente. EO: {error_msg}')
 
                 
     logger.info(f'>>>>>>>>>> ATIVAÇÂO EO FINALIZADA')
