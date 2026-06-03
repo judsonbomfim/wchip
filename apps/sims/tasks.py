@@ -524,6 +524,13 @@ def simActivateEO(id=None):
                 response_data = response.json() if response_text.strip() else {}
             except ValueError:
                 response_data = {}
+            if status_code != 200:
+                logger.warning(
+                    'EO resposta não-200 | pedido=%s | http=%s | headers=%s',
+                    order_id,
+                    status_code,
+                    dict(response.headers),
+                )
         except Exception as e:
             logger.error('EO erro de conexão pedido=%s erro=%s', order_id, e, exc_info=True)
             response_data = {'success': False, 'error': str(e)}
