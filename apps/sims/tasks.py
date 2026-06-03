@@ -43,7 +43,7 @@ def sims_in_orders():
         product_i = ord.product
         type_sim_i = ord.type_sim
         id_sim_i = id_item_i.id_sim
-        esim_eua = type_sim_i == 'esim' and (product_i == '001') # EUA Ilimitado
+        esim_eua = type_sim_i == 'esim' and (product_i == '001' or product_i == '977') # EUA Ilimitado
         
         # Se já houver SIM   
         if id_sim_i != None:
@@ -513,47 +513,46 @@ def simActivateEO(id=None):
             'Content-Type': 'application/json',
             'Authorization': f'Bearer {settings.APIEO_TOKEN}'
         }
+        status_code = None
+        response_text = ''
+        response_data = {}
         try:
             response = requests.post(url, headers=headers, json=payload, timeout=30)
             status_code = response.status_code
-            response_text = response.text
-            response_data = response.json() if response_text else {}
-        except ValueError:
-            status_code = response.status_code if 'response' in locals() else None
-            response_data = {
-                'success': False,
-                'error': response.text if 'response' in locals() else 'Resposta invalida da API EO'
-            }
+            response_text = response.text or ''
+            try:
+                response_data = response.json() if response_text.strip() else {}
+            except ValueError:
+                response_data = {}
         except Exception as e:
-            status_code = None
-            response_data = {
-                'success': False,
-                'error': str(e)
-            }
+            logger.error('EO erro de conexão pedido=%s erro=%s', order_id, e, exc_info=True)
+            response_data = {'success': False, 'error': str(e)}
+
         # Verifica o código de resposta
-        if response_data.get('success') == True:
+        if response_data.get('success') is True:
             # Alterar status
             orders_up_status.delay(order.id, 'AT')
             # Adicionar nota
-            NotesAdd.addNote(order,f'{iccid} Enviado para ativação na T-Mobile/Verizon')
+            NotesAdd.addNote(order, f'{iccid} enviado para ativação na T-Mobile/Verizon. HTTP {status_code}')
         else:
             error_msg = (
                 response_data.get('error')
                 or response_data.get('message')
                 or response_data.get('detail')
-                or (response_text if 'response_text' in locals() and response_text else 'Sem detalhe retornado pela API EO')
+                or response_text
+                or 'sem corpo na resposta da API EO'
             )
             logger.error(
-                'Falha EO pedido=%s status=%s payload=%s response=%s',
+                'EO falha na ativação | pedido=%s | http=%s | payload=%s | response_body=%s',
                 order_id,
                 status_code,
                 payload,
-                response_data if response_data else response_text if 'response_text' in locals() else 'sem resposta',
+                response_text or response_data or 'sem resposta',
             )
             # Alterar status
-            UpdateOrder.upStatus(id_item,'EA')
+            UpdateOrder.upStatus(id_item, 'EA')
             # Adicionar nota
-            NotesAdd.addNote(order, f'Houve um erro ao ativar o SIM {iccid}. Verificar manualmente. EO: {error_msg}')
+            NotesAdd.addNote(order, f'Erro EO (HTTP {status_code}): {iccid}. {str(error_msg)[:300]}')
 
                 
     logger.info(f'>>>>>>>>>> ATIVAÇÂO EO FINALIZADA')
