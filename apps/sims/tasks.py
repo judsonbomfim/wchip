@@ -490,7 +490,7 @@ def simActivateEO(id=None):
             "sim": iccid,
             "activationDate": activation_date.strftime("%Y-%m-%d"),
             "imei": imei,
-            'comment': order_id
+            'comment': str(order_id)
         }
 
         required_fields = ["planName", "carrier", "day", "sim"]
