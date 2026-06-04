@@ -73,14 +73,15 @@ def sims_in_orders():
                         
             # Select SIM
             if esim_eua:
-                sim_ds = Sims.objects.all().get(pk=465)
-                addNote(f'eSIM EUA - SIM padrão adicionado')
+                if oper_sel_i == 'VR':
+                    sim_ds = Sims.objects.all().get(pk=1537)
+                    addNote(f'VERIZON - SIM padrão adicionado')
+                elif oper_sel_i == 'TM':
+                    sim_ds = Sims.objects.all().get(pk=465)
+                    addNote(f'eSIM EUA - SIM padrão adicionado')
             elif oper_sel_i == 'AR':
                 sim_ds = Sims.objects.all().get(pk=351)
                 addNote(f'AIRALO - SIM padrão adicionado')
-            elif oper_sel_i == 'VR':
-                sim_ds = Sims.objects.all().get(pk=1537)
-                addNote(f'VERIZON - SIM padrão adicionado')
             else:
                 sim_ds = Sims.objects.all().order_by('id').filter(operator=oper_sel_i, type_sim=type_sim_i, sim_status='DS').first()
                 sim_log = f'{sim_ds.sim} / {sim_ds.id}' if sim_ds else 'Nenhum SIM disponível'
