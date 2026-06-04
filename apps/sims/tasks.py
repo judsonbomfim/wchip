@@ -42,6 +42,7 @@ def sims_in_orders():
         order_id_i = ord.order_id
         product_i = ord.product
         type_sim_i = ord.type_sim
+        cell_imei = ord.cell_imei
         id_sim_i = id_item_i.id_sim
         esim_eua = type_sim_i == 'esim' and (product_i == '001' or product_i == '977') # EUA Ilimitado
         
@@ -95,7 +96,11 @@ def sims_in_orders():
             if type_sim_i == 'esim' and not esim_eua:
                 logger.info(f'Pedido {order_id_i} - Tipo SIM é eSIM, mas não é EUA.')
                 status_ord = 'AA'
-            elif esim_eua: status_ord = 'AI'
+            elif esim_eua: 
+                if cell_imei:
+                    status_ord = 'AA'
+                else:
+                    status_ord = 'AI'
             elif type_sim_i == 'sim': status_ord = 'ES'
             
             order_put = Orders.objects.get(pk=id_id_i)
