@@ -37,6 +37,8 @@ def sims_in_orders():
     
     for ord in orders:
         
+        logger.info(f'>>>>>>>>>> Processando pedido {ord.order_id}')
+        
         id_id_i = ord.id
         id_item_i = Orders.objects.get(pk=id_id_i)
         order_id_i = ord.order_id
