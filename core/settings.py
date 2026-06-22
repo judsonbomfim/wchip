@@ -161,7 +161,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
-USE_TZ = True
 DATE_INPUT_FORMATS = ('%d/%m/%Y',)
 USE_I18N = True
 USE_L10N = True
@@ -239,35 +238,37 @@ CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
 CELERY_TIMEZONE = TIME_ZONE
+CELERY_ENABLE_UTC = False
+DJANGO_CELERY_BEAT_TZ_AWARE = False
 
 CELERY_BEAT_SCHEDULE = {
     'task__2_min_orders_auto': {
         'task': 'apps.orders.tasks.orders_auto',
-        'schedule': crontab(minute='*/2'),
+        'schedule': timedelta(minutes=2),
     },
     'task__2_min_activate_TC': {
         'task': 'apps.sims.tasks.simActivateTC',
-        'schedule': crontab(minute='2-59/2'),
+        'schedule': timedelta(minutes=2),
     },
-    'task__2_min_activate_EO': { # T-mobile/ Verizon
+    'task__2_min_activate_EO': {  # T-mobile/ Verizon
         'task': 'apps.sims.tasks.simActivateEO',
-        'schedule': crontab(minute='2-59/2'),
-    }, 
+        'schedule': timedelta(minutes=2),
+    },
     'task__deactivate_TC': {
         'task': 'apps.sims.tasks.simDeactivateTC',
-        'schedule': crontab( hour=00, minute=00),
+        'schedule': crontab(hour=0, minute=0),
     },
     'task__deactivate_all': {
         'task': 'apps.sims.tasks.simDeactivateAll',
-        'schedule': crontab( hour=00, minute=00),
+        'schedule': crontab(hour=0, minute=0),
     },
     'task__2_min_activate_CM': {
         'task': 'apps.sims.tasks.simActivateCM',
-        'schedule': crontab(minute='2-59/2'),
+        'schedule': timedelta(minutes=2),
     },
     'task__2_min_activate_AR': {
         'task': 'apps.sims.tasks.simActivateAR',
-        'schedule': crontab(minute='2-59/2'),
+        'schedule': timedelta(minutes=2),
     },
 }
 
