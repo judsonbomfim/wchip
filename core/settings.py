@@ -5,7 +5,6 @@ import boto3
 from urllib.parse import urlparse
 from django.contrib.messages import constants as messages
 from celery.schedules import crontab
-from datetime import timedelta
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -244,15 +243,15 @@ DJANGO_CELERY_BEAT_TZ_AWARE = False
 CELERY_BEAT_SCHEDULE = {
     'task__2_min_orders_auto': {
         'task': 'apps.orders.tasks.orders_auto',
-        'schedule': timedelta(minutes=2),
+        'schedule': crontab(minute='2-58/2'),  # grupo A: min 02, 04, 06...
     },
     'task__2_min_activate_TC': {
         'task': 'apps.sims.tasks.simActivateTC',
-        'schedule': timedelta(minutes=2),
+        'schedule': crontab(minute='2-58/2'),  # grupo A
     },
     'task__2_min_activate_EO': {  # T-mobile/ Verizon
         'task': 'apps.sims.tasks.simActivateEO',
-        'schedule': timedelta(minutes=2),
+        'schedule': crontab(minute='3-59/2'),  # grupo B: min 03, 05, 07...
     },
     'task__deactivate_TC': {
         'task': 'apps.sims.tasks.simDeactivateTC',
@@ -264,11 +263,11 @@ CELERY_BEAT_SCHEDULE = {
     },
     'task__2_min_activate_CM': {
         'task': 'apps.sims.tasks.simActivateCM',
-        'schedule': timedelta(minutes=2),
+        'schedule': crontab(minute='2-58/2'),  # grupo A
     },
     'task__2_min_activate_AR': {
         'task': 'apps.sims.tasks.simActivateAR',
-        'schedule': timedelta(minutes=2),
+        'schedule': crontab(minute='3-59/2'),  # grupo B
     },
 }
 
