@@ -27,6 +27,7 @@ def sims_in_orders():
     from apps.orders.tasks import orders_up_status
 
     orders = Orders.objects.filter(order_status='AS')
+    logger.info(f'>>>>>>>>>> sims_in_orders iniciada — {orders.count()} pedido(s) AS')
     
     global n_item_total
     n_item_total = 0
@@ -97,7 +98,6 @@ def sims_in_orders():
             # update order
             # Save SIMs
             if type_sim_i == 'esim' and not esim_eua:
-                logger.info(f'Pedido {order_id_i} - Tipo SIM é eSIM, mas não é EUA.')
                 status_ord = 'AA'
             elif esim_eua: 
                 if cell_imei:

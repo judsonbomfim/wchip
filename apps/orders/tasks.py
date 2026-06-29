@@ -15,8 +15,6 @@ logger = logging.getLogger('apps.orders')
 
 @shared_task
 def order_import():
-    from apps.sims.tasks import sims_in_orders, simDeactivateTC, simActivateTC
-    
     date_now = datetime.now()
     
     try:
@@ -289,11 +287,9 @@ def orders_auto():
     from apps.sims.tasks import sims_in_orders
 
     logger.info('Iniciando orders_auto')
-    order_import.delay()
-    time.sleep(5)
-    sims_in_orders.delay()
-    time.sleep(10)
-    send_email_sims.delay()
+    order_import()
+    sims_in_orders()
+    send_email_sims()
 
 @shared_task
 def orders_up_status(ord_id, ord_s, id_user=None):
