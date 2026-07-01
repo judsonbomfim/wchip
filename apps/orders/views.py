@@ -142,7 +142,7 @@ def ord_add(request):
     type_sim = request.POST.get('type_sim')
     operator = request.POST.get('operator')
     shipping = (request.POST.get('shipping') or '').strip()
-    sim = request.POST.get('sim')
+    sim = request.POST.get('sim').strip()
     activation_date = request.POST.get('activation_date')
     cell_imei = request.POST.get('cell_imei')
     cell_eid = request.POST.get('cell_eid')
@@ -183,16 +183,21 @@ def ord_add(request):
     if sim:
         sim_exists = Sims.objects.filter(sim=sim).first()
         if sim_exists:
-            messages.error(request, f'O SIM {sim} já está cadastrado no sistema.')
-            return render(request, 'painel/orders/add.html', context)
-
-        id_sim = Sims.objects.create(
-            sim=sim,
-            type_sim=type_sim,
-            operator=operator,
-            sim_status='AT',
-        )
-
+            if sim_exists.sim_status != 'AT':
+                sim_exists.sim_status = 'AT'
+                sim_exists.save()
+                id_sim = sim_exists.id
+            else:
+                messages.error(request, f'O SIM {sim} já está cadastrado no sistema.')
+                return render(request, 'painel/orders/add.html', context)
+        else:
+            new_sim = Sims.objects.create(
+                sim=sim,
+                type_sim=type_sim,
+                operator=operator,
+                sim_status='AT',
+            )
+            id_sim = new_sim.id
     try:
         order = Orders.objects.create(
             order_id=order_id_int,
