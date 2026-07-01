@@ -183,7 +183,7 @@ def ord_add(request):
     if sim:
         sim_exists = Sims.objects.filter(sim=sim).first()
         if sim_exists:
-            if sim_exists.sim_status not in ('AT', 'AA'):
+            if sim_exists.sim_status != 'AT':
                 sim_exists.sim_status = 'AT'
                 sim_exists.save()
                 id_sim = sim_exists
