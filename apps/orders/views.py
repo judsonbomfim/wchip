@@ -186,18 +186,17 @@ def ord_add(request):
             if sim_exists.sim_status != 'AT':
                 sim_exists.sim_status = 'AT'
                 sim_exists.save()
-                id_sim = sim_exists.id
+                id_sim = sim_exists
             else:
                 messages.error(request, f'O SIM {sim} já está cadastrado no sistema.')
                 return render(request, 'painel/orders/add.html', context)
         else:
-            new_sim = Sims.objects.create(
+            id_sim = Sims.objects.create(
                 sim=sim,
                 type_sim=type_sim,
                 operator=operator,
                 sim_status='AT',
             )
-            id_sim = new_sim.id
     try:
         order = Orders.objects.create(
             order_id=order_id_int,
