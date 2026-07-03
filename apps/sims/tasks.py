@@ -87,7 +87,6 @@ def sims_in_orders():
                 addNote(f'AIRALO - SIM padrão adicionado')
             else:
                 sim_ds = Sims.objects.all().order_by('id').filter(operator=oper_sel_i, type_sim=type_sim_i, sim_status='DS').first()
-                sim_log = f'{sim_ds.sim} / {sim_ds.id}' if sim_ds else 'Nenhum SIM disponível'
                 if sim_ds:
                     logger.info(f'Pedido {order_id_i} - SIM {sim_ds.sim} encontrado para atribuição.')
                     pass
@@ -99,11 +98,10 @@ def sims_in_orders():
             # Save SIMs
             if type_sim_i == 'esim' and not esim_eua:
                 status_ord = 'AA'
+                addNote('Alterado para Agd. Ativação')
             elif esim_eua: 
-                if cell_imei:
-                    status_ord = 'AA'
-                else:
-                    status_ord = 'AI'
+                status_ord = 'AI'
+                addNote('Aguardando IMEI')
             elif type_sim_i == 'sim': status_ord = 'ES'
             
             order_put = Orders.objects.get(pk=id_id_i)
@@ -112,17 +110,13 @@ def sims_in_orders():
             order_put.save()
             
             # Verification esim x eua
-            if esim_eua:
-                addNote(f'eSIM EUA - SIM padrão adicionado')
-                continue
-           
-            # update sim
-            sim_put = Sims.objects.get(pk=sim_ds.id)
-            sim_put.sim_status = 'AT'
-            sim_put.save()
-            _sim = sim_put.sim
-
-            addNote(f'(e)SIM {_sim} adicionado')
+            if not esim_eua:           
+                # update sim
+                sim_put = sim_ds
+                sim_put.sim_status = 'AT'
+                sim_put.save()
+                _sim = sim_put.sim
+                addNote(f'(e)SIM {_sim} adicionado')
             
             # Atualizar pedido no site
                         
