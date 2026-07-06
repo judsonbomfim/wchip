@@ -384,8 +384,10 @@ def orders_up_status(ord_id, ord_s, id_user=None):
         # Enviar email
         if ord_s == 'AA' and order.id_sim.operator != 'AR':
             send_email_sims.delay(id=order_id)
+            logger.info(f'Enviando email para {order.email}')
         elif ord_s == 'AT' and order.id_sim.operator == 'AR':
             send_email_sims.delay(id=order_id)
+            logger.info(f'Enviando email para {order.email}')
 
         # if ord_s == 'CN' and (type_sim == 'sim' or order_plan == 'USA'):
         #     send_email_sims.delay(id=order.id)
