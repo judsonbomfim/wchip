@@ -462,7 +462,7 @@ def simActivateEO(id=None):
             imei = order.cell_imei
         activation_date = order.activation_date
         days = order.days
-        carrier = 'T-mobile' if operator == 'TM' else 'Verizon MVNO'
+        carrier = 'T-Mobile' if operator == 'TM' else 'Verizon MVNO'
         plan = ''
         
         if operator == 'TM':
