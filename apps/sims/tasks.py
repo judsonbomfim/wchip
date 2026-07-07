@@ -466,22 +466,22 @@ def simActivateEO(id=None):
         plan = ''
         
         if operator == 'TM':
-            plan = '$50'            
+            plan = '$50'
             if days in [5, 6]:
                 days = 7
-            elif days in [7, 8, 9, 10, 11, 12, 13]:
-                pass
             elif days >= 20:
                 days = 30
                 plan = '$50B'
+            else:
+                pass
         elif operator == 'VR':
             plan = '50$'
             if days in [5, 6]:
                 days = 7
-            elif days in [7, 8, 9, 10, 11, 12, 13]:
-                days = days
             elif days >= 14:
                 days = 30
+            else:
+                pass
                 
         # Dados para a solicitação
         url = settings.APIEO_URL
