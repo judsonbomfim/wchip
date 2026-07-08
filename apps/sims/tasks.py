@@ -17,6 +17,7 @@ import pandas as pd
 from django.core.exceptions import ObjectDoesNotExist
 import requests
 from django.core.cache import cache
+from apps.send_email.tasks import send_email_sims
 
 # Configurar logger para este módulo
 logger = logging.getLogger('apps.sims')
@@ -803,7 +804,9 @@ def simActivateAR(id=None):
             UpdateStore.upStore(
                 order_id = order_id,
                 status_g = 'AT',
-            )            
+            )
+            # Enviar email
+            send_email_sims.delay(id=order_id)
             
             
     logger.info(f'>>>>>>>>>> ATIVAÇÃO AR FINALIZADA')
