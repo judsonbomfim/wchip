@@ -462,7 +462,7 @@ def ord_edit(request,id):
             # Enviar email
             if ord_st == 'AT' or (ord_st == 'AA' and operator != 'AR'):
                 send_email_sims(id=order_id)                
-                messages.success(request,'E-mail enviado com sucesso!')     
+                messages.success(request,'E-mail enviado com sucesso para o cliente!')     
         
         for msg_e in msg_error:
             messages.error(request,msg_e)
