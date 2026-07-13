@@ -806,7 +806,7 @@ def simActivateAR(id=None):
                 status_g = 'AT',
             )
             # Enviar email
-            send_email_sims.delay(id=order_id)
+            send_email_sims.delay(id=order_item)
             
             
     logger.info(f'>>>>>>>>>> ATIVAÇÃO AR FINALIZADA')
