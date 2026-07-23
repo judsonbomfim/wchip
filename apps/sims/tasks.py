@@ -354,23 +354,6 @@ def simDeactivateTC(id=None):
             
             res = conn.getresponse()
             data = json.loads(res.read())
-            
-            resultCode = int(data.get("Response", {}).get("resultCode", -1))
-            resultDescription = data.get("Response", {}).get("resultParam", {}).get("resultDescription", str(data))
-
-            if resultCode == 0:
-                print(f'Pedido {order.order_id} desativado com sucesso.')
-                if id is None:
-                    orders_up_status.delay(order.id, 'DE')
-                    sim_put = Sims.objects.get(pk=order.id_sim.id)
-                    sim_put.sim_status = 'DE'
-                    sim_put.save()
-                NotesAdd.addNote(order, f'{iccid} desativado com sucesso na Telcon. TC: {resultDescription}')
-            else:
-                print(f'Erro ao desativar pedido {order.order_id}.')
-                if id is None:
-                    UpdateOrder.upStatus(order.id, 'ED')
-                NotesAdd.addNote(order, f'ERRO DESATIVADO: {iccid} com erro na Telcon. TC: {resultDescription}')
 
         except Exception as e:
             logger.error(f"Erro inesperado ao processar desativação do pedido {order.order_id}: {e}", exc_info=True)
@@ -379,6 +362,24 @@ def simDeactivateTC(id=None):
         finally:
             if 'conn' in locals() and conn:
                 conn.close()
+                
+        # Verificar resultado da desativação
+        resultCode = int(data.get("Response", {}).get("resultCode", -1))
+        resultDescription = data.get("Response", {}).get("resultParam", {}).get("resultDescription", str(data))
+
+        if resultCode == 0:
+            print(f'Pedido {order.order_id} desativado com sucesso.')
+            if id is None:
+                orders_up_status.delay(order.id, 'DE')
+                sim_put = Sims.objects.get(pk=order.id_sim.id)
+                sim_put.sim_status = 'DE'
+                sim_put.save()
+            NotesAdd.addNote(order, f'{iccid} desativado com sucesso na Telcon. TC: {resultDescription}')
+        else:
+            print(f'Erro ao desativar pedido {order.order_id}.')
+            if id is None:
+                UpdateOrder.upStatus(order.id, 'ED')
+            NotesAdd.addNote(order, f'ERRO DESATIVADO: {iccid} com erro na Telcon. TC: {resultDescription}')
                 
     logger.info(f'>>>>>>>>>> DESATIVAÇÃO TC FINALIZADA <<<<<<<<<<')
 
