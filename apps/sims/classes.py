@@ -83,14 +83,39 @@ class ApiTC:
             'Content-Type': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
         }
-        conn = http.client.HTTPSConnection(settings.APITC_HTTPCONN)
-        conn.request("POST", "/api/login", payload_token, headers_token)
-        res_token = conn.getresponse()
-        data_token = json.loads(res_token.read())
-        token_api = data_token["AccessToken"]
-        # Gravar token
+        host = settings.APITC_HTTPCONN
+        if not host or host == 'None':
+            raise ValueError('APITC_HTTPCONN não configurado')
+
+        conn = http.client.HTTPSConnection(host, timeout=30)
+        try:
+            conn.request("POST", "/api/login", payload_token, headers_token)
+            res_token = conn.getresponse()
+            body = res_token.read()
+            status = res_token.status
+        finally:
+            conn.close()
+
+        if not body:
+            raise ValueError(
+                f'Login TC retornou corpo vazio (HTTP {status}) em {host}/api/login'
+            )
+
+        try:
+            data_token = json.loads(body)
+        except json.JSONDecodeError as e:
+            preview = body[:300].decode('utf-8', errors='replace')
+            raise ValueError(
+                f'Login TC não retornou JSON (HTTP {status}): {preview}'
+            ) from e
+
+        token_api = data_token.get("AccessToken")
+        if not token_api:
+            raise ValueError(
+                f'Login TC sem AccessToken (HTTP {status}): {data_token}'
+            )
+
         cache.set('api_tc_token', token_api, timeout=540)
-        conn.close()
         return token_api
 
 
