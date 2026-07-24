@@ -53,7 +53,7 @@ def sims_in_orders():
         # Se já houver SIM   
         if id_sim_i != None:
             if ord.order_status == 'AS':
-                if esim_eua:
+                if esim_eua and cell_imei == None:
                     id_item_i.order_status = 'AI'
                 else:
                     id_item_i.order_status = 'AA'

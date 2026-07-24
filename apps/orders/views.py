@@ -454,13 +454,7 @@ def ord_edit(request,id):
             # Alterar status
             # Status sis : Status Loja
             orders_up_status.delay([order.id], ord_st, request.user.id)
-            
-            # Salvar notas    
-            ord_status = Orders.order_status.field.choices
-            for st in ord_status:
-                if ord_st == st[0] :
-                    addNote(f'Alterado de {order.get_order_status_display()} para {st[1]}')
-            
+                       
             # Enviar email
             if ord_st == 'AT' or (ord_st == 'AA' and operator != 'AR'):
                 send_email_sims(id=order_id)                
