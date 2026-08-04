@@ -1,6 +1,7 @@
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from apps.sims.models import Sims
 from apps.orders.models import Orders
 import json
@@ -216,6 +217,7 @@ def index(request):
 
 
 @login_required(login_url='/login/')
+@require_POST
 def clear_cache(request):
     from django.core.cache import cache
     cache.clear()
