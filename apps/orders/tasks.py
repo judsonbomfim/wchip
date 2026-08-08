@@ -7,6 +7,7 @@ from .classes import ApiStore, NotesAdd, StatusStore, DateFormats, UpdateOrder
 from apps.orders.models import Orders, Notes
 from apps.sims.models import Sims
 from apps.sims.classes import OperatorSelect
+from core.celery_locks import periodic_task_lock
 import time
 import logging
 
@@ -282,6 +283,7 @@ def order_import():
 
 
 @shared_task
+@periodic_task_lock(timeout=140)
 def orders_auto():
     from apps.send_email.tasks import send_email_sims
     from apps.sims.tasks import sims_in_orders

@@ -18,6 +18,7 @@ from django.core.exceptions import ObjectDoesNotExist
 import requests
 from django.core.cache import cache
 from apps.send_email.tasks import send_email_sims
+from core.celery_locks import periodic_task_lock
 
 # Configurar logger para este módulo
 logger = logging.getLogger('apps.sims')
@@ -127,6 +128,7 @@ def sims_in_orders():
     
 
 @shared_task
+@periodic_task_lock(timeout=140)
 def simActivateTC(id=None):
     from apps.orders.tasks import orders_up_status
     
@@ -282,6 +284,7 @@ def simActivateTC(id=None):
 
 
 @shared_task
+@periodic_task_lock(timeout=330)
 def simDeactivateTC(id=None):
     from apps.orders.tasks import orders_up_status
     
@@ -384,6 +387,8 @@ def simDeactivateTC(id=None):
     logger.info(f'>>>>>>>>>> DESATIVAÇÃO TC FINALIZADA <<<<<<<<<<')
 
 
+@shared_task
+@periodic_task_lock(timeout=330)
 def simDeactivateAll(id=None):
     from apps.orders.tasks import orders_up_status
 
@@ -435,6 +440,7 @@ def simDeactivateAll(id=None):
 
 
 @shared_task
+@periodic_task_lock(timeout=140)
 def simActivateEO(id=None):
     from apps.orders.tasks import orders_up_status
           
@@ -570,6 +576,7 @@ def simActivateEO(id=None):
 
 
 @shared_task
+@periodic_task_lock(timeout=140)
 def simActivateCM(id=None):
     
     import base64
@@ -693,6 +700,7 @@ def simActivateCM(id=None):
             
 
 @shared_task
+@periodic_task_lock(timeout=140)
 def simActivateAR(id=None):
     
     tz = pytz.timezone(settings.TIME_ZONE)

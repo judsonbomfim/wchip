@@ -55,13 +55,17 @@ services:
       - /home/sprdmntrdr/docker/django/.env:/djangoweb/.env:ro
     restart: on-failure
 
+  # Nunca escalar celery_beat: um único processo evita disparos duplicados.
   celery_beat:
     container_name: celery_beat
     image: djangoweb:latest
     build:
       context: .
       dockerfile: Dockerfile
-    command: celery -A core beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    command:
+      - sh
+      - -c
+      - python manage.py sync_celery_beat && celery -A core beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     networks:
       - internal
     environment:
@@ -73,6 +77,8 @@ services:
     volumes:
       - logs:/djangoweb/logs
       - /home/sprdmntrdr/docker/django/.env:/djangoweb/.env:ro
+    deploy:
+      replicas: 1
     restart: on-failure
     
   redis:
