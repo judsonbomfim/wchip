@@ -14,7 +14,7 @@ from django.db import DataError
 from apps.orders.models import Orders, Notes
 from apps.sims.models import Sims
 from apps.send_email.tasks import send_email_sims, send_tracking
-from apps.sims.tasks import simActivateTC
+from apps.sims.tasks import simDeactivateTC, simActivateTC
 from .classes import ApiStore, StatusStore, DateFormats
 from .tasks import orders_up_status
 import pandas as pd
@@ -334,8 +334,19 @@ def ord_edit(request,id):
                 msg_error.append(f'Não há estoque de {operator} - {type_sim} no sistema')
                 logger.info(f'>>>>>>>>>> Não há estoque de SIMs')
                         
-        # Liberar SIMs: desativação Telcon via orders_up_status (abaixo)
-        
+        # Liberar SIMs
+        if ord_st == 'CC' or ord_st == 'DE' or ord_st == 'RE':
+            logger.info(f'>>>>>>>>>> Liberar SIMs')
+            if order_sim != '':
+                # Change TC
+                if order.id_sim.operator == 'TC':
+                    simDeactivateTC(id=order.id)
+                
+                # Update SIM
+                sim_put = Sims.objects.get(pk=sim_id)
+                sim_put.sim_status = 'DE'
+                sim_put.save()    
+
         # Activate TC
         if ord_st == 'AT' and order.order_status != 'AT' and operator == 'TC':
             simActivateTC(id=order.id)

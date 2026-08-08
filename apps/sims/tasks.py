@@ -283,6 +283,9 @@ def simActivateTC(id=None):
 
 @shared_task
 def simDeactivateTC(id=None):
+    from apps.orders.tasks import orders_up_status
+    
+
     timezone = pytz.timezone(settings.TIME_ZONE)
 
     now = datetime.now(timezone)
@@ -326,13 +329,6 @@ def simDeactivateTC(id=None):
             print(f"Pedido {order.order_id} sem SIM associado. Pulando.")
             continue
 
-        # Lote: reserva o pedido (AT→DE) para execução concorrente não chamar a Telcon de novo
-        if id is None:
-            claimed = Orders.objects.filter(pk=order.id, order_status='AT').update(order_status='DE')
-            if claimed == 0:
-                logger.info(f'Pedido {order.order_id} já reservado por outra execução. Ignorando.')
-                continue
-
         try:
             # Gerar token de acesso a API
             time.sleep(0.5)
@@ -362,7 +358,6 @@ def simDeactivateTC(id=None):
         except Exception as e:
             logger.error(f"Erro inesperado ao processar desativação do pedido {order.order_id}: {e}", exc_info=True)
             error_api(order, iccid if 'iccid' in locals() else 'N/A')
-            continue
         
         finally:
             if 'conn' in locals() and conn:
@@ -375,7 +370,7 @@ def simDeactivateTC(id=None):
         if resultCode == 0:
             print(f'Pedido {order.order_id} desativado com sucesso.')
             if id is None:
-                UpdateStore.upStore(order_id=order.order_id, status_g='DE')
+                orders_up_status.delay(order.id, 'DE')
                 sim_put = Sims.objects.get(pk=order.id_sim.id)
                 sim_put.sim_status = 'DE'
                 sim_put.save()
@@ -389,8 +384,9 @@ def simDeactivateTC(id=None):
     logger.info(f'>>>>>>>>>> DESATIVAÇÃO TC FINALIZADA <<<<<<<<<<')
 
 
-@shared_task
 def simDeactivateAll(id=None):
+    from apps.orders.tasks import orders_up_status
+
     timezone = pytz.timezone(settings.TIME_ZONE)
 
     now = datetime.now(timezone)
@@ -398,7 +394,7 @@ def simDeactivateAll(id=None):
 
     # Selecionar pedidos
     if id is None:       
-        orders_to_process = Orders.objects.filter(order_status='AT').exclude(id_sim__operator__in=['TC', 'TI']).order_by('-id')
+        orders_to_process = Orders.objects.exclude(order_status='AT', id_sim__operator__in=['TC', 'TI']).order_by('-id')
     else:
         orders_to_process = Orders.objects.filter(pk=id)
 
@@ -413,8 +409,10 @@ def simDeactivateAll(id=None):
             continue
 
         # Calcula a data de desativação
+        # A lógica é: data de ativação + (duração do plano - 1 dia)
         deactivation_date = order.activation_date + timedelta(days=order.days - 1)
 
+        # Se um ID específico não foi passado, só desativa se a data for ontem ou anterior
         if id is None and deactivation_date > yesterday:
             continue
 
@@ -427,18 +425,13 @@ def simDeactivateAll(id=None):
             continue
 
         if id is None:
-            claimed = Orders.objects.filter(pk=order.id, order_status='AT').update(order_status='DE')
-            if claimed == 0:
-                logger.info(f'Pedido {order.order_id} já reservado por outra execução. Ignorando.')
-                continue
-            UpdateStore.upStore(order_id=order.order_id, status_g='DE')
-            if order.id_sim:
-                sim_put = Sims.objects.get(pk=order.id_sim.id)
-                sim_put.sim_status = 'DE'
-                sim_put.save()
+            orders_up_status.delay(order.id, 'DE')
+            sim_put = Sims.objects.get(pk=order.id_sim.id)
+            sim_put.sim_status = 'DE'
+            sim_put.save()
         NotesAdd.addNote(order, f'{iccid} desativado com sucesso. Processo automático')
         
-    logger.info(f'>>>>>>>>>> DESATIVAÇÃO ALL FINALIZADA <<<<<<<<<<')
+    logger.info(f'>>>>>>>>>> DESATIVAÇÃO TC FINALIZADA <<<<<<<<<<')
 
 
 @shared_task

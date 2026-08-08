@@ -330,8 +330,8 @@ def orders_up_status(ord_id, ord_s, id_user=None):
         
         if ord_s == 'CC' or ord_s == 'DE' or ord_s == 'RE':
             if order.id_sim:                
-                # Desativar na Telcon (fluxo manual / massa)
-                if (order.id_sim.operator in ('TC', 'TI')) and ord_s == 'DE' and order_st != 'ED':
+                # Change TC
+                if order.id_sim.operator == 'TC' and order.order_status != 'ED':
                     simDeactivateTC(id=order.id)
                 
                 # Update SIM

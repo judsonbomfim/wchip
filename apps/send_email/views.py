@@ -1,7 +1,6 @@
 import logging
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
 from django.contrib import messages
 from kombu.exceptions import OperationalError
 from apps.send_email.tasks import send_email_sims, send_tracking as send_tracking_task
@@ -25,7 +24,6 @@ def send_email(request,id):
 
 
 @login_required(login_url='/login/')
-@require_POST
 def send_email_esims(request):
     send_email_sims.delay()
     messages.success(request, 'Envio em lote enfileirado com sucesso!')
@@ -33,7 +31,6 @@ def send_email_esims(request):
 
 
 @login_required(login_url='/login/')
-@require_POST
 def send_tracking(request):
     send_tracking_task.delay()
     messages.success(request, 'Envio de rastreio enfileirado com sucesso!')

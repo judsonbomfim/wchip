@@ -2,7 +2,6 @@ from venv import logger
 
 from django.contrib.auth.decorators import login_required
 from rolepermissions.decorators import has_permission_decorator
-from django.views.decorators.http import require_POST
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.urls import reverse
@@ -360,7 +359,6 @@ def exportSIMs(request):
     return response
 
 @login_required(login_url='/login/')
-@require_POST
 def delSIMs(request):
     orders = Orders.objects.all()
     
@@ -380,7 +378,6 @@ def delSIMs(request):
     return HttpResponse('SIMs deletados com sucesso')
 
 @login_required(login_url='/login/')
-@require_POST
 def delSimTC(request):
     list_icc = {
         '8932042000002327335',
@@ -410,7 +407,6 @@ def delSimTC(request):
     return HttpResponse('SIMs deletados com sucesso')
 
 @login_required(login_url='/login/')
-@require_POST
 def delSimCM(request):
     sims = Sims.objects.filter(operator='CM', sim_status='DS')
 
