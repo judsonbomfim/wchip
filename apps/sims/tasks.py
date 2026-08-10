@@ -328,11 +328,25 @@ def simDeactivateTC(id=None):
 
     def mark_deactivated(order_item, iccid_val, result_description):
         print(f'Pedido {order_item.order_id} desativado com sucesso.')
-        if id is None:
-            orders_up_status.delay(order_item.id, 'DE')
+        order_item.refresh_from_db()
+        already_deactivated = order_item.order_status == 'DE'
+
+        if id is None and not already_deactivated:
+            # skip_sim_deactivate evita loop orders_up_status → simDeactivateTC
+            orders_up_status.delay(
+                order_item.id, 'DE', skip_sim_deactivate=True
+            )
             sim_put = Sims.objects.get(pk=order_item.id_sim.id)
             sim_put.sim_status = 'DE'
             sim_put.save()
+
+        # Evita nota duplicada quando orders_up_status reentrava na desativação
+        if already_deactivated:
+            logger.info(
+                f'Pedido {order_item.order_id} já estava DE; nota de sucesso omitida'
+            )
+            return
+
         NotesAdd.addNote(
             order_item,
             f'{iccid_val} desativado com sucesso na Telcon. TC: {result_description}'

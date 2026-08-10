@@ -294,7 +294,7 @@ def orders_auto():
     send_email_sims()
 
 @shared_task
-def orders_up_status(ord_id, ord_s, id_user=None):
+def orders_up_status(ord_id, ord_s, id_user=None, skip_sim_deactivate=False):
     from apps.sims.tasks import simDeactivateTC
     from apps.send_email.tasks import send_email_sims
 
@@ -332,8 +332,12 @@ def orders_up_status(ord_id, ord_s, id_user=None):
         
         if ord_s == 'CC' or ord_s == 'DE' or ord_s == 'RE':
             if order.id_sim:                
-                # Change TC
-                if order.id_sim.operator == 'TC' and order.order_status != 'ED':
+                # Change TC (evita loop: simDeactivateTC → orders_up_status → simDeactivateTC)
+                if (
+                    not skip_sim_deactivate
+                    and order.id_sim.operator in ('TC', 'TI')
+                    and order.order_status != 'ED'
+                ):
                     simDeactivateTC(id=order.id)
                 
                 # Update SIM
