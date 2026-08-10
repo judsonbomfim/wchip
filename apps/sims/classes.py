@@ -13,7 +13,11 @@ import requests
 
 from apps.sims.models import Sims
 
-    
+
+class RateLimitExceeded(Exception):
+    """BICS/Telcon retornou HTTP 429 ou mensagem de rate limit."""
+
+
 class OperatorSelect():
     @staticmethod
     def opSelSim():
@@ -63,6 +67,55 @@ class OperatorSelect():
         return operSelESim
 
 class ApiTC:
+    # Default BICS = 2 TPS por conta; 1 req/s deixa margem para outras tasks
+    RATE_MIN_INTERVAL = 1.0
+    RATE_RETRY_WAIT = 2.0
+
+    @staticmethod
+    def is_rate_limit_message(value):
+        return 'rate limit' in str(value or '').lower()
+
+    @staticmethod
+    def throttle(min_interval=None):
+        """Espaça chamadas à API TC no nível da conta (cache compartilhado)."""
+        interval = ApiTC.RATE_MIN_INTERVAL if min_interval is None else min_interval
+        last_key = 'api_tc_last_request'
+        lock_key = 'api_tc_throttle_lock'
+
+        for _ in range(100):
+            now = time.time()
+            last = cache.get(last_key)
+            if last is not None:
+                wait = interval - (now - float(last))
+                if wait > 0:
+                    time.sleep(wait)
+                    continue
+
+            if cache.add(lock_key, '1', timeout=5):
+                try:
+                    now = time.time()
+                    last = cache.get(last_key)
+                    if last is not None:
+                        wait = interval - (now - float(last))
+                        if wait > 0:
+                            time.sleep(wait)
+                            now = time.time()
+                    cache.set(last_key, str(now), timeout=120)
+                finally:
+                    cache.delete(lock_key)
+                return
+
+            time.sleep(0.05)
+
+        time.sleep(interval)
+
+    @staticmethod
+    def _raise_if_rate_limited(status, body, context=''):
+        text = body.decode('utf-8', errors='replace') if isinstance(body, (bytes, bytearray)) else str(body or '')
+        if status == 429 or ApiTC.is_rate_limit_message(text):
+            raise RateLimitExceeded(
+                f'API rate limit exceeded{f" em {context}" if context else ""}'
+            )
 
     # Get tokem de acesso a API
     @staticmethod
@@ -72,8 +125,6 @@ class ApiTC:
         if token_api:
             return token_api
 
-        time.sleep(0.5)        
-        
         payload_token = json.dumps({
             "username": settings.APITC_USERNAME,
             "password": settings.APITC_PASSWORD
@@ -87,6 +138,7 @@ class ApiTC:
         if not host or host == 'None':
             raise ValueError('APITC_HTTPCONN não configurado')
 
+        ApiTC.throttle()
         conn = http.client.HTTPSConnection(host, timeout=30)
         try:
             conn.request("POST", "/api/login", payload_token, headers_token)
@@ -95,6 +147,8 @@ class ApiTC:
             status = res_token.status
         finally:
             conn.close()
+
+        ApiTC._raise_if_rate_limited(status, body, context='login')
 
         if not body:
             raise ValueError(
@@ -136,17 +190,98 @@ class ApiTC:
     # Get EndPointID / Status
     @staticmethod
     def get_iccid(iccid, headers):
-        time.sleep(0.5)
         payload_endpointId = ''
+        ApiTC.throttle()
         conn = http.client.HTTPSConnection(settings.APITC_HTTPCONN)
-        conn.request(
-            "GET", f"/api/fetchSIM?iccid={iccid}", payload_endpointId, headers)
-        res_endpointId = conn.getresponse()
-        data_endpointId = json.loads(res_endpointId.read())
-        simStatus = data_endpointId["Response"]["responseParam"]["rows"][0]['simStatus']
-        endpointId = data_endpointId["Response"]["responseParam"]["rows"][0]['endPointId']
-        conn.close()
+        try:
+            conn.request(
+                "GET", f"/api/fetchSIM?iccid={iccid}", payload_endpointId, headers)
+            res_endpointId = conn.getresponse()
+            status = res_endpointId.status
+            body = res_endpointId.read()
+        finally:
+            conn.close()
+
+        ApiTC._raise_if_rate_limited(status, body, context=f'fetchSIM/{iccid}')
+
+        try:
+            data_endpointId = json.loads(body)
+        except json.JSONDecodeError as e:
+            preview = body[:300].decode('utf-8', errors='replace')
+            raise ValueError(
+                f'fetchSIM não retornou JSON (HTTP {status}): {preview}'
+            ) from e
+
+        response = data_endpointId.get("Response") or {}
+        result_code = str(response.get("resultCode", "1"))
+        result_param = response.get("resultParam") or {}
+        result_description = result_param.get(
+            "resultDescription", data_endpointId
+        )
+
+        if ApiTC.is_rate_limit_message(result_description):
+            raise RateLimitExceeded(
+                f'API rate limit exceeded em fetchSIM/{iccid}'
+            )
+
+        # responseParam é opcional na API BICS; só existe em sucesso
+        if result_code != "0":
+            raise ValueError(
+                f'fetchSIM falhou para ICCID {iccid}: {result_description}'
+            )
+
+        rows = (response.get("responseParam") or {}).get("rows") or []
+        if not rows:
+            raise ValueError(
+                f'fetchSIM sem SIM para ICCID {iccid}: {result_description}'
+            )
+
+        simStatus = rows[0]['simStatus']
+        endpointId = rows[0]['endPointId']
         return endpointId, simStatus
+
+    @staticmethod
+    def endpoint_lifecycle_change(endpoint_id, headers, life_cycle='S', reason='1'):
+        payload = json.dumps({
+            "Request": {
+                "endPointId": f"{endpoint_id}",
+                "requestParam": {
+                    "lifeCycle": life_cycle,
+                    "reason": reason,
+                }
+            }
+        })
+        ApiTC.throttle()
+        conn = http.client.HTTPSConnection(settings.APITC_HTTPCONN)
+        try:
+            conn.request("POST", "/api/EndPointLifeCycleChange", payload, headers)
+            res = conn.getresponse()
+            status = res.status
+            body = res.read()
+        finally:
+            conn.close()
+
+        ApiTC._raise_if_rate_limited(
+            status, body, context=f'EndPointLifeCycleChange/{endpoint_id}'
+        )
+
+        try:
+            data = json.loads(body)
+        except json.JSONDecodeError as e:
+            preview = body[:300].decode('utf-8', errors='replace')
+            raise ValueError(
+                f'EndPointLifeCycleChange não retornou JSON (HTTP {status}): {preview}'
+            ) from e
+
+        response = data.get("Response") or {}
+        result_param = response.get("resultParam") or {}
+        result_description = result_param.get("resultDescription", data)
+        if ApiTC.is_rate_limit_message(result_description):
+            raise RateLimitExceeded(
+                f'API rate limit exceeded em EndPointLifeCycleChange/{endpoint_id}'
+            )
+
+        return data
 
 
     # Pl0an Change
