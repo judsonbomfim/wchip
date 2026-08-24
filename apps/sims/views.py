@@ -10,13 +10,19 @@ from django.core.paginator import Paginator
 from django.contrib import messages
 from django.conf import settings
 from django.core.files.storage import default_storage
+from django.db.models import Q
+from django.db.models.functions import Length, Trim
 import csv
 import imghdr
+import logging
 import boto3
 from apps.sims.models import Sims
+from apps.sims.classes import qrcodeChange
 from apps.orders.models import Orders
 from apps.orders.classes import ApiStore, DateFormats
 from .tasks import sims_in_orders
+
+logger = logging.getLogger('apps.sims.views')
 
 
 # Script Upload S3
@@ -33,6 +39,17 @@ def upload_file_to_s3(file):
     file_path = f"{settings.MEDIA_LOCATION}/{file.name}"
     s3.upload_fileobj(file, bucket_name, file_path)
     return default_storage.url(file_path)
+
+def qr_image_url(link):
+    return qrcodeChange.resolve_qr_url(link)
+
+
+def read_lpa_from_link(link):
+    qr_url = qr_image_url(link)
+    if not qr_url:
+        return None
+    return qrcodeChange.read_qr_code(qr_url)
+
 
 def delete_sim_file(link):
     if not link or link == '-':
@@ -123,6 +140,8 @@ def sims_list(request):
     esim_tm = sims_all.filter(sim_status='DS',operator='TM', type_sim='esim').count()
     sim_cm = sims_all.filter(sim_status='DS',operator='CM', type_sim='sim').count()
     esim_cm = sims_all.filter(sim_status='DS',operator='CM', type_sim='esim').count()
+    sim_cmhk = sims_all.filter(sim_status='DS',operator='CMHK', type_sim='sim').count()
+    esim_cmhk = sims_all.filter(sim_status='DS',operator='CMHK', type_sim='esim').count()
     sim_tc = sims_all.filter(sim_status='DS',operator='TC', type_sim='sim').count()
     esim_tc = sims_all.filter(sim_status='DS',operator='TC', type_sim='esim').count()
     sim_vr = sims_all.filter(sim_status='DS',operator='VR', type_sim='sim').count()
@@ -137,10 +156,16 @@ def sims_list(request):
         'sims_types': sims_types,
         'sims_status': sims_status,
         'sims_oper': sims_oper,
+        'sim_f': sim_f or '',
+        'sim_type_f': sim_type_f or '',
+        'sim_status_f': sim_status_f or '',
+        'sim_oper_f': sim_oper_f or '',
         'sim_tm': sim_tm,
         'esim_tm': esim_tm,
         'sim_cm': sim_cm,
         'esim_cm': esim_cm,
+        'sim_cmhk': sim_cmhk,
+        'esim_cmhk': esim_cmhk,
         'sim_tc': sim_tc,
         'esim_tc': esim_tc,
         'sim_vr': sim_vr,
@@ -264,6 +289,7 @@ def sims_add_sim(request):
         'oper_list': oper_list,
         'shipp_list': shipp_list,
         'url_filter': url_filter,
+        'url_cdn': settings.URL_CDN,
     }
     return render(request, 'painel/sims/add-sim.html', context)
 
@@ -288,7 +314,7 @@ def sims_add_esim(request):
  
         if type_sim == '' or operator == '' or esims == '':
             messages.error(request,'Preencha todos os campos')
-            return render(request, 'painel/sims/add-esim.html')
+            return render(request, 'painel/sims/add-esim.html', {'operator_list': Sims.operator.field.choices})
                            
         
         for sim_img in esims:
@@ -303,16 +329,23 @@ def sims_add_esim(request):
                 fileurl = fileurl.replace(settings.URL_CDN,'')
             else:
                 messages.error(request,'O arquivo não é uma imagem. Verifique por favor!')
-                return render(request, 'painel/sims/add-esim.html')           
+                return render(request, 'painel/sims/add-esim.html', {'operator_list': Sims.operator.field.choices})           
 
             
             sims_all = Sims.objects.all().filter(sim=sim_i[0]).filter(type_sim='esim')
             if sims_all:
                 messages.info(request,f'O SIM {sim_i[0]} já está cadastrado no sistema')
                 continue
+            lpa = None
+            try:
+                lpa = read_lpa_from_link(fileurl)
+            except Exception as e:
+                logger.error('Erro ao ler LPA do eSIM %s: %s', sim_i[0], e, exc_info=True)
+
             # Save SIMs
             add_sim = Sims(
                 sim = sim_i[0],
+                lpa = lpa,
                 link = fileurl,
                 type_sim = type_sim,
                 operator = operator
@@ -320,7 +353,7 @@ def sims_add_esim(request):
             add_sim.save()
 
         messages.success(request,'Lista gravada com sucesso')
-        return render(request, 'painel/sims/add-esim.html')
+        return render(request, 'painel/sims/add-esim.html', {'operator_list': Sims.operator.field.choices})
 
 @login_required(login_url='/login/')
 @has_permission_decorator('add_ord_sims')
@@ -462,3 +495,47 @@ def delSimCM(request):
 #             continue
             
 #     return HttpResponse('Links corrigidos com sucesso')
+
+def lpaChange(request):
+    sims = Sims.objects.filter(
+        type_sim='esim',
+        sim_status__in=['DS', 'AT'],
+    ).annotate(
+        lpa_trimmed=Trim('lpa'),
+        lpa_trimmed_length=Length(Trim('lpa')),
+    ).filter(
+        Q(lpa__isnull=True) |
+        Q(lpa_trimmed_length__lt=5)
+    ).order_by('id')
+    total = sims.count()
+    contagem = 0
+    start_message = f"Iniciando lpaChange. Total de eSIMs sem LPA: {total}"
+    logger.info(start_message)
+    print(start_message, flush=True)
+
+    if total == 0:
+        empty_message = "lpaChange finalizado sem registros para processar."
+        logger.info(empty_message)
+        print(empty_message, flush=True)
+        return HttpResponse('Nenhum eSIM sem LPA encontrado para processamento.')
+
+    for sim in sims:
+        link_qrcode = qr_image_url(sim.link)
+        try:
+            new_lpa = qrcodeChange.read_qr_code(link_qrcode) if link_qrcode else None
+            if new_lpa:
+                sim.lpa = new_lpa
+                sim.save()
+            contagem += 1
+            if contagem == 1 or contagem % 100 == 0 or contagem == total:
+                progress_message = f"Processado SIM: {sim.sim} - TOTAL: {contagem}/{total}"
+                logger.info(progress_message)
+                print(progress_message, flush=True)
+        except Exception as e:
+            error_message = f"Erro ao atualizar LPA para SIM {sim.sim}: {e}"
+            logger.error(error_message)
+            print(error_message, flush=True)
+    finish_message = f"lpaChange finalizado. Total processado: {contagem}/{total}"
+    logger.info(finish_message)
+    print(finish_message, flush=True)
+    return HttpResponse('Processando atualização de LPA... Aguarde alguns minutos e atualize a página de pedidos')

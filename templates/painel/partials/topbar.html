@@ -1,0 +1,108 @@
+{% load static i18n iconify_icons %}
+<header class="app-header">
+    <div class="container-fluid flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+            <div class="logo-topbar">
+                <!-- Sidenav Menu Brand Logo -->
+                <a href="/" class="logo-box">
+                    <!-- Light Brand Logo -->
+                    <div class="logo-light">
+                        <img src="{% static 'painel/inspina/images/logo.png' %}"
+                             class="logo-lg h-6"
+                             alt="Light logo">
+                        <img src="{% static 'painel/inspina/images/logo-sm.png' %}"
+                             class="logo-sm h-6"
+                             alt="Small logo">
+                    </div>
+                    <!-- Dark Brand Logo -->
+                    <div class="logo-dark">
+                        <img src="{% static 'painel/inspina/images/logo-black.png' %}"
+                             class="logo-lg h-6"
+                             alt="Dark logo">
+                        <img src="{% static 'painel/inspina/images/logo-sm.png' %}"
+                             class="logo-sm h-6"
+                             alt="Small logo">
+                    </div>
+                </a>
+            </div>
+            <!-- Sidenav Menu Toggle Button -->
+            <button id="button-toggle-menu"
+                    class="sidenav-toggle-button btn rounded-full bg-primary btn-icon text-white">
+                <i class="iconify tabler--menu-4 text-xl"></i>
+            </button>
+            <!-- Topnav Menu Toggle Button for Horizontal -->
+            <div class="topnav-toggle-button">
+                <button type="button"
+                        class="hs-collapse-toggle btn topnav-toggle-button"
+                        data-hs-collapse="#topnav-menu"
+                        id="topnav-menu-collapse"
+                        aria-expanded="false"
+                        aria-controls="topnav-menu"
+                        aria-label="Toggle navigation">
+                    <i class="iconify tabler--menu-4 text-xl"></i>
+                </button>
+            </div>
+        </div>
+        <div class="flex items-center gap-2.5">
+            <div id="theme-toggler" class="sm:inline-flex hidden">
+                <div class="topbar-item">
+                    <button class="topbar-link btn btn-icon size-8 rounded-full transition-[scale,background]"
+                            id="light-dark-mode"
+                            type="button">
+                        <i class="iconify tabler--moon absolute scale-100 rotate-0 topbar-link-icon transition-all duration-200 dark:scale-0 dark:-rotate-90"></i>
+                        <i class="iconify tabler--sun absolute scale-0 rotate-90 topbar-link-icon transition-all duration-200 dark:scale-100 dark:rotate-0"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="fullscreen-toggler" class="md:inline-flex hidden">
+                <div class="topbar-item">
+                    <button class="topbar-link btn group size-8 rounded-full"
+                            data-toggle="fullscreen"
+                            aria-label="Full Screen">
+                        <i class="iconify tabler--maximize topbar-link-icon group-[.fullscreen-active]:hidden"></i>
+                        <i class="iconify tabler--minimize hidden topbar-link-icon group-[.fullscreen-active]:inline-block"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="xl:inline-flex hidden">
+                <div id="monochrome-toggler" class="topbar-item">
+                    <button class="topbar-link btn btn-sm size-8 rounded-full"
+                            id="monochrome-mode"
+                            type="button"
+                            aria-label="Monochrome Mode">
+                        <i class="iconify tabler--palette topbar-link-icon"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="simple-user-dropdown"
+                 class="topbar-item hs-dropdown before:bg-default-700/35 relative inline-flex before:h-4.5 before:w-px before:content-['']">
+                <button class="hs-dropdown-toggle topbar-link ms-2.5 cursor-pointer items-center px-3! flex"
+                        aria-haspopup="menu"
+                        aria-expanded="false"
+                        aria-label="Dropdown">
+                    <i class="iconify size-8 rounded-full lg:me-3"
+                       style="--svg: {% icon_svg 'painel/inspina/icons/user-circle.svg' %}"
+                       aria-hidden="true"></i>
+                    <div class="hidden lg:flex items-center gap-1.5">
+                        <h5 class="pro-username">{{ request.user.first_name|default:request.user.username }}</h5>
+                        <i class="iconify tabler--chevron-down align-middle"></i>
+                    </div>
+                </button>
+                <div class="hs-dropdown-menu min-w-48"
+                     role="menu"
+                     aria-orientation="vertical"
+                     aria-labelledby="hs-dropdown-with-icons">
+                    <div class="py-2 px-3.5">
+                        <h6 class="text-xs">{{ request.user.first_name }} {{ request.user.last_name }}</h6>
+                    </div>
+                    <a href="{% url 'logout' %}"
+                       class="dropdown-item font-semibold text-danger">
+                        <i class="iconify tabler--logout text-base align-middle"></i>
+                        <span class="align-middle">Sair</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+<!-- Topbar End -->

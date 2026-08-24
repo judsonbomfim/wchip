@@ -20,5 +20,6 @@ class Gerente(AbstractUserRole):
         'send_esims_but': True,
         'list_activations': True,
         'export_activations': True,
+        'export_orders': True,
         'list_number': True,
     }

@@ -81,6 +81,7 @@ def send_email_sims(id=None):
         except: continue            
         countries = order.countries
         operator = order.id_sim.operator
+        lpa = order.id_sim.lpa if order.id_sim and order.id_sim.lpa else ''
                 
         context = {
             'url_site': url_site,
@@ -93,6 +94,9 @@ def send_email_sims(id=None):
             'days': days,
             'product_plan': product_plan,
             'type_sim': type_sim,
+            'lpa': lpa,
+            'link_esim_android': settings.LINK_ESIM_ANDROID,
+            'link_esim_ios': settings.LINK_ESIM_IOS,
             'countries': countries,
             'tracking': order.tracking,
             'operator': operator,

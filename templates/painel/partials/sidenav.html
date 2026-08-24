@@ -1,0 +1,165 @@
+{% load static i18n permission_tags iconify_icons %}
+{# djlint:off #}
+<style>
+  /* Light: primary | Dark: mesmo fundo das demais áreas */
+  #app-menu {
+    --sidenav-bg: var(--color-primary);
+    --sidenav-border-color: var(--color-primary);
+    --sidenav-item-color: rgba(255, 255, 255, 0.7);
+    --sidenav-item-hover-color: #ffffff;
+    --sidenav-item-hover-bg: color-mix(in srgb, var(--color-primary) 80%, white);
+    --sidenav-item-active-color: #ffffff;
+    --sidenav-item-active-bg: color-mix(in srgb, var(--color-primary) 75%, white);
+  }
+  html[data-theme="dark"] #app-menu {
+    --sidenav-bg: var(--color-body-bg);
+    --sidenav-border-color: var(--color-default-300);
+    --sidenav-item-color: #8495ab;
+    --sidenav-item-hover-color: #bccee4;
+    --sidenav-item-hover-bg: #2f3742;
+    --sidenav-item-active-color: #ced6df;
+    --sidenav-item-active-bg: #22232c;
+  }
+  /* Small logo: mantém proporção no menu recolhido */
+  #app-menu .logo-box {
+    --logo-lg-height: 40px;
+    --logo-sm-height: 32px;
+  }
+  #app-menu .logo-box .logo-sm {
+    align-items: center;
+    justify-content: center;
+  }
+  #app-menu .logo-box .logo-sm img {
+    width: auto;
+    height: auto;
+    max-height: var(--logo-sm-height);
+    max-width: 100%;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+  html[data-sidenav-size="sm"] #app-menu .logo-box,
+  html[data-sidenav-size="condensed"] #app-menu .logo-box,
+  html[data-sidenav-size="compact"] #app-menu .logo-box,
+  html[data-sidenav-size="on-hover"] #app-menu:not(:hover) .logo-box,
+  html[data-sidenav-size="on-hover-active"] #app-menu:not(:hover) .logo-box {
+    padding-inline: 0.75rem;
+    justify-content: center;
+  }
+</style>
+{# djlint:on #}
+<aside id="app-menu" class="app-menu">
+  <a href="{% url 'dashboard' %}" class="logo-box">
+    <span class="logo logo-light">
+      <span class="logo-lg">
+        <img src="{% static 'painel/inspina/images/logo-painel.png' %}" alt="logo">
+      </span>
+      <span class="logo-sm">
+        <img src="{% static 'painel/inspina/images/favicon.ico' %}"
+             alt="small logo">
+      </span>
+    </span>
+    <span class="logo logo-dark">
+      <span class="logo-lg">
+        <img src="{% static 'painel/inspina/images/logo-painel.png' %}"
+             alt="dark logo">
+      </span>
+      <span class="logo-sm">
+        <img src="{% static 'painel/inspina/images/favicon.ico' %}"
+             alt="small logo">
+      </span>
+    </span>
+  </a>
+  <div class="h-topbar justify absolute end-5 top-0 flex items-center">
+    <button id="button-hover-toggle" type="button">
+      <span class="btn-on-hover-icon"></span>
+    </button>
+  </div>
+  <div class="relative min-h-0 grow">
+    <div class="size-full" data-simplebar="">
+      <div id="sidenav-menu">
+        <ul class="side-nav hs-accordion-group px-2.5 pb-16.5">
+          <li class="menu-title mt-0!">
+            <span>Principal</span>
+          </li>
+          <li class="menu-item">
+            <a href="{% url 'dashboard' %}" class="menu-link">
+              <span class="menu-icon"><i class="iconify"
+   style="--svg: {% icon_svg 'painel/inspina/icons/chart-bar-square-up.svg' %}"></i></span>
+              <span class="menu-text">Dashboard</span>
+            </a>
+          </li>
+          {% if request.user|can:'view_orders' %}
+            <li class="menu-item hs-accordion">
+              <a href="#"
+                 aria-expanded="false"
+                 aria-controls="menu-pedidos"
+                 class="hs-accordion-toggle menu-link">
+                <span class="menu-icon"><i class="iconify"
+   style="--svg: {% icon_svg 'painel/inspina/icons/shopping-bag-check.svg' %}"
+   aria-hidden="true"></i></span>
+                <span class="menu-text">Pedidos</span>
+                <span class="menu-arrow"></span>
+              </a>
+              <ul id="menu-pedidos"
+                  class="sub-menu hs-accordion-content hs-accordion-group hidden">
+                <li class="menu-item">
+                  <a href="{% url 'orders_list' %}" class="menu-link">
+                    <span class="menu-text">Listar Pedidos</span>
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <li class="menu-item">
+              <a href="{% url 'email_templates_edit' %}" class="menu-link">
+                <span class="menu-icon"><i class="iconify tabler--mail"></i></span>
+                <span class="menu-text">Templates de E-mail</span>
+              </a>
+            </li>
+          {% endif %}
+          {% if request.user|can:'list_activations' %}
+            <li class="menu-item">
+              <a href="{% url 'orders_activations' %}" class="menu-link">
+                <span class="menu-icon"><i class="iconify"
+   style="--svg: {% icon_svg 'painel/inspina/icons/esim.svg' %}"
+   aria-hidden="true"></i></span>
+                <span class="menu-text">Ativações</span>
+              </a>
+            </li>
+          {% endif %}
+          {% if request.user|can:'view_sims' %}
+            <li class="menu-item hs-accordion">
+              <a href="#"
+                 aria-expanded="false"
+                 aria-controls="menu-sims"
+                 class="hs-accordion-toggle menu-link">
+                <span class="menu-icon"><i class="iconify"
+   style="--svg: {% icon_svg 'painel/inspina/icons/sim-card.svg' %}"
+   aria-hidden="true"></i></span>
+                <span class="menu-text">SIMs</span>
+                <span class="menu-arrow"></span>
+              </a>
+              <ul id="menu-sims"
+                  class="sub-menu hs-accordion-content hs-accordion-group hidden">
+                <li class="menu-item">
+                  <a href="{% url 'sims_index' %}" class="menu-link">
+                    <span class="menu-text">Estoque</span>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="{% url 'sims_add_sim' %}" class="menu-link">
+                    <span class="menu-text">Adicionar SIMs</span>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="{% url 'sims_add_esim' %}" class="menu-link">
+                    <span class="menu-text">Adicionar eSIMs</span>
+                  </a>
+                </li>
+              </ul>
+            </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</aside>

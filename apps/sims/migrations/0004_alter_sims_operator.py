@@ -1,0 +1,16 @@
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('sims', '0003_sims_lpa'),
+    ]
+
+    operations = [
+        migrations.AlterField(
+            model_name='sims',
+            name='operator',
+            field=models.CharField(choices=[('AR', 'Airalo'), ('CM', 'China Mobile'), ('CMHK', 'CMHK'), ('TM', 'T-Mobile'), ('TC', 'Telcom'), ('VR', 'Verizon')], max_length=20),
+        ),
+    ]

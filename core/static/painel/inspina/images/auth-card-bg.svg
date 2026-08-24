@@ -1,0 +1,31 @@
+<svg style="opacity: 0.05;" width="600" height="560" viewBox="0 0 600 560" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Circle -->
+    <circle cx="550" cy="80" r="40" fill="#ed5565" />
+
+    <!-- Wavy Path -->
+    <path d="M460 120 C470 90, 500 90, 510 120 S550 150, 560 120" stroke="#03559B" stroke-width="2" fill="none"/>
+
+    <!-- Triangle -->
+    <path d="M400 200 L450 150 L500 200 Z" fill="#f8ac59" />
+
+    <!-- Oval -->
+    <ellipse cx="520" cy="280" rx="30" ry="50" fill="#6b5eae" />
+
+    <!-- Rounded Diamond -->
+    <path d="M360 320 Q370 300 390 310 Q410 320 400 340 Q390 360 370 350 Q350 340 360 320 Z" fill="#002F7C" />
+
+    <!-- Organic blob -->
+    <path d="M470 400 C460 380, 490 370, 510 380 C530 390, 540 410, 520 430 C500 450, 480 440, 470 400 Z" fill="#ff679b"/>
+
+    <!-- Star -->
+    <path d="M380 80 L388 100 H410 L392 115 L400 135 L380 123 L360 135 L368 115 L350 100 H372 Z" fill="#0acf97" />
+
+    <!-- Spiral -->
+    <path d="M290 100 C300 90, 310 110, 300 120 C290 130, 270 130, 260 120 C250 110, 250 90, 260 80" stroke="#23c6c8" stroke-width="2" fill="none"/>
+
+    <!-- Custom Polygon (Irregular Shape) -->
+    <path d="M320 200 L330 210 L320 230 L300 230 L290 210 Z" fill="#fd7e14" />
+
+    <!-- Ring -->
+    <circle cx="460" cy="250" r="20" stroke="#03559B" stroke-width="3" fill="none" />
+</svg>         

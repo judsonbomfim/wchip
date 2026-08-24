@@ -1,0 +1,5 @@
+/* _auth.css */
+
+.auth-logo img {
+    @apply h-[100px] w-auto;
+}

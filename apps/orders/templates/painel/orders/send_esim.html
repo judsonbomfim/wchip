@@ -1,0 +1,29 @@
+{% extends 'painel/layouts/vertical.html' %}
+{% load static %}
+{% block title %}Enviar eSIMs{% endblock title %}
+{% block page_title %}
+  {% include 'painel/partials/page-title.html' with subtitle='Pedidos' title='Enviar eSIMs' %}
+{% endblock page_title %}
+{% block page_content %}
+  <div class="card max-w-2xl">
+    <div class="card-header">
+      <div>
+        <h4 class="card-title mb-1.25">Enviar eSIMs por e-mail</h4>
+        <p class="mb-0 text-default-400">Dispara o envio dos e-mails de eSIM em segundo plano.</p>
+      </div>
+    </div>
+    <div class="card-body">
+      <form action="{% url 'send_esims' %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn bg-primary text-white hover:bg-primary-hover">
+          <i class="iconify tabler--send me-1"></i>
+          Enviar eSIMs por e-mail
+        </button>
+      </form>
+      <p class="mt-5 mb-0 text-sm text-default-500">
+        OBS: Para envio dos e-mails de eSIMs os pedidos precisam estar com o status
+        <span class="font-semibold text-default-700">Enviar eSIM</span>.
+      </p>
+    </div>
+  </div>
+{% endblock page_content %}

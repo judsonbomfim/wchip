@@ -265,6 +265,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'apps.sims.tasks.simActivateCM',
         'schedule': crontab(minute='2-58/2'),  # grupo A
     },
+    'task__2_min_activate_CMHK': {
+        'task': 'apps.sims.tasks.simActivateCMHK',
+        'schedule': crontab(minute='3-59/2'),  # grupo B
+    },
     'task__2_min_activate_AR': {
         'task': 'apps.sims.tasks.simActivateAR',
         'schedule': crontab(minute='3-59/2'),  # grupo B
@@ -282,6 +286,11 @@ APICM_KEY = str(os.getenv('APICM_KEY'))
 APICM_SECRET = str(os.getenv('APICM_SECRET'))
 APICM_URL = str(os.getenv('APICM_URL'))
 
+# API CMHK
+APICMHK_KEY = str(os.getenv('APICMHK_KEY'))
+APICMHK_SECRET = str(os.getenv('APICMHK_SECRET'))
+APICMHK_URL = str(os.getenv('APICMHK_URL'))
+
 # API TM / VERIZON
 APIEO_TOKEN = str(os.getenv('APIEO_TOKEN'))
 APIEO_URL = str(os.getenv('APIEO_URL'))
@@ -290,6 +299,9 @@ APIEO_URL = str(os.getenv('APIEO_URL'))
 APIAIRALO_KEY = str(os.getenv('APIAIRALO_KEY'))
 APIAIRALO_SECRET = str(os.getenv('APIAIRALO_SECRET'))
 APIAIRALO_URL = str(os.getenv('APIAIRALO_URL'))
+
+LINK_ESIM_ANDROID = os.getenv('LINK_ESIM_ANDROID') or 'https://esimsetup.android.com/esim_qrcode_provisioning?carddata='
+LINK_ESIM_IOS = os.getenv('LINK_ESIM_IOS') or 'https://esimsetup.apple.com/esim_qrcode_provisioning?carddata='
 
 
 # LOGGING CONFIGURATION

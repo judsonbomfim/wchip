@@ -1,0 +1,205 @@
+{% extends 'painel/layouts/vertical.html' %}
+{% load static %}
+{% block title %}Editar Pedido{% endblock title %}
+{% block page_title %}
+  {% include 'painel/partials/page-title.html' with subtitle='Pedidos' title='Editar Pedido' %}
+{% endblock page_title %}
+{% block page_content %}
+  <div class="grid grid-cols-1 gap-base lg:grid-cols-3">
+    <div class="space-y-base lg:col-span-2">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h4 class="card-title mb-1.25">Pedido #{{ order.item_id }}</h4>
+            <p class="mb-0 text-default-400">Atualize os dados do pedido nos campos abaixo.</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="mb-5 rounded border border-dashed border-default-300 bg-light/40 p-4">
+            <h5 class="mb-2 text-base font-semibold text-default-800">{{ order.client }}</h5>
+            <p class="mb-1 text-sm text-default-500">E-mail — {{ order.email }}</p>
+            {% if order.cell_mod %}
+              <p class="mb-1 text-sm text-default-500">Celular — {{ order.cell_mod }}</p>
+            {% endif %}
+            {% if order.cell_imei %}
+              <p class="mb-1 text-sm text-default-500">IMEI — {{ order.cell_imei }}</p>
+            {% endif %}
+            {% if order.cell_eid %}
+              <p class="mb-1 text-sm text-default-500">EID — {{ order.cell_eid }}</p>
+            {% endif %}
+            {% if order.countries %}
+              <p class="mb-1 text-sm text-default-500">Países — SIM</p>
+            {% endif %}
+            {% if order.voice %}
+              <p class="mb-0 text-sm text-default-500">Voz — SIM</p>
+            {% endif %}
+          </div>
+          <form action="{% url 'ord_edit' order.id %}" method="post">
+            {% csrf_token %}
+            <div class="grid gap-base md:grid-cols-2">
+              <div>
+                <label class="form-label" for="days">Dias</label>
+                <select class="form-select" id="days" name="days">
+                  {% for day in ord_days %}
+                    <option value="{{ day }}" {% if order.days == day %}selected{% endif %}>{{ day }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div>
+                <label class="form-label" for="product">Plano</label>
+                <select class="form-select" id="product" name="product">
+                  {% for ord_p in ord_product %}
+                    <option value="{{ ord_p.0 }}" {% if order.product == ord_p.0 %}selected{% endif %}>{{ ord_p.1 }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div>
+                <label class="form-label" for="data_day">Franquia</label>
+                <select class="form-select" id="data_day" name="data_day">
+                  {% for ord_d_d in ord_data_day %}
+                    <option value="{{ ord_d_d.0 }}" {% if order.data_day == ord_d_d.0 %}selected{% endif %}>{{ ord_d_d.1 }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div>
+                <label class="form-label" for="type_sim">Tipo de Chip</label>
+                <select class="form-select" id="type_sim" name="type_sim" required>
+                  <option value="sim" {% if order.id_sim.type_sim == 'sim' or order.type_sim == 'sim' %}selected{% endif %}>SIM Físico</option>
+                  <option value="esim" {% if order.id_sim.type_sim == 'esim' or order.type_sim == 'esim' %}selected{% endif %}>eSIM Virtual</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label" for="operator">Operadora</label>
+                <select class="form-select" id="operator" name="operator">
+                  {% for oper_p in ord_operators %}
+                    <option value="{{ oper_p.0 }}" {% if order.id_sim.operator == oper_p.0 or order.oper_sim == oper_p.0 %}selected{% endif %}>{{ oper_p.1 }}</option>
+                  {% endfor %}
+                </select>
+                <label class="mt-3 flex items-center gap-2 text-sm text-default-600">
+                  <input class="form-checkbox form-checkbox-light size-4.5" type="checkbox" name="upOper" value="1">
+                  <span>Trocar para (e)SIM da mesma operadora</span>
+                </label>
+              </div>
+              <div>
+                <label class="form-label" for="ord_st_f">Status</label>
+                <select class="form-select" id="ord_st_f" name="ord_st_f">
+                  {% for ord_s in ord_status %}
+                    <option value="{{ ord_s.0 }}" {% if ord_s.0 == order.order_status %}selected{% endif %}>{{ ord_s.1 }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="md:col-span-2">
+                <label class="form-label" for="new_sim">SIM / eSIM</label>
+                <div class="grid gap-2.5 md:grid-cols-2">
+                  <div class="input-icon-group">
+                    <i class="iconify tabler--device-sim input-icon"></i>
+                    <input class="form-input" type="text" value="{{ order.id_sim.sim }}" disabled readonly>
+                  </div>
+                  <div class="input-icon-group">
+                    <i class="iconify tabler--plus input-icon"></i>
+                    <input class="form-input" type="text" id="new_sim" name="sim" placeholder="Novo SIM">
+                  </div>
+                </div>
+              </div>
+              <div class="md:col-span-2">
+                <label class="form-label" for="activation_date">Data de ativação</label>
+                <div class="grid gap-2.5 md:grid-cols-2">
+                  <div class="input-icon-group">
+                    <i class="iconify tabler--calendar input-icon"></i>
+                    <input class="form-input" type="text" value="{{ order.activation_date|date:'d/m/Y' }}" disabled readonly>
+                  </div>
+                  <div class="input-icon-group">
+                    <i class="iconify tabler--calendar-event input-icon"></i>
+                    <input class="form-input" type="date" id="activation_date" name="activation_date">
+                  </div>
+                </div>
+              </div>
+              <div class="md:col-span-2">
+                <label class="form-label" for="email">E-mail</label>
+                <div class="grid gap-2.5 md:grid-cols-2">
+                  <div class="input-icon-group">
+                    <i class="iconify tabler--mail input-icon"></i>
+                    <input class="form-input" type="email" value="{{ order.email }}" disabled readonly>
+                  </div>
+                  <div class="input-icon-group">
+                    <i class="iconify tabler--mail input-icon"></i>
+                    <input class="form-input" type="email" id="email" name="email" placeholder="Novo e-mail">
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label class="form-label" for="cell_imei">IMEI</label>
+                <div class="input-icon-group">
+                  <i class="iconify tabler--device-mobile input-icon"></i>
+                  <input class="form-input" type="text" id="cell_imei" name="cell_imei" placeholder="IMEI" value="{% if order.cell_imei %}{{ order.cell_imei }}{% endif %}">
+                </div>
+              </div>
+              <div>
+                <label class="form-label" for="cell_eid">EID</label>
+                <div class="input-icon-group">
+                  <i class="iconify tabler--device-mobile input-icon"></i>
+                  <input class="form-input" type="text" id="cell_eid" name="cell_eid" placeholder="EID" value="{% if order.cell_eid %}{{ order.cell_eid }}{% endif %}">
+                </div>
+              </div>
+              <div class="md:col-span-2">
+                <label class="form-label" for="lpa">LPA (eSIM Android/iOS)</label>
+                <div class="input-icon-group">
+                  <i class="iconify tabler--qrcode input-icon"></i>
+                  <input class="form-input" type="text" id="lpa" name="lpa" placeholder="LPA:1$..." value="{% if order.id_sim.lpa %}{{ order.id_sim.lpa }}{% endif %}">
+                </div>
+              </div>
+              <div>
+                <label class="form-label" for="tracking">Rastreio</label>
+                <div class="input-icon-group">
+                  <i class="iconify tabler--truck input-icon"></i>
+                  <input class="form-input" type="text" id="tracking" name="tracking" placeholder="Rastreio" value="{% if order.tracking %}{{ order.tracking }}{% endif %}">
+                </div>
+              </div>
+              <div class="md:col-span-2">
+                <label class="form-label" for="ord_note">Nota do pedido <span class="text-danger">*</span></label>
+                <div class="input-icon-group">
+                  <i class="iconify tabler--notes input-icon"></i>
+                  <input class="form-input" type="text" id="ord_note" name="ord_note" placeholder="Descreva todas as alterações feitas no pedido">
+                </div>
+              </div>
+            </div>
+            <div class="mt-5 flex flex-wrap items-center gap-2.5">
+              <button type="submit" class="btn bg-primary text-white hover:bg-primary-hover">
+                <i class="iconify tabler--check me-1"></i>
+                Atualizar Pedido
+              </button>
+              <a href="{% url 'orders_list' %}" class="btn border border-default-300 hover:border-default-400">Cancelar</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="space-y-base">
+      <div class="card">
+        <div class="card-header">
+          <h4 class="card-title">Notas do pedido</h4>
+        </div>
+        <div class="card-body space-y-3">
+          {% for note in order.order_notes.all %}
+            <div class="rounded border p-3 {% if note.type_note == 'S' %}border-default-200 bg-light/50{% else %}border-info/15 bg-info/10{% endif %}">
+              <div class="mb-2 flex items-start justify-between gap-2">
+                <p class="mb-0 text-sm text-default-700">{{ note.note }}</p>
+                {% if note.type_note == 'S' %}
+                  <span class="badge shrink-0 bg-info/15 py-0 text-2xs font-semibold text-info">Sistema</span>
+                {% endif %}
+              </div>
+              <p class="mb-0 text-xs text-default-400">
+                {{ note.created_at|date:"d/m/Y H:i" }}h
+                {% if note.id_user %}
+                  <span class="font-semibold text-default-600">— {{ note.id_user.first_name }} {{ note.id_user.last_name }}</span>
+                {% endif %}
+              </p>
+            </div>
+          {% empty %}
+            <p class="mb-0 text-sm italic text-default-400">Não há notas neste pedido</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock page_content %}

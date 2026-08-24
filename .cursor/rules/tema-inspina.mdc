@@ -1,0 +1,64 @@
+---
+description: Caminhos e regras do tema Inspinia Tailwind (migração do painel WorldChip)
+alwaysApply: true
+---
+
+# Templates do tema Inspinia (wchip)
+
+| Papel | Caminho |
+|-------|---------|
+| Pacote completo do tema (Docs + demo + starterkit) | `templates/inspina_completo` |
+| Templates antigos (backup / lógica de negócio) | `templates/painel_bk` |
+| Templates de produção | `templates/painel` |
+| Assets de produção | `core/static/painel/inspina/` |
+
+## Estrutura do pacote (`inspina_completo`)
+
+- `Docs/` — documentação (Tailwind + Gulp + Django)
+- `inspinia/` — demo completo (tem `static/css/app.min.css` compilado)
+- `starterkit/` — kit mínimo (sem `app.min.css` até rodar build)
+
+## Build do tema
+
+- Ferramenta: **Gulp** (`bun run build` / `npm run build`), não Vite
+- Fonte: `static/css/app.css` (Tailwind directives)
+- Saída obrigatória no browser: `static/css/app.min.css`
+- Em produção wchip usar prefixo: `{% static 'painel/inspina/css/app.min.css' %}`
+
+## Organização de templates (namespace por app)
+
+O Django resolve pelo **caminho relativo**, não pela pasta do app. Templates de negócio devem ficar namespaced:
+
+| Tipo | Caminho físico | Referência |
+|------|----------------|------------|
+| Shell do tema (layouts, partials) | `templates/painel/...` | `painel/layouts/...`, `painel/partials/...` |
+| Telas de um app | `apps/<app>/templates/painel/<ns>/...` | `painel/<ns>/...` |
+
+Namespaces em uso: `orders`, `sims`, `dashboard`, `emails`, `users`.
+
+Exemplos: `painel/orders/index.html`, `painel/sims/index.html`, `painel/dashboard/dashboard.html`, `painel/emails/send_email.html`.
+
+Não colocar templates de negócio flat em `apps/*/templates/painel/*.html` (conflito entre apps). Não duplicar o mesmo path em `templates/painel/<ns>/` e no app (DIRS ganha).
+
+Não criar app `voice` nem namespace `voice`.
+
+## Shell em produção (`templates/painel`)
+
+Manter só o shell Inspinia em uso:
+- Layouts: `layouts/base.html`, `layouts/vertical.html`
+- Partials: `topbar`, `sidenav`, `footer`, `footer-scripts`, `head-css`, `customizer`, `page-title`, `_messages*`, `_sims_stock`, `dashboard/scripts/charts_*`
+- HTML de e-mail (tabelas, não Tailwind): `emails/send_email.html`, `emails/send_email_tracking.html`, `emails/shared/`, `emails/partials/`
+- Apps estendem `painel/layouts/vertical.html` (login usa `base.html`)
+
+Não recolocar demos de `pages/`, layout horizontal, stubs Hexadash (`_header`/`_footer`/`_sidebar`) nem Cookiecutter (`users/user_*`).
+
+## Regras de migração
+
+- Visual/layouts: copiar de `inspina_completo` (preferir assets do **inspinia** completo)
+- Forms, URLs e telas de negócio: adaptar a partir de `painel_bk`
+- Publicar shell em `templates/painel/`; telas de app em `apps/*/templates/painel/<ns>/`
+- **Não** referenciar Hexadash (`painel/theme/hexadash` ou `painel/inspina/painel/theme/...`)
+- Nunca usar `{% url 'pages:dynamic_pages' ... %}` — trocar por rotas reais (`login`, `logout`, `dashboard`, etc.)
+- Não substituir settings/Cookiecutter do tema; manter S3/STATIC do wchip
+- Menu: sem voice, sem `ord_export_op` / “Exportar para Ativação”; Templates de E-mail permanece
+- Operadoras do wchip: Airalo (AR), China Mobile (CM), CMHK (CMHK), T-Mobile (TM), Telcom (TC), Verizon (VR)

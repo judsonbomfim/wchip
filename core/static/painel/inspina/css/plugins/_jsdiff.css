@@ -1,0 +1,10 @@
+.diff-output ins {
+    @apply bg-success/10;
+    text-decoration: none;
+    color: var(--color-success);
+}
+
+.diff-output del {
+    @apply bg-danger/10;
+    color: var(--color-danger);
+}

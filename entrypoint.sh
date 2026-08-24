@@ -13,8 +13,12 @@ python manage.py migrate
 echo "Sincronizando grupos e permissões de roles..."
 python manage.py sync_roles --all_permissions
 
-echo "Pulando collectstatic (desenvolvimento)..."
-# python manage.py collectstatic --noinput
+if [ "${COLLECTSTATIC_ON_STARTUP:-false}" = "true" ]; then
+    echo "Executando collectstatic..."
+    python manage.py collectstatic --noinput
+else
+    echo "COLLECTSTATIC_ON_STARTUP=false: collectstatic ignorado no startup"
+fi
 
 echo "Iniciando Gunicorn..."
 gunicorn core.wsgi:application --bind 0.0.0.0:8000 --log-level=info --timeout 300

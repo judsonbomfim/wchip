@@ -1,0 +1,30 @@
+{% load static i18n %}
+<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE }}"
+      {% block html_attribute %}
+      {% endblock html_attribute %}>
+  <head>
+    <meta charset="utf-8" />
+    <title>
+      {% block title %}
+      {% endblock title %}
+    </title>
+    <meta name="description"
+          content="{% block meta_description %}Painel WorldChip{% endblock meta_description %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="shortcut icon"
+          href="{% static 'painel/inspina/images/favicon.ico' %}">
+    {% include 'painel/partials/head-css.html' %}
+    {% block styles %}
+    {% endblock styles %}
+  </head>
+  <body {% block body_attribute %}{% endblock body_attribute %}>
+    {% block preloader %}{% endblock %}
+    {% block content %}
+    {% endblock content %}
+    {% block scripts %}
+    {% endblock scripts %}
+  </body>
+</html>

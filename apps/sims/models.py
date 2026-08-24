@@ -11,6 +11,7 @@ SIM_STATUS = [
 SIM_OPERATOR = [
     ('AR', 'Airalo'),
     ('CM', 'China Mobile'),
+    ('CMHK', 'CMHK'),
     ('TM', 'T-Mobile'), 
     ('TC', 'Telcom'),
     ('VR', 'Verizon'),
@@ -23,6 +24,7 @@ SIM_TYPES = [
 class Sims(models.Model):
     id = models.AutoField(primary_key=True, serialize=False)
     sim = models.CharField(max_length=25)
+    lpa = models.CharField(max_length=255, null=True, blank=True)
     link = models.URLField(null=True, blank=True, default='-')
     type_sim =  models.CharField(max_length=20, choices=SIM_TYPES, default='sim')
     operator = models.CharField(max_length=20, choices=SIM_OPERATOR)

@@ -1,8 +1,22 @@
 {% if messages %}
-{% for message in messages %}
-<div class="alert alert-{{message.tags}} alert-dismissible fade show mt-2" role="alert">
-  {{message}}
-  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
-{% endfor %}
+  <div id="django-messages"
+       class="pointer-events-none fixed end-5 top-20 z-[99999] flex w-full max-w-xs flex-col gap-3">
+    {% for message in messages %}
+      <div id="django-toast-{{ forloop.counter }}"
+           class="django-toast pointer-events-auto hs-removing:translate-x-5 hs-removing:opacity-0 rounded-md border shadow transition duration-300 {% if message.tags == 'success' %}border-success bg-success {% elif message.tags == 'danger' or message.tags == 'error' %}border-danger bg-danger {% elif message.tags == 'warning' %}border-warning bg-warning {% elif message.tags == 'info' %}border-info bg-info {% elif message.tags == 'primary' %}border-primary bg-primary {% else %}border-default-300 bg-default-100 {% endif %}"
+           role="alert"
+           tabindex="-1"
+           aria-labelledby="django-toast-label-{{ forloop.counter }}">
+        <div class="flex items-center gap-2 p-3 {% if message.tags == 'success' or message.tags == 'danger' or message.tags == 'error' or message.tags == 'warning' or message.tags == 'info' or message.tags == 'primary' %}text-white{% else %}text-default-600{% endif %}">
+          <p class="grow text-sm" id="django-toast-label-{{ forloop.counter }}">{{ message }}</p>
+          <button type="button"
+                  class="ms-auto inline-flex shrink-0 items-center justify-center opacity-50 transition hover:opacity-100 focus:opacity-100 focus:outline-hidden"
+                  data-hs-remove-element="#django-toast-{{ forloop.counter }}"
+                  aria-label="Fechar">
+            <i class="iconify tabler--x text-2xl {% if message.tags != 'success' and message.tags != 'danger' and message.tags != 'error' and message.tags != 'warning' and message.tags != 'info' and message.tags != 'primary' %}text-default-800{% endif %}"></i>
+          </button>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
 {% endif %}

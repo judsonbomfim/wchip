@@ -1,0 +1,107 @@
+/**
+* Template Name: Inspinia - Admin & Dashboard Template
+* By (Author): WebAppLayers
+* Module/App (File Name): App CSS File
+* Version: 5.0.0
+*/
+
+@import "./config/_font.css";
+
+
+@layer base {
+  @import "choices.js/public/assets/styles/choices.min.css";
+  @import "dropzone/dist/dropzone.css";
+  @import "flatpickr/dist/flatpickr.min.css";
+  @import "nouislider/dist/nouislider.min.css";
+}
+
+
+/* ========= Tailwind CSS ========= */
+@import "tailwindcss";
+
+/* ========= Tailwind Plugin ========= */
+@plugin "@tailwindcss/typography";
+@plugin "@tailwindcss/forms";
+
+
+/* ========= Preline UI ========= */
+@source "preline/dist/*.js";
+@import "preline/variants.css";
+
+
+/* ========= Themes Config ========= */
+@import "./config/_root.css";
+@import "./config/_theme-default.css";
+@import "./config/_theme-minimal.css";
+@import "./config/_theme-modern.css";
+@import "./config/_theme-material.css";
+@import "./config/_theme-saas.css";
+@import "./config/_theme-flat.css";
+@import "./config/_theme-galaxy.css";
+@import "./config/_theme-luxe.css";
+@import "./config/_theme-retro.css";
+@import "./config/_theme-neon.css";
+@import "./config/_theme-pixel.css";
+
+
+@plugin "@iconify/tailwind4" {
+  prefixes: tabler, lucide, solar, ri, bx, bxs, bxl, solar;
+}
+
+/* Scan sisacdc templates so Iconify includes used icons (e.g. tabler--columns-3) */
+@source "../../../../../templates/painel/**/*.html";
+@source "../../../../../apps/**/templates/**/*.html";
+
+/* ========= Custom CSS ========= */
+
+@import "./structure/_layout.css";
+@import "./structure/_sidenav.css";
+@import "./structure/_horizontal.css";
+@import "./structure/_topbar.css";
+@import "./structure/_footer.css";
+
+/* Custom Components */
+@import "./custom/_reboot.css";
+@import "./custom/_helper.css";
+@import "./custom/_buttons.css";
+@import "./custom/_badge.css";
+@import "./custom/_card.css";
+@import "./custom/_dropdown.css";
+@import "./custom/_forms.css";
+@import "./custom/_print.css";
+@import "./custom/_table.css";
+@import "./custom/_pagination.css";
+@import "./custom/_progress.css";
+@import "./custom/_modal.css";
+
+@import "./plugins/_simplebar.css";
+@import "./plugins/_flatpickr.css";
+@import "./plugins/_prismjs.css";
+@import "./plugins/_choice.css";
+
+@import "./pages/_auth.css";
+@import "./pages/_email.css";
+@import "./pages/_error.css";
+@import "./pages/_kanban.css";
+@import "./pages/_widgets.css";
+
+@import "./plugins/_apexcharts.css";
+@import "./plugins/_calendar.css";
+@import "./plugins/_colorpicker.css";
+@import "./plugins/_datatables.css";
+@import "./plugins/_daterangepicker.css";
+@import "./plugins/_dropzone.css";
+@import "./plugins/_filepond.css";
+@import "./plugins/_flatpickr.css";
+@import "./plugins/_jsdiff.css";
+@import "./plugins/_jvectormap.css";
+@import "./plugins/_ladda.css";
+@import "./plugins/_noui-rangeslider.css";
+@import "./plugins/_pass-bar.css";
+@import "./plugins/_quill-editor.css";
+@import "./plugins/_select2.css";
+@import "./plugins/_sortablejs.css";
+@import "./plugins/_sweetalert2.css";
+@import "./plugins/_tour.css";
+@import "./plugins/_treeview.css";
+@import "./plugins/_typehead.css";

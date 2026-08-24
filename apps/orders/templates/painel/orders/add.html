@@ -1,0 +1,138 @@
+{% extends 'painel/layouts/vertical.html' %}
+{% load static %}
+{% block title %}Novo Pedido{% endblock title %}
+{% block page_title %}
+  {% include 'painel/partials/page-title.html' with subtitle='Pedidos' title='Adicionar Pedido Manual' %}
+{% endblock page_title %}
+{% block page_content %}
+  <div class="card max-w-5xl">
+    <div class="card-header">
+      <div>
+        <h4 class="card-title mb-1.25">Novo Pedido</h4>
+        <p class="mb-0 text-default-400">Cadastre um pedido manualmente. Campos com * são obrigatórios.</p>
+      </div>
+    </div>
+    <div class="card-body">
+      <form action="{% url 'ord_add' %}" method="post">
+        {% csrf_token %}
+        <div class="grid gap-base md:grid-cols-2">
+          <div>
+            <label class="form-label" for="order_id">Pedido <span class="text-danger">*</span></label>
+            <input class="form-input" type="number" id="order_id" name="order_id" value="{{ request.POST.order_id }}" required>
+          </div>
+          <div>
+            <label class="form-label" for="client">Cliente <span class="text-danger">*</span></label>
+            <input class="form-input" type="text" id="client" name="client" value="{{ request.POST.client }}" required>
+          </div>
+          <div>
+            <label class="form-label" for="email">E-mail</label>
+            <input class="form-input" type="email" id="email" name="email" value="{{ request.POST.email }}">
+          </div>
+          <div>
+            <label class="form-label" for="cell_mod">Celular/Modelo</label>
+            <input class="form-input" type="text" id="cell_mod" name="cell_mod" value="{{ request.POST.cell_mod }}">
+          </div>
+          <div>
+            <label class="form-label" for="days">Dias <span class="text-danger">*</span></label>
+            <select class="form-select" id="days" name="days" required>
+              <option value="">Selecione</option>
+              {% for day in ord_days %}
+                <option value="{{ day }}" {% if request.POST.days == day|stringformat:"s" %}selected{% endif %}>{{ day }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="form-label" for="product">Plano <span class="text-danger">*</span></label>
+            <select class="form-select" id="product" name="product" required>
+              <option value="">Selecione</option>
+              {% for ord_p in ord_product %}
+                <option value="{{ ord_p.0 }}" {% if request.POST.product == ord_p.0 %}selected{% endif %}>{{ ord_p.1 }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="form-label" for="data_day">Franquia <span class="text-danger">*</span></label>
+            <select class="form-select" id="data_day" name="data_day" required>
+              <option value="">Selecione</option>
+              {% for ord_d_d in ord_data_day %}
+                <option value="{{ ord_d_d.0 }}" {% if request.POST.data_day == ord_d_d.0 %}selected{% endif %}>{{ ord_d_d.1 }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="form-label" for="type_sim">Tipo de Chip <span class="text-danger">*</span></label>
+            <select class="form-select" id="type_sim" name="type_sim" required>
+              <option value="sim" {% if request.POST.type_sim == 'sim' or not request.POST.type_sim %}selected{% endif %}>SIM Físico</option>
+              <option value="esim" {% if request.POST.type_sim == 'esim' %}selected{% endif %}>eSIM Virtual</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label" for="operator">Operadora <span class="text-danger">*</span></label>
+            <select class="form-select" id="operator" name="operator" required>
+              <option value="">Selecione</option>
+              {% for oper_p in ord_operators %}
+                <option value="{{ oper_p.0 }}" {% if request.POST.operator == oper_p.0 %}selected{% endif %}>{{ oper_p.1 }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="form-label" for="sim">SIM/(e)SIM (opcional)</label>
+            <input class="form-input" type="text" id="sim" name="sim" value="{{ request.POST.sim }}" placeholder="Número do SIM">
+          </div>
+          <div>
+            <label class="form-label" for="activation_date">Data de ativação <span class="text-danger">*</span></label>
+            <input class="form-input" type="date" id="activation_date" name="activation_date" value="{{ request.POST.activation_date }}" required>
+          </div>
+          <div>
+            <label class="form-label" for="ord_st_f">Status <span class="text-danger">*</span></label>
+            <select class="form-select" id="ord_st_f" name="ord_st_f" required>
+              <option value="">Selecione</option>
+              {% for ord_s in ord_status %}
+                <option value="{{ ord_s.0 }}" {% if request.POST.ord_st_f == ord_s.0 %}selected{% endif %}>{{ ord_s.1 }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="form-label" for="cell_imei">IMEI</label>
+            <input class="form-input" type="text" id="cell_imei" name="cell_imei" value="{{ request.POST.cell_imei }}">
+          </div>
+          <div>
+            <label class="form-label" for="cell_eid">EID</label>
+            <input class="form-input" type="text" id="cell_eid" name="cell_eid" value="{{ request.POST.cell_eid }}">
+          </div>
+          <div>
+            <label class="form-label" for="shipping">Frete <span class="text-danger">*</span></label>
+            <input class="form-input" type="text" id="shipping" name="shipping" value="{{ request.POST.shipping }}" maxlength="40" placeholder="Ex.: Motoboy, Correios, e-mail" required>
+          </div>
+          <div>
+            <label class="form-label" for="tracking">Rastreio</label>
+            <input class="form-input" type="text" id="tracking" name="tracking" value="{{ request.POST.tracking }}">
+          </div>
+          <div class="md:col-span-2">
+            <label class="form-label" for="ord_note">Nota do pedido</label>
+            <input class="form-input" type="text" id="ord_note" name="ord_note" value="{{ request.POST.ord_note }}" placeholder="Observações sobre o cadastro manual">
+          </div>
+          <div>
+            <label class="mt-2 flex items-center gap-2 text-sm text-default-600">
+              <input class="form-checkbox form-checkbox-light size-4.5" type="checkbox" name="countries" id="countries" value="True" {% if request.POST.countries %}checked{% endif %}>
+              <span>Visitará outros países</span>
+            </label>
+          </div>
+          <div>
+            <label class="mt-2 flex items-center gap-2 text-sm text-default-600">
+              <input class="form-checkbox form-checkbox-light size-4.5" type="checkbox" name="voice" id="voice" value="True" {% if request.POST.voice %}checked{% endif %}>
+              <span>+ Plano de Voz</span>
+            </label>
+          </div>
+        </div>
+        <div class="mt-5 flex flex-wrap items-center gap-2.5">
+          <button type="submit" class="btn bg-primary text-white hover:bg-primary-hover">
+            <i class="iconify tabler--check me-1"></i>
+            Inserir Pedido
+          </button>
+          <a href="{% url 'orders_list' %}" class="btn border border-default-300 hover:border-default-400">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock page_content %}

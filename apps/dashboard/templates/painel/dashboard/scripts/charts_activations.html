@@ -1,0 +1,66 @@
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const target = document.querySelector("#ttContActiv");
+    if (!target || typeof ApexCharts === "undefined") return;
+
+    const fontFamily = getComputedStyle(document.body).fontFamily || 'inherit';
+    const countActivTM = Number('{{ countActivTM }}') || 0;
+    const countActivCM = Number('{{ countActivCM }}') || 0;
+    const countActivCMHK = Number('{{ countActivCMHK }}') || 0;
+    const countActivTC = Number('{{ countActivTC }}') || 0;
+    const countActivVR = Number('{{ countActivVR }}') || 0;
+
+    new ApexCharts(target, {
+        series: [
+            { name: 'T-Mobile', data: [countActivTM] },
+            { name: 'China Mobile', data: [countActivCM] },
+            { name: 'CMHK', data: [countActivCMHK] },
+            { name: 'Telcom', data: [countActivTC] },
+            { name: 'Verizon', data: [countActivVR] }
+        ],
+        chart: {
+            height: 96,
+            type: 'bar',
+            fontFamily: fontFamily,
+            zoom: { enabled: false },
+            toolbar: { show: false },
+            parentHeightOffset: 0,
+            sparkline: { enabled: false }
+        },
+        plotOptions: {
+            bar: {
+                horizontal: false,
+                columnWidth: '48%',
+                borderRadius: 5,
+                borderRadiusApplication: 'end'
+            }
+        },
+        colors: ['#6366f1', '#38bdf8', '#a855f7', '#f59e0b', '#22c55e'],
+        legend: {
+            show: true,
+            position: 'bottom',
+            horizontalAlign: 'center',
+            fontSize: '11px',
+            fontWeight: 500,
+            fontFamily: fontFamily,
+            labels: { colors: '#64748b' },
+            markers: { size: 6, shape: 'circle', radius: 12 },
+            itemMargin: { horizontal: 8, vertical: 0 }
+        },
+        grid: { show: false, padding: { top: -10, bottom: -5, left: 0, right: 0 } },
+        dataLabels: { enabled: false },
+        stroke: { show: true, width: 2, colors: ['transparent'] },
+        xaxis: {
+            categories: ['Amanhã'],
+            labels: { show: false },
+            axisBorder: { show: false },
+            axisTicks: { show: false }
+        },
+        yaxis: { labels: { show: false } },
+        tooltip: {
+            theme: 'light',
+            style: { fontSize: '12px', fontFamily: fontFamily }
+        }
+    }).render();
+});
+</script>

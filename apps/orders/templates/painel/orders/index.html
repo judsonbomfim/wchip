@@ -1,0 +1,650 @@
+{% extends 'painel/layouts/vertical.html' %}
+{% load static permission_tags date_day %}
+{% block title %}Pedidos{% endblock title %}
+{% block page_title %}
+  {% include 'painel/partials/page-title.html' with subtitle='Pedidos' title='Listar Pedidos' %}
+{% endblock page_title %}
+{% block styles %}
+  <style>
+  #clipboard-feedback-container {
+    position: fixed;
+    top: 1.25rem;
+    right: 1.25rem;
+    z-index: 99999;
+  }
+  </style>
+{% endblock styles %}
+{% block page_content %}
+  <div id="clipboard-feedback-container" class="hidden">
+    <div id="clipboard-feedback"
+         class="rounded-md px-4 py-3 text-sm text-white shadow-lg"></div>
+  </div>
+  {% if request.user|can:'edit_sims' %}
+    <div class="mb-5 flex flex-wrap gap-2">
+      {% for ord_sts in ord_st_list %}
+        {% if ord_sts.2 != 0 %}
+          <a href="{% url 'orders_list' %}?ord_st={{ ord_sts.0 }}{% if q %}&q={{ q|urlencode }}{% endif %}{% if oper_f %}&oper={{ oper_f|urlencode }}{% endif %}{% if per_page and per_page != 50 %}&per_page={{ per_page }}{% endif %}"
+             class="badge text-sm py-1.5 px-3 font-medium transition hover:opacity-80 {% if ord_st_f == ord_sts.0 %}bg-primary text-white{% else %}bg-primary/10 text-primary{% endif %}"
+             title="Filtrar por {{ ord_sts.1 }}">{{ ord_sts.1 }} ({{ ord_sts.2 }})</a>
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% endif %}
+  <form action="{% url 'orders_list' %}" method="post" id="ordersForm">
+    {% csrf_token %}
+    <input type="hidden" name="q" value="{{ q|default:'' }}">
+    <input type="hidden" name="oper" value="{{ oper_f|default:'' }}">
+    <input type="hidden" name="ord_st" value="{{ ord_st_f|default:'' }}">
+    <input type="hidden" name="per_page" value="{{ per_page }}">
+  </form>
+  <div class="card" id="orders-table">
+    <div class="card-header">
+      <div class="flex flex-wrap items-center gap-2.5">
+        {% if request.user|can:'edit_orders' %}
+          <div class="w-40 shrink-0">
+            <select class="form-select" name="ord_staus" id="ord_status" form="ordersForm">
+              <option value="" selected>Alterar Status</option>
+              {% for ord_st in ord_st_list %}
+                <option value="{{ ord_st.0 }}">{{ ord_st.1 }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit"
+                  class="btn bg-primary shrink-0 text-white hover:bg-primary-hover"
+                  name="up_status"
+                  form="ordersForm">Alterar</button>
+          <a href="{% url 'ord_add' %}"
+             class="btn bg-primary shrink-0 text-white hover:bg-primary-hover">
+            <i class="iconify tabler--plus me-1"></i>
+            Novo Pedido
+          </a>
+        {% endif %}
+        <div class="input-icon-group w-64 max-w-full shrink-0">
+          <i class="iconify tabler--search input-icon"></i>
+          <input class="form-input"
+                 type="search"
+                 id="orders-search"
+                 name="q"
+                 value="{{ q|default:'' }}"
+                 placeholder="Pesquisar pedido, cliente, SIM..."
+                 autocomplete="off" />
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-2.5">
+        <span class="hidden font-semibold md:inline">Filtrar:</span>
+        <div class="input-icon-group w-44 shrink-0">
+          <i class="iconify tabler--antenna-bars-5 input-icon"></i>
+          <select class="form-select" id="orders-oper" name="oper">
+            <option value="">Operadora</option>
+            {% for op_s in oper_list %}
+              <option value="{{ op_s.0 }}" {% if oper_f == op_s.0 %}selected{% endif %}>{{ op_s.1 }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="input-icon-group w-44 shrink-0">
+          <i class="iconify tabler--activity input-icon"></i>
+          <select class="form-select" id="orders-status" name="ord_st">
+            <option value="">Status</option>
+            {% for ord_st in ord_st_list %}
+              {% if ord_st.2 != 0 %}
+                <option value="{{ ord_st.0 }}"
+                        {% if ord_st_f == ord_st.0 %}selected{% endif %}>{{ ord_st.1 }} ({{ ord_st.2 }})</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+        <div class="w-20 shrink-0">
+          <select class="form-select" id="orders-per-page" name="per_page">
+            {% for n in per_page_choices %}
+              <option value="{{ n }}" {% if per_page == n %}selected{% endif %}>{{ n }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <a class="btn btn-icon border border-default-300 hover:border-default-400"
+           href="{% url 'orders_list' %}"
+           title="Limpar filtros">
+          <i class="iconify tabler--refresh text-lg"></i>
+        </a>
+        {% if request.user|can:'export_orders' or request.user|can:'export_activations' %}
+          <a class="btn bg-primary text-white hover:bg-primary-hover"
+             href="{% url 'ord_export' %}">
+            <i class="iconify tabler--download"></i>
+            Exportar
+          </a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table class="table table-hover">
+        <thead class="thead-sm">
+          <tr class="bg-light/25 text-2xs uppercase">
+            <th class="w-[1%]">
+              <input class="form-checkbox form-checkbox-light size-4.5" type="checkbox" id="select-all-orders" />
+            </th>
+            <th>Pedido</th>
+            <th>Cliente</th>
+            <th>(e)SIM</th>
+            <th>Op.</th>
+            <th>Produto</th>
+            <th class="text-center">Países</th>
+            <th class="text-center">Voz</th>
+            <th class="text-center">Dias</th>
+            <th class="text-center">Ativação</th>
+            <th class="text-center">Término</th>
+            <th class="text-center">Status</th>
+            <th class="text-center w-[1%]">{% if request.user|can:'edit_orders' %}Ações{% endif %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+            <tr>
+              <td>
+                <input class="form-checkbox form-checkbox-light size-4.5 order-row-check"
+                       type="checkbox"
+                       value="{{ order.id }}"
+                       name="ord_id"
+                       form="ordersForm" />
+              </td>
+              <td>
+                <h5 class="mb-0 text-sm font-semibold">{{ order.item_id }}</h5>
+              </td>
+              <td>
+                <span class="text-default-700">{{ order.client|truncatechars:25 }}</span>
+              </td>
+              <td>
+                <div class="flex flex-wrap items-center gap-1">
+                  {% if order.id_sim %}
+                    <span class="text-sm"
+                          title="{{ order.id_sim.get_operator_display }} - {% if order.id_sim.type_sim == 'sim' %}SIM{% elif order.id_sim.type_sim == 'esim' %}eSIM{% endif %}">
+                      {{ order.id_sim }}
+                    </span>
+                    {% if order.id_sim.type_sim == 'esim' %}
+                      {% if order.id_sim.operator == 'AR' %}
+                        <a class="btn btn-icon btn-sm border border-default-300 hover:border-default-400"
+                           href="{{ order.id_sim.link }}"
+                           target="_blank"
+                           title="Ver QRCode">
+                          <i class="iconify tabler--qrcode text-base"></i>
+                        </a>
+                      {% else %}
+                        <a class="btn btn-icon btn-sm border border-default-300 hover:border-default-400"
+                           href="{{ url_cdn }}{{ order.id_sim.link }}"
+                           target="_blank"
+                           title="Ver QRCode">
+                          <i class="iconify tabler--qrcode text-base"></i>
+                        </a>
+                      {% endif %}
+                      {% if order.id_sim.lpa %}
+                        <a class="btn btn-icon btn-sm border border-default-300 hover:border-default-400"
+                           href="#"
+                           title="Copiar link Android"
+                           data-esim-prefix="{{ link_esim_android }}"
+                           data-esim-lpa="{{ order.id_sim.lpa }}"
+                           data-copy-label="Link Android copiado"
+                           onclick="return copyActivationLink(this);">
+                          <i class="iconify tabler--brand-android text-base"></i>
+                        </a>
+                        <a class="btn btn-icon btn-sm border border-default-300 hover:border-default-400"
+                           href="#"
+                           title="Copiar link iOS"
+                           data-esim-prefix="{{ link_esim_ios }}"
+                           data-esim-lpa="{{ order.id_sim.lpa }}"
+                           data-copy-label="Link iOS copiado"
+                           onclick="return copyActivationLink(this);">
+                          <i class="iconify tabler--brand-apple text-base"></i>
+                        </a>
+                      {% endif %}
+                    {% endif %}
+                  {% else %}
+                    <span class="text-default-400">-</span>
+                  {% endif %}
+                </div>
+              </td>
+              <td>{{ order.id_sim.operator|default:'-' }}</td>
+              <td>
+                {{ order.get_product_display }}
+                {% if order.get_data_day_display != "Ilimitado" %}
+                  — {{ order.get_data_day_display }}
+                {% endif %}
+              </td>
+              <td class="text-center">
+                {% if order.countries == 0 %}
+                  <span class="text-default-400">-</span>
+                {% else %}
+                  <span class="badge py-0 font-semibold text-2xs bg-success/15 text-success">Sim</span>
+                {% endif %}
+              </td>
+              <td class="text-center">
+                {% if order.voice == 0 %}
+                  <span class="text-default-400">-</span>
+                {% else %}
+                  <span class="badge py-0 font-semibold text-2xs bg-info/15 text-info">Voz</span>
+                {% endif %}
+              </td>
+              <td class="text-center">{{ order.days }}</td>
+              <td class="text-center whitespace-nowrap">{{ order.activation_date|date:'d/m/Y' }}</td>
+              <td class="text-center whitespace-nowrap">
+                {% with a=order.activation_date b=order.days %}
+                  {% dateaddday a b %}
+                {% endwith %}
+              </td>
+              <td class="text-center">
+                <span class="badge py-0 font-semibold text-2xs bg-primary/15 text-primary">{{ order.get_order_status_display }}</span>
+              </td>
+              <td>
+                {% if request.user|can:'edit_orders' %}
+                  <div class="flex justify-center gap-1.25">
+                    <a class="btn btn-icon btn-sm border border-default-300 hover:border-default-400"
+                       href="{% url 'ord_edit' order.id %}"
+                       title="Editar Pedido">
+                      <i class="iconify tabler--edit text-base"></i>
+                    </a>
+                    {% if order.id_sim.operator == 'TC' and order.order_status == 'AT' or order.id_sim.operator == 'CM' and order.order_status == 'AT' or order.id_sim.operator == 'CMHK' and order.order_status == 'AT' %}
+                      <button type="button"
+                              class="btn btn-icon btn-sm border border-default-300 hover:border-default-400"
+                              title="Detalhes do pedido"
+                              data-hs-overlay="#produtoModal"
+                              onclick="carregarDetalhes({{ order.id }})">
+                        <i class="iconify tabler--info-circle text-base"></i>
+                      </button>
+                    {% endif %}
+                    {% if order.id_sim != None or order.product == "977" %}
+                      <a class="btn btn-icon btn-sm border border-default-300 hover:border-default-400"
+                         href="{% url 'send_email' order.id %}"
+                         title="Enviar e-mail">
+                        <i class="iconify tabler--mail text-base"></i>
+                      </a>
+                    {% endif %}
+                  </div>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="13" class="text-center text-default-400 py-8">Nenhum pedido encontrado.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer flex flex-wrap items-center justify-between gap-3">
+      <div class="text-sm text-default-500">
+        {% if orders_count %}
+          Mostrando {{ orders.start_index }}–{{ orders.end_index }} de {{ orders_count }} pedido{{ orders_count|pluralize }}
+        {% else %}
+          Nenhum pedido
+        {% endif %}
+      </div>
+      <nav aria-label="Paginação de pedidos">
+        <ul class="pagination mb-0">
+          {% if orders.has_previous %}
+            <li class="page-item">
+              <a class="page-link"
+                 href="?page={{ orders.previous_page_number }}{{ url_filter }}"
+                 aria-label="Anterior">«</a>
+            </li>
+          {% endif %}
+          <li class="page-item disabled">
+            <span class="page-link">{{ orders.number }} / {{ orders.paginator.num_pages }}</span>
+          </li>
+          {% if orders.has_next %}
+            <li class="page-item">
+              <a class="page-link"
+                 href="?page={{ orders.next_page_number }}{{ url_filter }}"
+                 aria-label="Próxima">»</a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  </div>
+  <div id="produtoModal"
+       class="hs-overlay hs-overlay-open:opacity-100 hs-overlay-open:duration-500 pointer-events-none fixed start-0 top-0 z-80 hidden size-full overflow-x-hidden overflow-y-auto opacity-0 transition-all"
+       role="dialog"
+       tabindex="-1"
+       aria-labelledby="produtoModalLabel">
+    <div class="hs-overlay-animation-target m-3 sm:mx-auto sm:w-full sm:max-w-lg">
+      <div class="border-default-300 pointer-events-auto flex flex-col rounded-md border card">
+        <div class="border-default-300 flex items-center justify-between border-b p-6">
+          <h3 class="text-base font-semibold" id="produtoModalLabel">Detalhes do plano — consumo de dados</h3>
+          <button type="button" data-hs-overlay="#produtoModal" aria-label="Fechar">
+            <i class="iconify tabler--x text-xl"></i>
+          </button>
+        </div>
+        <div class="overflow-x-hidden overflow-y-auto card-body">
+          <div id="loadingSpinner" class="hidden text-center py-6">
+            <div class="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent"></div>
+            <p class="mt-3 text-default-400">Carregando detalhes...</p>
+          </div>
+          <div id="produtoDetalhes" class="hidden">
+            <p class="mb-4 text-base font-semibold text-default-800">
+              <span id="detalhe-nome">-</span>
+            </p>
+            <div class="grid min-w-0 items-center gap-4 sm:grid-cols-2">
+              <div class="min-w-0 space-y-3 text-sm text-default-700">
+                <p class="mb-0 break-all">
+                  <strong>SIM:</strong> <span id="detalhe-sim">-</span>
+                </p>
+                <p class="mb-0">
+                  <strong>Operadora:</strong> <span id="detalhe-operadora">-</span>
+                </p>
+                <p class="mb-0">
+                  <strong>Dados Diário:</strong> <span id="detalhe-dados-diario">-</span>
+                </p>
+                <div class="border-default-200 mt-4 space-y-2.5 border-t pt-4">
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="flex items-center gap-2">
+                      <span id="detalhe-consumo-dot" class="bg-success size-2.5 rounded-full"></span>
+                      Consumido
+                    </span>
+                    <span class="font-semibold text-default-800">
+                      <span id="detalhe-dados-consumidos">0.00</span> MB
+                    </span>
+                  </div>
+                  <div id="detalhe-disponivel-row" class="flex items-center justify-between gap-3">
+                    <span class="flex items-center gap-2">
+                      <span class="bg-default-200 size-2.5 rounded-full"></span>
+                      Disponível
+                    </span>
+                    <span id="detalhe-dados-disponiveis" class="font-semibold text-default-800">-</span>
+                  </div>
+                </div>
+              </div>
+              <div id="detalhe-consumo-chart-wrap" class="flex min-w-0 items-center justify-center overflow-hidden">
+                <div id="detalhe-consumo-chart" class="w-44"></div>
+              </div>
+            </div>
+          </div>
+          <div id="produtoDetalhesErro" class="hidden">
+            <p class="text-danger text-sm">Erro ao carregar os detalhes do produto.</p>
+          </div>
+        </div>
+        <div class="border-default-300 flex items-center justify-end border-t p-4">
+          <button type="button"
+                  class="btn bg-light hover:text-primary"
+                  data-hs-overlay="#produtoModal">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock page_content %}
+{% block scripts %}
+  <script src="{% static 'painel/inspina/plugins/apexcharts/apexcharts.min.js' %}"></script>
+  <script>
+  (function () {
+    const listUrl = "{% url 'orders_list' %}"
+    let searchTimer = null
+
+    function buildListUrl(overrides = {}) {
+      const params = new URLSearchParams()
+      const q = overrides.q !== undefined ? overrides.q : (document.getElementById('orders-search')?.value || '')
+      const oper = overrides.oper !== undefined ? overrides.oper : (document.getElementById('orders-oper')?.value || '')
+      const ordSt = overrides.ord_st !== undefined ? overrides.ord_st : (document.getElementById('orders-status')?.value || '')
+      const perPage = overrides.per_page !== undefined ? overrides.per_page : (document.getElementById('orders-per-page')?.value || '50')
+
+      if (q.trim()) params.set('q', q.trim())
+      if (oper) params.set('oper', oper)
+      if (ordSt) params.set('ord_st', ordSt)
+      if (perPage && perPage !== '50') params.set('per_page', perPage)
+
+      const query = params.toString()
+      return query ? `${listUrl}?${query}` : listUrl
+    }
+
+    function navigateWithFilters(overrides) {
+      window.location.href = buildListUrl(overrides)
+    }
+
+    const searchInput = document.getElementById('orders-search')
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        window.clearTimeout(searchTimer)
+        searchTimer = window.setTimeout(() => navigateWithFilters({ q: searchInput.value }), 400)
+      })
+      searchInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault()
+          window.clearTimeout(searchTimer)
+          navigateWithFilters({ q: searchInput.value })
+        }
+      })
+    }
+
+    document.getElementById('orders-oper')?.addEventListener('change', (event) => {
+      navigateWithFilters({ oper: event.target.value })
+    })
+    document.getElementById('orders-status')?.addEventListener('change', (event) => {
+      navigateWithFilters({ ord_st: event.target.value })
+    })
+    document.getElementById('orders-per-page')?.addEventListener('change', (event) => {
+      navigateWithFilters({ per_page: event.target.value })
+    })
+
+    const selectAll = document.getElementById('select-all-orders')
+    if (selectAll) {
+      selectAll.addEventListener('change', () => {
+        document.querySelectorAll('.order-row-check').forEach((checkbox) => {
+          checkbox.checked = selectAll.checked
+        })
+      })
+    }
+  })()
+
+
+  let consumoChart = null
+
+  function consumoChartColor(percent) {
+    if (percent >= 90) return typeof theme === 'function' ? theme('danger') : '#fa5c7c'
+    if (percent >= 70) return typeof theme === 'function' ? theme('warning') : '#f7b84b'
+    return typeof theme === 'function' ? theme('success') : '#0acf97'
+  }
+
+  function destroyConsumoChart() {
+    if (consumoChart) {
+      consumoChart.destroy()
+      consumoChart = null
+    }
+  }
+
+  function renderConsumoChart(percentSafe, percentLabel) {
+    const chartEl = document.getElementById('detalhe-consumo-chart')
+    const wrap = document.getElementById('detalhe-consumo-chart-wrap')
+    if (!chartEl || typeof ApexCharts === 'undefined') return
+
+    destroyConsumoChart()
+
+    const used = percentSafe
+    const remaining = Math.max(100 - percentSafe, 0)
+    const colorUsed = consumoChartColor(percentSafe)
+    const colorRest = typeof theme === 'function' ? theme('secondary', 0.18) : '#d7dee8'
+    const fontFamily = getComputedStyle(document.body).fontFamily || 'inherit'
+    const series = remaining > 0 ? [used, remaining] : [used]
+    const labels = remaining > 0 ? ['Consumido', 'Disponível'] : ['Consumido']
+
+    consumoChart = new ApexCharts(chartEl, {
+      series,
+      labels,
+      chart: {
+        type: 'donut',
+        height: 176,
+        width: '100%',
+        fontFamily,
+        parentHeightOffset: 0,
+        toolbar: { show: false },
+        animations: { enabled: true, speed: 600 }
+      },
+      colors: remaining > 0 ? [colorUsed, colorRest] : [colorUsed],
+      stroke: { width: 0 },
+      legend: { show: false },
+      dataLabels: { enabled: false },
+      tooltip: {
+        y: {
+          formatter: (value) => `${Number(value).toFixed(2)}%`
+        }
+      },
+      plotOptions: {
+        pie: {
+          expandOnClick: false,
+          donut: {
+            size: '74%',
+            labels: {
+              show: true,
+              name: {
+                show: true,
+                fontSize: '12px',
+                fontWeight: 500,
+                color: '#8495ab',
+                offsetY: 18
+              },
+              value: {
+                show: true,
+                fontSize: '22px',
+                fontWeight: 700,
+                color: '#334155',
+                offsetY: -12,
+                formatter: () => `${percentLabel}%`
+              },
+              total: {
+                show: true,
+                showAlways: true,
+                label: 'Consumido',
+                fontSize: '12px',
+                fontWeight: 500,
+                color: '#8495ab',
+                formatter: () => `${percentLabel}%`
+              }
+            }
+          }
+        }
+      }
+    })
+    wrap?.classList.remove('hidden')
+    consumoChart.render()
+  }
+
+  function carregarDetalhes(produtoId) {
+    const loadingSpinner = document.getElementById('loadingSpinner')
+    const produtoDetalhes = document.getElementById('produtoDetalhes')
+    const produtoDetalhesErro = document.getElementById('produtoDetalhesErro')
+
+    loadingSpinner.classList.remove('hidden')
+    produtoDetalhes.classList.add('hidden')
+    produtoDetalhesErro.classList.add('hidden')
+    destroyConsumoChart()
+
+    fetch("{% url 'ord_details' 0 %}".replace(/0$/, produtoId))
+      .then((response) => {
+        if (!response.ok) throw new Error('Erro na requisição')
+        return response.json()
+      })
+      .then((data) => {
+        const percent = Number(data.percent_used)
+        const percentSafe = Number.isFinite(percent) ? Math.min(Math.max(percent, 0), 100) : 0
+        const percentLabel = Number.isFinite(percent) ? percent : 0
+        const unlimited = String(data.data_day || '').toLowerCase() === 'ilimitado'
+        const usedMb = Number.parseFloat(data.mobile_data)
+        const totalMb = Number.parseFloat(data.data_day)
+        const remainingMb = Number.isFinite(totalMb) && Number.isFinite(usedMb)
+          ? Math.max(totalMb - usedMb, 0)
+          : null
+
+        document.getElementById('detalhe-nome').textContent = data.name || '-'
+        document.getElementById('detalhe-sim').textContent = data.sim || '-'
+        document.getElementById('detalhe-operadora').textContent = data.operator || '-'
+        document.getElementById('detalhe-dados-diario').textContent = data.data_day_d || '-'
+        document.getElementById('detalhe-dados-consumidos').textContent = data.mobile_data || '0.00'
+
+        const disponivelRow = document.getElementById('detalhe-disponivel-row')
+        const disponivelEl = document.getElementById('detalhe-dados-disponiveis')
+        const chartWrap = document.getElementById('detalhe-consumo-chart-wrap')
+        const consumoDot = document.getElementById('detalhe-consumo-dot')
+
+        if (unlimited || remainingMb === null) {
+          disponivelRow?.classList.add('hidden')
+          chartWrap?.classList.add('hidden')
+        } else {
+          disponivelRow?.classList.remove('hidden')
+          chartWrap?.classList.remove('hidden')
+          if (disponivelEl) disponivelEl.textContent = `${remainingMb.toFixed(2)} MB`
+          if (consumoDot) {
+            consumoDot.classList.remove('bg-success', 'bg-warning', 'bg-danger')
+            consumoDot.classList.add(percentSafe >= 90 ? 'bg-danger' : percentSafe >= 70 ? 'bg-warning' : 'bg-success')
+          }
+        }
+
+        loadingSpinner.classList.add('hidden')
+        produtoDetalhes.classList.remove('hidden')
+
+        if (!unlimited && remainingMb !== null) {
+          window.requestAnimationFrame(() => renderConsumoChart(percentSafe, percentLabel))
+        }
+      })
+      .catch((error) => {
+        console.error('Erro ao carregar detalhes:', error)
+        destroyConsumoChart()
+        loadingSpinner.classList.add('hidden')
+        produtoDetalhesErro.classList.remove('hidden')
+      })
+  }
+
+  function showClipboardFeedback(message, isError = false) {
+    const container = document.getElementById('clipboard-feedback-container')
+    const feedback = document.getElementById('clipboard-feedback')
+    if (!container || !feedback) return
+    feedback.textContent = message
+    feedback.className = `rounded-md px-4 py-3 text-sm text-white shadow-lg ${isError ? 'bg-danger' : 'bg-success'}`
+    container.classList.remove('hidden')
+    window.clearTimeout(window.clipboardFeedbackTimeout)
+    window.clipboardFeedbackTimeout = window.setTimeout(() => {
+      container.classList.add('hidden')
+    }, 2500)
+  }
+
+  async function copyTextToClipboard(text, successMessage) {
+    if (!text) {
+      showClipboardFeedback('Link não configurado.', true)
+      return
+    }
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text)
+        showClipboardFeedback(successMessage)
+        return
+      }
+      throw new Error('Clipboard API indisponível')
+    } catch (error) {
+      const tempInput = document.createElement('textarea')
+      tempInput.value = text
+      tempInput.setAttribute('readonly', '')
+      tempInput.style.position = 'fixed'
+      tempInput.style.top = '-9999px'
+      document.body.appendChild(tempInput)
+      tempInput.select()
+      let copied = false
+      try {
+        copied = document.execCommand('copy')
+      } catch (e) {
+        copied = false
+      }
+      document.body.removeChild(tempInput)
+      showClipboardFeedback(copied ? successMessage : 'Não foi possível copiar o link.', !copied)
+    }
+  }
+
+  function copyActivationLink(element) {
+    if (!element) {
+      showClipboardFeedback('Não foi possível copiar o link.', true)
+      return false
+    }
+    const text = `${element.dataset.esimPrefix || ''}${element.dataset.esimLpa || ''}`
+    if (!text) {
+      showClipboardFeedback('Não foi possível copiar o link.', true)
+      return false
+    }
+    copyTextToClipboard(text, element.dataset.copyLabel)
+    return false
+  }
+  </script>
+{% endblock scripts %}

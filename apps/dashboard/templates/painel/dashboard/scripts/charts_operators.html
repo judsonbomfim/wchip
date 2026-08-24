@@ -1,0 +1,214 @@
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    function onTabClickOnce(tabId, callback) {
+        const el = document.getElementById(tabId);
+        if (!el) return;
+        const handler = function() {
+            callback();
+            el.removeEventListener("click", handler);
+        };
+        el.addEventListener("click", handler);
+    }
+
+    const fontFamily = getComputedStyle(document.body).fontFamily || 'inherit';
+    // TM, CM, CMHK, TC, VR
+    const operColors = ['#6366f1', '#38bdf8', '#a855f7', '#f59e0b', '#22c55e'];
+
+    function parseSeries(raw) {
+        try {
+            const data = raw ? JSON.parse(raw) : [];
+            return Array.isArray(data) ? data : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function alignSeriesLength(data, length) {
+        if (data.length === length) return data;
+        if (data.length > length) return data.slice(0, length);
+        return data.concat(Array(length - data.length).fill(0));
+    }
+
+    function operColumnOptions({ series, categories, title, xTitle }) {
+        const cats = Array.isArray(categories) ? categories : [];
+        const normalized = series.map(function(s) {
+            return {
+                name: s.name,
+                data: alignSeriesLength(s.data || [], cats.length)
+            };
+        });
+
+        return {
+            series: normalized,
+            chart: {
+                height: 340,
+                type: 'bar',
+                fontFamily: fontFamily,
+                toolbar: { show: false },
+                zoom: { enabled: false }
+            },
+            plotOptions: {
+                bar: {
+                    endingShape: 'flat',
+                    columnWidth: '65%',
+                    borderRadius: 4,
+                    borderRadiusApplication: 'end'
+                }
+            },
+            dataLabels: { enabled: false },
+            stroke: {
+                show: true,
+                width: 2,
+                colors: ['transparent']
+            },
+            colors: operColors,
+            title: {
+                text: title,
+                align: 'left',
+                margin: 8,
+                style: {
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    color: '#8495ab',
+                    fontFamily: fontFamily
+                }
+            },
+            fill: { opacity: 1 },
+            grid: {
+                borderColor: '#edeff3',
+                strokeDashArray: 4,
+                padding: { top: 0, right: 8, bottom: 0, left: 4 }
+            },
+            legend: {
+                show: true,
+                showForSingleSeries: true,
+                showForNullSeries: true,
+                showForZeroSeries: true,
+                position: 'bottom',
+                horizontalAlign: 'center',
+                fontSize: '12px',
+                fontWeight: 500,
+                fontFamily: fontFamily,
+                labels: { colors: '#64748b' },
+                markers: { size: 7, shape: 'circle', radius: 12, offsetX: -2 },
+                itemMargin: { horizontal: 10, vertical: 4 }
+            },
+            xaxis: {
+                title: {
+                    text: xTitle,
+                    style: { fontSize: '11px', fontWeight: 500, color: '#8495ab', fontFamily: fontFamily }
+                },
+                type: 'category',
+                categories: cats,
+                labels: {
+                    style: { fontSize: '11px', colors: '#8495ab', fontFamily: fontFamily },
+                    formatter: function(value) {
+                        if (!value) return value;
+                        if (String(value).length === 10) {
+                            const parts = String(value).split('-');
+                            return Number(parts[2]) + '/' + Number(parts[1]);
+                        }
+                        if (String(value).length === 7) {
+                            const months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+                            const m = Number(String(value).split('-')[1]) - 1;
+                            return months[m] || value;
+                        }
+                        return value;
+                    }
+                },
+                axisBorder: { show: false },
+                axisTicks: { show: false }
+            },
+            yaxis: {
+                labels: {
+                    style: { fontSize: '11px', colors: '#8495ab', fontFamily: fontFamily }
+                }
+            },
+            tooltip: {
+                theme: 'light',
+                shared: true,
+                intersect: false,
+                style: { fontSize: '12px', fontFamily: fontFamily }
+            },
+            noData: {
+                text: "Sem dados para exibir",
+                style: { color: '#8495ab', fontSize: '13px', fontFamily: fontFamily }
+            }
+        };
+    }
+
+    function renderOperChart(selector, values, dates, title, xTitle) {
+        const target = document.querySelector(selector);
+        if (!target) return;
+        new ApexCharts(target, operColumnOptions({
+            series: [
+                { name: 'T-Mobile', data: values.TM },
+                { name: 'China Mobile', data: values.CM },
+                { name: 'CMHK', data: values.CMHK },
+                { name: 'Telcom', data: values.TC },
+                { name: 'Verizon', data: values.VR }
+            ],
+            categories: dates,
+            title: title,
+            xTitle: xTitle
+        })).render();
+    }
+
+    try {
+        renderOperChart(
+            '#ttOperWeek',
+            {
+                TM: parseSeries('{{ weekOperValuesTM|escapejs|safe }}'),
+                CM: parseSeries('{{ weekOperValuesCM|escapejs|safe }}'),
+                TC: parseSeries('{{ weekOperValuesTC|escapejs|safe }}'),
+                VR: parseSeries('{{ weekOperValuesVR|escapejs|safe }}')
+            },
+            parseSeries('{{ weekOperDates|escapejs|safe }}'),
+            '{{ dateWeek|date:"d/m/Y" }} — {{ dateYesterday|date:"d/m/Y" }}',
+            'Dias'
+        );
+    } catch (error) {
+        console.error("Erro ao renderizar o gráfico de operadoras da semana:", error);
+    }
+
+    onTabClickOnce('total_oper-month-tab', function() {
+        try {
+            renderOperChart(
+                '#ttOperMonth',
+                {
+                    TM: parseSeries('{{ monthOperValuesTM|escapejs|safe }}'),
+                    CM: parseSeries('{{ monthOperValuesCM|escapejs|safe }}'),
+                    CMHK: parseSeries('{{ monthOperValuesCMHK|escapejs|safe }}'),
+                    TC: parseSeries('{{ monthOperValuesTC|escapejs|safe }}'),
+                    VR: parseSeries('{{ monthOperValuesVR|escapejs|safe }}')
+                },
+                parseSeries('{{ monthOperDates|escapejs|safe }}'),
+                '{{ dateMonth|date:"d/m/Y" }} — {{ dateYesterday|date:"d/m/Y" }}',
+                'Dias'
+            );
+        } catch (error) {
+            console.error("Erro ao renderizar o gráfico de operadoras do mês:", error);
+        }
+    });
+
+    onTabClickOnce('total_oper-year-tab', function() {
+        try {
+            renderOperChart(
+                '#ttOperYear',
+                {
+                    TM: parseSeries('{{ yearOperValuesTM|escapejs|safe }}'),
+                    CM: parseSeries('{{ yearOperValuesCM|escapejs|safe }}'),
+                    CMHK: parseSeries('{{ yearOperValuesCMHK|escapejs|safe }}'),
+                    TC: parseSeries('{{ yearOperValuesTC|escapejs|safe }}'),
+                    VR: parseSeries('{{ yearOperValuesVR|escapejs|safe }}')
+                },
+                parseSeries('{{ yearOperDates|escapejs|safe }}'),
+                '{{ dateYear|date:"d/m/Y" }} — {{ dateYesterday|date:"d/m/Y" }}',
+                'Meses'
+            );
+        } catch (error) {
+            console.error("Erro ao renderizar o gráfico de operadoras do ano:", error);
+        }
+    });
+});
+</script>

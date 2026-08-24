@@ -1,0 +1,328 @@
+{% extends 'painel/layouts/vertical.html' %}
+{% load static permission_tags status_count %}
+{% block title %}Ativações{% endblock title %}
+{% block page_title %}
+  {% include 'painel/partials/page-title.html' with subtitle='Pedidos' title='Ativações de Pedidos' %}
+{% endblock page_title %}
+{% block page_content %}
+  <div class="mb-5 grid grid-cols-1 gap-base sm:grid-cols-2 xl:grid-cols-5">
+    <div class="card">
+      <div class="card-body">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <h5 class="mb-1 text-sm font-semibold uppercase text-default-500">T-Mobile</h5>
+            <p class="mb-0 text-2xl font-semibold text-default-800">{{ countActivTM }}</p>
+            <p class="mb-0 text-xs text-default-400">Ativações</p>
+          </div>
+          <span class="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+            <i class="iconify tabler--device-sim size-5"></i>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <h5 class="mb-1 text-sm font-semibold uppercase text-default-500">China Mobile</h5>
+            <p class="mb-0 text-2xl font-semibold text-default-800">{{ countActivCM }}</p>
+            <p class="mb-0 text-xs text-default-400">Ativações</p>
+          </div>
+          <span class="flex size-11 shrink-0 items-center justify-center rounded-full bg-info/15 text-info">
+            <i class="iconify tabler--device-sim size-5"></i>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <h5 class="mb-1 text-sm font-semibold uppercase text-default-500">CMHK</h5>
+            <p class="mb-0 text-2xl font-semibold text-default-800">{{ countActivCMHK }}</p>
+            <p class="mb-0 text-xs text-default-400">Ativações</p>
+          </div>
+          <span class="flex size-11 shrink-0 items-center justify-center rounded-full bg-warning/15 text-warning">
+            <i class="iconify tabler--device-sim size-5"></i>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <h5 class="mb-1 text-sm font-semibold uppercase text-default-500">Telcom</h5>
+            <p class="mb-0 text-2xl font-semibold text-default-800">{{ countActivTC }}</p>
+            <p class="mb-0 text-xs text-default-400">Ativações</p>
+          </div>
+          <span class="flex size-11 shrink-0 items-center justify-center rounded-full bg-secondary/15 text-secondary">
+            <i class="iconify tabler--device-sim size-5"></i>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <h5 class="mb-1 text-sm font-semibold uppercase text-default-500">Verizon</h5>
+            <p class="mb-0 text-2xl font-semibold text-default-800">{{ countActivVR }}</p>
+            <p class="mb-0 text-xs text-default-400">Ativações</p>
+          </div>
+          <span class="flex size-11 shrink-0 items-center justify-center rounded-full bg-success/15 text-success">
+            <i class="iconify tabler--device-sim size-5"></i>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <form action="{% url 'orders_activations' %}" method="post" id="activationsForm">
+    {% csrf_token %}
+  </form>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="flex flex-wrap items-center gap-2.5">
+        {% if request.user|can:'edit_orders' %}
+          <div class="w-40 shrink-0">
+            <select class="form-select" name="ord_staus" id="ord_status" form="activationsForm">
+              <option value="" selected>Alterar Status</option>
+              {% for ord_st in ord_st_list %}
+                <option value="{{ ord_st.0 }}">{{ ord_st.1 }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit"
+                  class="btn bg-primary shrink-0 text-white hover:bg-primary-hover"
+                  name="up_status"
+                  form="activationsForm">Alterar</button>
+        {% endif %}
+        <div class="input-icon-group w-44 shrink-0">
+          <i class="iconify tabler--calendar input-icon"></i>
+          <input type="text"
+                 class="form-input"
+                 id="activGoing_f"
+                 name="activGoing_f"
+                 form="activationsForm"
+                 placeholder="Ativação"
+                 autocomplete="off" />
+        </div>
+        <div class="input-icon-group w-44 shrink-0">
+          <i class="iconify tabler--calendar-event input-icon"></i>
+          <input type="text"
+                 class="form-input"
+                 id="activReturn_f"
+                 name="activReturn_f"
+                 form="activationsForm"
+                 placeholder="Retorno"
+                 autocomplete="off" />
+        </div>
+        <div class="input-icon-group w-40 shrink-0">
+          <i class="iconify tabler--antenna-bars-5 input-icon"></i>
+          <select class="form-select" name="oper_f" form="activationsForm">
+            <option value="">Operadoras</option>
+            {% for op_s in oper_list %}
+              <option value="{{ op_s.0 }}" {% if oper_f == op_s.0 %}selected{% endif %}>{{ op_s.1 }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="w-40 shrink-0">
+          <select class="form-select" name="ord_st_f" form="activationsForm">
+            <option value="">Status</option>
+            {% for ord_st in ord_st_list %}
+              {% if ord_st.2 != 0 %}
+                <option value="{{ ord_st.0 }}" {% if ord_st_f == ord_st.0 %}selected{% endif %}>{{ ord_st.1 }} ({{ ord_st.2 }})</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <button type="submit"
+                class="btn bg-primary text-white hover:bg-primary-hover"
+                name="up_filter"
+                form="activationsForm">
+          <i class="iconify tabler--filter me-1"></i>
+          Filtrar
+        </button>
+        <a class="btn btn-icon border border-default-300 hover:border-default-400"
+           href="{% url 'orders_activations' %}"
+           title="Limpar filtros">
+          <i class="iconify tabler--refresh text-lg"></i>
+        </a>
+        {% if request.user|can:'export_activations' %}
+          <a class="btn btn-icon border border-default-300 hover:border-default-400"
+             href="{% url 'ord_export_act' %}"
+             title="Exportar">
+            <i class="iconify tabler--download text-lg"></i>
+          </a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table class="table table-hover">
+        <thead class="thead-sm">
+          <tr class="bg-light/25 text-2xs uppercase">
+            <th class="w-[1%]">
+              <input class="form-checkbox form-checkbox-light size-4.5" type="checkbox" id="checkAll" />
+            </th>
+            <th>Pedido</th>
+            <th>Cliente</th>
+            <th>(e)SIM</th>
+            <th>Op.</th>
+            <th>Produto</th>
+            <th class="text-center">Países</th>
+            <th class="text-center">Dias</th>
+            <th class="text-center">Celular</th>
+            <th class="text-center">Ativação</th>
+            <th class="text-center">Término</th>
+            <th class="text-center">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+            <tr>
+              <td>
+                <input class="form-checkbox form-checkbox-light size-4.5 checkItem"
+                       type="checkbox"
+                       value="{{ order.id }}"
+                       name="ord_id"
+                       form="activationsForm" />
+              </td>
+              <td>
+                <h5 class="mb-0 text-sm font-semibold">{{ order.item_id }}</h5>
+              </td>
+              <td>
+                <span class="text-default-700">{{ order.client|truncatechars:30 }}</span>
+              </td>
+              <td>
+                <div class="flex flex-wrap items-center gap-1">
+                  <span class="text-sm">{{ order.id_sim__sim }}</span>
+                  {% if order.id_sim__type_sim == 'esim' and order.id_sim__link %}
+                    <a class="btn btn-icon btn-sm border border-default-300 hover:border-default-400"
+                       href="{{ order.id_sim__link }}"
+                       target="_blank"
+                       title="Ver QRCode">
+                      <i class="iconify tabler--qrcode text-base"></i>
+                    </a>
+                  {% endif %}
+                </div>
+              </td>
+              <td>{{ order.id_sim__operator|default:'-' }}</td>
+              <td>{{ order.product }} {{ order.data_day }}</td>
+              <td class="text-center">
+                {% if order.countries == 0 %}
+                  <span class="text-default-400">-</span>
+                {% else %}
+                  <span class="badge py-0 font-semibold text-2xs bg-success/15 text-success">Sim</span>
+                {% endif %}
+              </td>
+              <td class="text-center">{{ order.days }}</td>
+              <td class="text-center">
+                <div class="flex justify-center gap-1">
+                  {% if order.cell_mod %}
+                    <div class="hs-tooltip inline-block [--placement:top] [--trigger:click]">
+                      <button type="button" class="hs-tooltip-toggle inline-flex items-center justify-center" aria-label="Modelo do celular">
+                        <i class="iconify tabler--device-mobile text-primary text-lg"></i>
+                      </button>
+                      <span class="hs-tooltip-content hs-tooltip-shown:opacity-100 hs-tooltip-shown:visible border-default-300 invisible absolute z-70 inline-block max-w-xs rounded-md border bg-card px-3 py-2 text-start text-xs font-medium text-default-800 opacity-0 shadow-lg transition-opacity"
+                            role="tooltip">{{ order.cell_mod }}</span>
+                    </div>
+                  {% endif %}
+                  {% if order.cell_imei %}
+                    <div class="hs-tooltip inline-block [--placement:top] [--trigger:click]">
+                      <button type="button" class="hs-tooltip-toggle inline-flex items-center justify-center" aria-label="IMEI">
+                        <i class="iconify tabler--device-mobile text-secondary text-lg"></i>
+                      </button>
+                      <span class="hs-tooltip-content hs-tooltip-shown:opacity-100 hs-tooltip-shown:visible border-default-300 invisible absolute z-70 inline-block max-w-xs break-all rounded-md border bg-card px-3 py-2 text-start text-xs font-medium text-default-800 opacity-0 shadow-lg transition-opacity"
+                            role="tooltip">IMEI - {{ order.cell_imei }}</span>
+                    </div>
+                  {% endif %}
+                  {% if order.cell_eid %}
+                    <div class="hs-tooltip inline-block [--placement:top] [--trigger:click]">
+                      <button type="button" class="hs-tooltip-toggle inline-flex items-center justify-center" aria-label="EID">
+                        <i class="iconify tabler--device-mobile text-default-400 text-lg"></i>
+                      </button>
+                      <span class="hs-tooltip-content hs-tooltip-shown:opacity-100 hs-tooltip-shown:visible border-default-300 invisible absolute z-70 inline-block max-w-xs break-all rounded-md border bg-card px-3 py-2 text-start text-xs font-medium text-default-800 opacity-0 shadow-lg transition-opacity"
+                            role="tooltip">EID - {{ order.cell_eid }}</span>
+                    </div>
+                  {% endif %}
+                </div>
+              </td>
+              <td class="text-center whitespace-nowrap">{{ order.activation_date|date:"d/m/Y" }}</td>
+              <td class="text-center whitespace-nowrap">{{ order.return_date|date:"d/m/Y" }}</td>
+              <td class="text-center">
+                <span class="badge py-0 font-semibold text-2xs bg-primary/15 text-primary">
+                  {{ order.order_status|map_status:status_choice_dict }}
+                </span>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="12" class="py-8 text-center text-default-400">Nenhum pedido encontrado.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer flex flex-wrap items-center justify-between gap-3">
+      <div class="text-sm text-default-500">
+        {% if orders %}
+          Página {{ orders.number }} de {{ orders.paginator.num_pages }}
+        {% else %}
+          Nenhum pedido
+        {% endif %}
+      </div>
+      <nav aria-label="Paginação de ativações">
+        <ul class="pagination mb-0">
+          {% if orders.has_previous %}
+            <li class="page-item">
+              <a class="page-link"
+                 href="?page={{ orders.previous_page_number }}{{ url_filter }}"
+                 aria-label="Anterior">«</a>
+            </li>
+          {% endif %}
+          <li class="page-item disabled">
+            <span class="page-link">{{ orders.number }} / {{ orders.paginator.num_pages }}</span>
+          </li>
+          {% if orders.has_next %}
+            <li class="page-item">
+              <a class="page-link"
+                 href="?page={{ orders.next_page_number }}{{ url_filter }}"
+                 aria-label="Próxima">»</a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  </div>
+{% endblock page_content %}
+{% block scripts %}
+  <script>
+  (function () {
+    const checkAll = document.getElementById('checkAll')
+    if (checkAll) {
+      checkAll.addEventListener('change', function () {
+        document.querySelectorAll('.checkItem').forEach((checkbox) => {
+          checkbox.checked = checkAll.checked
+        })
+      })
+    }
+
+    const rangeOpts = {
+      mode: 'range',
+      dateFormat: 'd/m/Y',
+      disableMobile: true,
+      allowInput: true,
+      locale: { rangeSeparator: ' - ' },
+    }
+
+    if (typeof flatpickr !== 'undefined') {
+      flatpickr('#activGoing_f', rangeOpts)
+      flatpickr('#activReturn_f', rangeOpts)
+    }
+  })()
+  </script>
+{% endblock scripts %}

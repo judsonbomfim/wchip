@@ -1,0 +1,46 @@
+{% extends 'painel/layouts/vertical.html' %}
+{% load static %}
+{% block title %}Adicionar eSIMs{% endblock title %}
+{% block page_title %}
+  {% include 'painel/partials/page-title.html' with subtitle='SIMs' title='Adicionar eSIMs' %}
+{% endblock page_title %}
+{% block page_content %}
+  <div class="card max-w-3xl">
+    <div class="card-header">
+      <div>
+        <h4 class="card-title mb-1.25">Cadastrar eSIMs virtuais</h4>
+        <p class="mb-0 text-default-400">Envie as imagens dos QR Codes. O nome do arquivo deve ser o número do eSIM.</p>
+      </div>
+    </div>
+    <div class="card-body">
+      <form action="{% url 'sims_add_esim' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-5 grid gap-base md:grid-cols-2">
+          <div>
+            <label class="form-label" for="type_sim">Tipo de Chip</label>
+            <select class="form-select" id="type_sim" name="type_sim" required>
+              <option value="esim" selected>eSIM Virtual</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label" for="operator">Operadora</label>
+            <select class="form-select" id="operator" name="operator" required>
+              <option value="" selected disabled>Selecione a operadora</option>
+              {% for code, name in operator_list %}
+                <option value="{{ code }}">{{ name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="mb-5">
+          <label class="form-label" for="formFile">Enviar imagens</label>
+          <input class="form-input" type="file" id="formFile" name="esim" accept="image/*" multiple required>
+        </div>
+        <button type="submit" class="btn bg-primary text-white hover:bg-primary-hover">
+          <i class="iconify tabler--device-sim me-1"></i>
+          Cadastrar eSIMs
+        </button>
+      </form>
+    </div>
+  </div>
+{% endblock page_content %}

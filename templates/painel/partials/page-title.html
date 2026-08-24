@@ -1,0 +1,9 @@
+{% load static i18n %}
+<div class="page-title-head">
+  <h4 class="page-main-title">{{ title }}</h4>
+  <div class="hidden items-center gap-1.25 text-sm md:flex">
+    <a href="{% url 'dashboard' %}" class="text-sm">Painel</a>
+    <i class="iconify tabler--chevron-right text-sm rtl:rotate-180"></i>
+    <span class="text-default-400 text-sm" aria-current="page">{{ title }}</span>
+  </div>
+</div>

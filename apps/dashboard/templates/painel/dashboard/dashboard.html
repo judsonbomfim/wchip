@@ -1,0 +1,229 @@
+{% extends 'painel/layouts/vertical.html' %}
+{% load permission_tags static %}
+{% block title %}Dashboard{% endblock title %}
+{% block page_title %}
+  {% include 'painel/partials/page-title.html' with subtitle='Painel' title='Dashboard' %}
+{% endblock page_title %}
+{% block page_content %}
+  <div class="mb-5">
+    <p class="mb-0 text-base font-medium text-default-600">
+      Olá, <span class="font-semibold text-primary">{{ user.first_name }} {{ user.last_name }}</span>
+    </p>
+    {% if texto %}
+      <p class="mb-0 mt-1 text-sm text-default-400">{{ texto }}</p>
+    {% endif %}
+  </div>
+  {% if request.user|can:'view_statistics' %}
+    {% include 'painel/partials/_sims_stock.html' %}
+    <div class="grid xl:grid-cols-2 grid-cols-1 gap-base mb-5">
+      {% if orders_pending %}
+        <div class="card">
+          <div class="card-header border-0! pb-0">
+            <h4 class="card-title text-base font-semibold text-default-800">Ativações Pendentes</h4>
+          </div>
+          <div class="card-body pt-3">
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b border-default-200 text-left text-xs font-semibold uppercase tracking-wide text-default-400">
+                    <th class="px-2 py-2.5 font-semibold">Pedido</th>
+                    <th class="px-2 py-2.5 font-semibold">Produto</th>
+                    <th class="px-2 py-2.5 text-center font-semibold">Ativação</th>
+                    <th class="px-2 py-2.5 text-center font-semibold">Status</th>
+                    <th class="px-2 py-2.5"></th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-default-100">
+                  {% for order in orders_pending %}
+                    <tr class="text-default-700 transition hover:bg-default-50">
+                      <td class="px-2 py-2.5 font-medium whitespace-nowrap">{{ order.item_id }}</td>
+                      <td class="px-2 py-2.5">{{ order.get_product_display }} {{ order.get_data_day_display }}</td>
+                      <td class="px-2 py-2.5 text-center whitespace-nowrap text-default-500">{{ order.activation_date|date:'d/m/Y' }}</td>
+                      <td class="px-2 py-2.5 text-center">
+                        <span class="inline-flex rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">{{ order.get_order_status_display }}</span>
+                      </td>
+                      <td class="px-2 py-2.5 text-end">
+                        {% if request.user|can:'edit_orders' %}
+                          <a href="{% url 'ord_edit' order.id %}"
+                             class="inline-flex size-8 items-center justify-center rounded-lg text-default-400 transition hover:bg-info/10 hover:text-info"
+                             title="Editar Pedido">
+                            <i class="iconify tabler--edit size-4.5"></i>
+                          </a>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+    <div class="grid xl:grid-cols-2 grid-cols-1 gap-base mb-5">
+      <div class="card">
+        <div class="card-header flex flex-wrap items-center justify-between gap-3 border-0! pb-0">
+          <div>
+            <h4 class="card-title mb-0.5 text-base font-semibold text-default-800">SIMs Vendidos</h4>
+            <p class="mb-0 text-xs text-default-400">Volume de SIMs vendidos por período</p>
+          </div>
+          <nav class="inline-flex items-center gap-1 rounded-lg bg-default-100 p-1"
+               role="tablist"
+               aria-label="Período Pedidos">
+            <button type="button"
+                    id="total_sales-week-tab"
+                    class="hs-tab-active:bg-card hs-tab-active:text-primary hs-tab-active:shadow-sm active inline-flex items-center rounded-md px-3 py-1.5 text-xs font-semibold text-default-500 transition hover:text-primary focus:outline-hidden"
+                    data-hs-tab="#total_sales-week"
+                    aria-controls="total_sales-week"
+                    aria-selected="true"
+                    role="tab">Semana</button>
+            <button type="button"
+                    id="total_sales-month-tab"
+                    class="hs-tab-active:bg-card hs-tab-active:text-primary hs-tab-active:shadow-sm inline-flex items-center rounded-md px-3 py-1.5 text-xs font-semibold text-default-500 transition hover:text-primary focus:outline-hidden"
+                    data-hs-tab="#total_sales-month"
+                    aria-controls="total_sales-month"
+                    aria-selected="false"
+                    role="tab">Mês</button>
+            <button type="button"
+                    id="total_sales-year-tab"
+                    class="hs-tab-active:bg-card hs-tab-active:text-primary hs-tab-active:shadow-sm inline-flex items-center rounded-md px-3 py-1.5 text-xs font-semibold text-default-500 transition hover:text-primary focus:outline-hidden"
+                    data-hs-tab="#total_sales-year"
+                    aria-controls="total_sales-year"
+                    aria-selected="false"
+                    role="tab">Ano</button>
+          </nav>
+        </div>
+        <div class="card-body pt-4">
+          <div id="total_sales-week"
+               role="tabpanel"
+               aria-labelledby="total_sales-week-tab">
+            <div id="ttSalesWeek"></div>
+          </div>
+          <div id="total_sales-month"
+               class="hidden"
+               role="tabpanel"
+               aria-labelledby="total_sales-month-tab">
+            <div id="ttSalesMonth"></div>
+          </div>
+          <div id="total_sales-year"
+               class="hidden"
+               role="tabpanel"
+               aria-labelledby="total_sales-year-tab">
+            <div id="ttSalesYear"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header flex flex-wrap items-center justify-between gap-3 border-0! pb-0">
+          <div>
+            <h4 class="card-title mb-0.5 text-base font-semibold text-default-800">SIMs / eSIMs</h4>
+            <p class="mb-0 text-xs text-default-400">Comparativo por tipo de chip</p>
+          </div>
+          <nav class="inline-flex items-center gap-1 rounded-lg bg-default-100 p-1"
+               role="tablist"
+               aria-label="Período SIMs">
+            <button type="button"
+                    id="total_sims-week-tab"
+                    class="hs-tab-active:bg-card hs-tab-active:text-primary hs-tab-active:shadow-sm active inline-flex items-center rounded-md px-3 py-1.5 text-xs font-semibold text-default-500 transition hover:text-primary focus:outline-hidden"
+                    data-hs-tab="#total_sims-week"
+                    aria-controls="total_sims-week"
+                    aria-selected="true"
+                    role="tab">Semana</button>
+            <button type="button"
+                    id="total_sims-month-tab"
+                    class="hs-tab-active:bg-card hs-tab-active:text-primary hs-tab-active:shadow-sm inline-flex items-center rounded-md px-3 py-1.5 text-xs font-semibold text-default-500 transition hover:text-primary focus:outline-hidden"
+                    data-hs-tab="#total_sims-month"
+                    aria-controls="total_sims-month"
+                    aria-selected="false"
+                    role="tab">Mês</button>
+            <button type="button"
+                    id="total_sims-year-tab"
+                    class="hs-tab-active:bg-card hs-tab-active:text-primary hs-tab-active:shadow-sm inline-flex items-center rounded-md px-3 py-1.5 text-xs font-semibold text-default-500 transition hover:text-primary focus:outline-hidden"
+                    data-hs-tab="#total_sims-year"
+                    aria-controls="total_sims-year"
+                    aria-selected="false"
+                    role="tab">Ano</button>
+          </nav>
+        </div>
+        <div class="card-body pt-4">
+          <div id="total_sims-week"
+               role="tabpanel"
+               aria-labelledby="total_sims-week-tab">
+            <div id="ttSimsWeek"></div>
+          </div>
+          <div id="total_sims-month"
+               class="hidden"
+               role="tabpanel"
+               aria-labelledby="total_sims-month-tab">
+            <div id="ttSimsMonth"></div>
+          </div>
+          <div id="total_sims-year"
+               class="hidden"
+               role="tabpanel"
+               aria-labelledby="total_sims-year-tab">
+            <div id="ttSimsYear"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card xl:col-span-2">
+        <div class="card-header flex flex-wrap items-center justify-between gap-3 border-0! pb-0">
+          <div>
+            <h4 class="card-title mb-0.5 text-base font-semibold text-default-800">Operadora</h4>
+            <p class="mb-0 text-xs text-default-400">Distribuição por operadora</p>
+          </div>
+          <nav class="inline-flex items-center gap-1 rounded-lg bg-default-100 p-1"
+               role="tablist"
+               aria-label="Período Operadora">
+            <button type="button"
+                    id="total_oper-week-tab"
+                    class="hs-tab-active:bg-card hs-tab-active:text-primary hs-tab-active:shadow-sm active inline-flex items-center rounded-md px-3 py-1.5 text-xs font-semibold text-default-500 transition hover:text-primary focus:outline-hidden"
+                    data-hs-tab="#total_oper-week"
+                    aria-controls="total_oper-week"
+                    aria-selected="true"
+                    role="tab">Semana</button>
+            <button type="button"
+                    id="total_oper-month-tab"
+                    class="hs-tab-active:bg-card hs-tab-active:text-primary hs-tab-active:shadow-sm inline-flex items-center rounded-md px-3 py-1.5 text-xs font-semibold text-default-500 transition hover:text-primary focus:outline-hidden"
+                    data-hs-tab="#total_oper-month"
+                    aria-controls="total_oper-month"
+                    aria-selected="false"
+                    role="tab">Mês</button>
+            <button type="button"
+                    id="total_oper-year-tab"
+                    class="hs-tab-active:bg-card hs-tab-active:text-primary hs-tab-active:shadow-sm inline-flex items-center rounded-md px-3 py-1.5 text-xs font-semibold text-default-500 transition hover:text-primary focus:outline-hidden"
+                    data-hs-tab="#total_oper-year"
+                    aria-controls="total_oper-year"
+                    aria-selected="false"
+                    role="tab">Ano</button>
+          </nav>
+        </div>
+        <div class="card-body pt-4">
+          <div id="total_oper-week"
+               role="tabpanel"
+               aria-labelledby="total_oper-week-tab">
+            <div id="ttOperWeek"></div>
+          </div>
+          <div id="total_oper-month"
+               class="hidden"
+               role="tabpanel"
+               aria-labelledby="total_oper-month-tab">
+            <div id="ttOperMonth"></div>
+          </div>
+          <div id="total_oper-year"
+               class="hidden"
+               role="tabpanel"
+               aria-labelledby="total_oper-year-tab">
+            <div id="ttOperYear"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+{% endblock page_content %}
+{% block scripts %}
+  <script src="{% static 'painel/inspina/plugins/apexcharts/apexcharts.min.js' %}"></script>
+  {% include 'painel/dashboard/scripts/charts_activations.html' %}
+  {% include 'painel/dashboard/scripts/charts_sales.html' %}
+  {% include 'painel/dashboard/scripts/charts_sims.html' %}
+  {% include 'painel/dashboard/scripts/charts_operators.html' %}
+{% endblock scripts %}

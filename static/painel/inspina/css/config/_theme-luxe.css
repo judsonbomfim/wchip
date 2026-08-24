@@ -1,0 +1,330 @@
+html[data-skin="luxe"] {
+    --font-body: "TikTok Sans", sans-serif;
+    --font-secondary: "TikTok Sans", sans-serif;
+
+    --text-body: 13px;
+    --color-body-bg: #f0f0f5;
+
+    --color-card: #fff;
+
+    --color-primary: #1c9390;
+    --color-secondary: #7c72aa;
+    --color-success: #71cd89;
+    --color-info: #06b6d4;
+    --color-warning: #ff8d3d;
+    --color-danger: #eb6284;
+    --color-purple: #7f52df;
+    --color-light: #eef2f7;
+    --color-dark: #313a46;
+
+    --color-primary-hover: #198481;
+    --color-secondary-hover: #6f6699;
+    --color-success-hover: #66b87b;
+    --color-info-hover: #05a4bf;
+    --color-warning-hover: #e67f37;
+    --color-danger-hover: #d45777;
+    --color-purple-hover: #7249c9;
+    --color-light-hover: #d6dadf;
+    --color-dark-hover: #2c343e;
+
+    --shadow: 0 4px 9px rgba(34, 7, 31, 0.05);
+
+    --color-default-300: #edf2f9;
+
+    --text-sm: 13px;
+    --text-base: 15px;
+
+    --radius: 6px;
+
+    --font-weight-medium: 500;
+    --font-weight-semibold: 500;
+    --font-weight-bold: 600;
+
+    /* Menu items */
+    --sidenav-item-icon-size: 1rem;
+    --sidenav-item-gap: 10px;
+    --sidenav-item-padding-x: 12px;
+    --sidenav-item-padding-y: 6px;
+    --sidenav-item-font-size: 0.875rem;
+    --sidenav-item-font-weight: 400;
+
+    /* Sub Menu Items */
+    --sidenav-sub-item-font-size: 0.825rem;
+    --sidenav-sub-item-font-weight: 400;
+    --sidenav-sub-item-gap: 4px;
+    --sidenav-sub-item-padding-x: 10px;
+    --sidenav-sub-item-padding-y: 7px;
+
+    /* Light left-sidebar */
+    &[data-menu-color="light"] {
+        --sidenav-bg: white;
+        --sidenav-border-color: #edf2f9;
+        --sidenav-item-color: var(--color-default-700);
+        --sidenav-item-hover-color: #333b42;
+        --sidenav-item-hover-bg: #f6f6f9;
+        --sidenav-item-active-color: #333b42;
+        --sidenav-item-active-bg: #f6f6f9;
+    }
+
+    /* Gray left-sidebar */
+    &[data-menu-color="gray"] {
+        --sidenav-bg: #f1eded;
+        --sidenav-border-color: #e7e9eb;
+        --sidenav-item-color: var(--color-default-700);
+        --sidenav-item-hover-color: #333b42;
+        --sidenav-item-hover-bg: #e6e6eb;
+        --sidenav-item-active-color: #212b29;
+        --sidenav-item-active-bg: #e6e6eb;
+    }
+
+    /* Dark Left Sidebar */
+    &[data-menu-color="dark"] {
+        --sidenav-bg: #26262e;
+        --sidenav-border-color: #26262e;
+        --sidenav-item-color: #9696a7;
+        --sidenav-item-hover-color: #c9c6c9;
+        --sidenav-item-hover-bg: #2f2f3a;
+        --sidenav-item-active-color: #c9c6c9;
+        --sidenav-item-active-bg: #2f2f3a;
+    }
+
+    /* Gradient Menu */
+    &[data-menu-color="gradient"] {
+        --sidenav-bg: linear-gradient(to right, #2e2e40, #3d395e);
+        --sidenav-border-color: null;
+        --sidenav-item-color: #8782a9;
+        --sidenav-item-hover-color: #bccee4;
+        --sidenav-item-hover-bg: rgba(219, 236, 255, 0.05);
+        --sidenav-item-active-color: #cfdff1;
+        --sidenav-item-active-bg: rgba(219, 236, 255, 0.05);
+    }
+
+    /* Image Menu */
+    &[data-menu-color="image"] {
+        --sidenav-bg: linear-gradient(to bottom right, rgba(16, 16, 30, 0.85), #22071f), url("/static/images/sidenav-bg.jpg") center/cover no-repeat;
+        --sidenav-border-color: null;
+        --sidenav-item-color: #799cb7;
+        --sidenav-item-hover-color: #bccee4;
+        --sidenav-item-hover-bg: #2f3742;
+        --sidenav-item-active-color: #cfdff1;
+        --sidenav-item-active-bg: rgba(219, 236, 255, 0.05);
+    }
+
+    /* Dark Mode */
+    &[data-theme="dark"][data-menu-color="dark"],
+    &[data-theme="dark"][data-menu-color="gray"],
+    &[data-theme="dark"][data-menu-color="light"] {
+        --sidenav-bg: #1e1f27;
+        --sidenav-border-color: #2c2d38;
+        --sidenav-item-color: #8495ab;
+        --sidenav-item-hover-color: #bccee4;
+        --sidenav-item-hover-bg: #2f3742;
+        --sidenav-item-active-color: #ced6df;
+        --sidenav-item-active-bg: #22232c;
+    }
+
+    /* Light Topbar */
+    &[data-topbar-color="light"] {
+        --topbar-bg: #f7f3f3;
+        --topbar-item-color: var(--color-default-700);
+        --topbar-item-hover-color: #1c9390;
+        --topbar-search-bg: transparent;
+        --topbar-search-border: #c9c9c9;
+    }
+
+    /* Gray Topbar */
+    &[data-topbar-color="gray"] {
+        --topbar-bg: #e9e0e2;
+        --topbar-item-color: var(--color-default-700);
+        --topbar-item-hover-color: #1c9390;
+        --topbar-search-bg: #d4d4df;
+        --topbar-search-border: #d4d4df;
+    }
+
+    /* Dark Topbar */
+    &[data-topbar-color="dark"] {
+        --topbar-bg: #3b3b46;
+        --topbar-item-color: #a0a0ad;
+        --topbar-item-hover-color: #e7e7ff;
+        --topbar-search-bg: #484858;
+        --topbar-search-border: #484858;
+    }
+
+    /* Gradient Topbar */
+    &[data-topbar-color="gradient"] {
+        --topbar-bg: linear-gradient(to right, #313256, #602f70, #313256);
+        --topbar-item-color: rgba(255, 255, 255, 0.7);
+        --topbar-item-hover-color: #ffffff;
+        --topbar-search-bg: rgba(255, 255, 255, 0.1);
+        --topbar-search-border: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Topbar (Dark Mode) */
+    &[data-theme="dark"][data-topbar-color="dark"],
+    &[data-theme="dark"][data-topbar-color="light"],
+    &[data-theme="dark"][data-topbar-color="gray"] {
+        --topbar-bg: #252630;
+        --topbar-item-color: #adb5bf;
+        --topbar-item-hover-color: #e0eeff;
+        --topbar-search-bg: #2d2e3c;
+        --topbar-search-border: #2d2e3c;
+    }
+
+    /* Chart Colors */
+    --color-chart-primary: #1c9390;
+    --color-chart-secondary: #7c72aa;
+    --color-chart-alpha: #71cd89;
+    --color-chart-beta: #eb6284;
+    --color-chart-gamma: #ff8d3d;
+    --color-chart-delta: #06b6d4;
+    --color-chart-zeta: #7f52df;
+    --color-chart-gray: #7c72aa;
+    --color-chart-dark: #396699;
+    --color-chart-border-color: #ecf4fc;
+    --color-chart-title-color: #bbcae1;
+
+    /* Extra CSS */
+    .page-title-head {
+        background-color: transparent;
+    }
+    .app-header,
+    .page-title-head {
+        border: none;
+    }
+}
+
+html[data-theme="dark"][data-skin="luxe"] {
+    --color-body-bg: #17181e;
+    --color-card: #1b1c22;
+
+    --color-light: #252630;
+    --color-light-hover: #8a969c;
+
+    --shadow: 0px 0px 30px rgba(0, 0, 0, 0.3);
+    --color-default-300: #293036;
+
+    --color-chart-gray: #40424f;
+    --color-chart-border-color: #242c31;
+
+    .card,
+    .hs-dropdown-menu {
+        border: 1px solid var(--color-default-300) !important;
+    }
+}
+
+html[data-skin="luxe"][data-menu-color="light"][data-topbar-color="dark"],
+html[data-skin="luxe"][data-menu-color="light"][data-topbar-color="gradient"] {
+    .app-menu {
+        #button-hover-toggle {
+            color: var(--sidenav-item-color) !important;
+        }
+    }
+}
+
+/* luxe Theme */
+html[data-skin="luxe"] {
+    .app-header {
+        box-shadow: none;
+    }
+
+    .page-title-head {
+        position: relative;
+
+        &::before {
+            content: "";
+            height: 150px;
+            top: 0;
+            position: absolute;
+            background: var(--topbar-bg);
+            inset-inline-start: -20px;
+            inset-inline-end: -20px;
+            z-index: -1;
+        }
+    }
+
+    .pro-username {
+        font-size: 13px;
+    }
+
+    .card {
+        border: none;
+    }
+
+    .hs-dropdown-menu,
+    .card {
+        box-shadow: 0 4px 9px rgba(34, 7, 31, 0.05);
+    }
+}
+
+html[data-skin="luxe"]:not([data-sidenav-size="sm"]) {
+    .side-nav {
+        .menu-item {
+            .menu-link {
+                .menu-icon {
+                    line-height: 26px;
+                    height: 24px;
+                    width: 24px;
+                    border-radius: 50%;
+                    background-color: var(--sidenav-item-hover-bg);
+                    text-align: center;
+                    @apply flex items-center justify-center;
+                }
+            }
+        }
+
+        /* Multi Level Menu */
+        .sub-menu {
+            margin-inline-start: 8px;
+
+            .sub-menu {
+                padding-inline-start: 12px;
+            }
+        }
+    }
+}
+
+/* Manage for light & dark logo */
+html[data-skin="luxe"][data-menu-color="light"][data-topbar-color="dark"],
+html[data-skin="luxe"][data-menu-color="light"][data-topbar-color="gradient"] {
+    .app-menu {
+        .logo-box {
+            background: var(--sidenav-bg);
+            width: 100%;
+        }
+
+        .sidenav-user {
+            margin-top: 0;
+        }
+
+        .button-on-hover {
+            color: var(--sidenav-item-color) !important;
+
+            &:hover {
+                color: var(--sidenav-item-hover-color) !important;
+            }
+        }
+    }
+
+    .logo {
+        &.logo-light {
+            display: none !important;
+        }
+
+        &.logo-dark {
+            display: block !important;
+        }
+    }
+}
+
+html[data-skin="luxe"][data-topbar-color="dark"],
+html[data-skin="luxe"][data-topbar-color="gradient"] {
+    .page-title-head {
+        .page-main-title {
+            color: white !important;
+        }
+
+        a {
+            color: rgba(255, 255, 255, 0.5) !important;
+        }
+    }
+}

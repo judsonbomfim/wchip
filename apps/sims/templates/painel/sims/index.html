@@ -1,0 +1,193 @@
+{% extends 'painel/layouts/vertical.html' %}
+{% load static %}
+{% block title %}SIMs{% endblock title %}
+{% block page_title %}
+  {% include 'painel/partials/page-title.html' with subtitle='SIMs' title='Estoque SIMs' %}
+{% endblock page_title %}
+{% block page_content %}
+  {% include 'painel/partials/_sims_stock.html' %}
+  <form action="{% url 'sims_index' %}" method="post" id="simsForm">
+    {% csrf_token %}
+  </form>
+  <div class="card">
+    <div class="card-header">
+      <div class="flex flex-wrap items-center gap-2.5">
+        <div class="w-40 shrink-0">
+          <select class="form-select" name="sim_st" id="sim_st" form="simsForm">
+            <option value="" selected>Alterar Status</option>
+            {% for sim_st in sims_status %}
+              <option value="{{ sim_st.0 }}">{{ sim_st.1 }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit"
+                class="btn bg-primary shrink-0 text-white hover:bg-primary-hover"
+                name="up_status"
+                form="simsForm">Alterar</button>
+        <div class="input-icon-group w-52 max-w-full shrink-0">
+          <i class="iconify tabler--search input-icon"></i>
+          <input class="form-input"
+                 type="text"
+                 name="sim_f"
+                 form="simsForm"
+                 value="{{ sim_f|default:'' }}"
+                 placeholder="(e)SIM" />
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-2.5">
+        <span class="hidden font-semibold md:inline">Filtrar:</span>
+        <div class="input-icon-group w-40 shrink-0">
+          <i class="iconify tabler--device-sim input-icon"></i>
+          <select class="form-select" name="sim_type_f" form="simsForm">
+            <option value="">Tipo</option>
+            {% for sim_t in sims_types %}
+              <option value="{{ sim_t.0 }}" {% if sim_type_f == sim_t.0 %}selected{% endif %}>{{ sim_t.1 }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="input-icon-group w-40 shrink-0">
+          <i class="iconify tabler--activity input-icon"></i>
+          <select class="form-select" name="sim_status_f" form="simsForm">
+            <option value="">Status</option>
+            {% for sim_s in sims_status %}
+              <option value="{{ sim_s.0 }}" {% if sim_status_f == sim_s.0 %}selected{% endif %}>{{ sim_s.1 }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="input-icon-group w-44 shrink-0">
+          <i class="iconify tabler--antenna-bars-5 input-icon"></i>
+          <select class="form-select" name="sim_oper_f" form="simsForm">
+            <option value="">Operadora</option>
+            {% for sim_o in sims_oper %}
+              <option value="{{ sim_o.0 }}" {% if sim_oper_f == sim_o.0 %}selected{% endif %}>{{ sim_o.1 }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit"
+                class="btn bg-primary text-white hover:bg-primary-hover"
+                name="up_filter"
+                form="simsForm">
+          <i class="iconify tabler--filter me-1"></i>
+          Filtrar
+        </button>
+        <a class="btn btn-icon border border-default-300 hover:border-default-400"
+           href="{% url 'sims_index' %}"
+           title="Limpar filtros">
+          <i class="iconify tabler--refresh text-lg"></i>
+        </a>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table class="table table-hover">
+        <thead class="thead-sm">
+          <tr class="bg-light/25 text-2xs uppercase">
+            <th class="w-[1%]">
+              <input class="form-checkbox form-checkbox-light size-4.5" type="checkbox" id="checkAll" />
+            </th>
+            <th>SIM</th>
+            <th>Link</th>
+            <th>Tipo Sim</th>
+            <th>Operadora</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sim in sims %}
+            <tr>
+              <td>
+                <input class="form-checkbox form-checkbox-light size-4.5 checkItem"
+                       type="checkbox"
+                       value="{{ sim.id }}"
+                       name="sim_id"
+                       form="simsForm" />
+              </td>
+              <td>
+                <span class="text-sm font-semibold text-default-800">{{ sim.sim }}</span>
+              </td>
+              <td>
+                {% if sim.type_sim == 'esim' and sim.link and sim.link != '-' %}
+                  {% if sim.operator == 'AR' %}
+                    <a href="{{ sim.link }}"
+                       target="_blank"
+                       class="inline-flex items-center gap-1 text-sm hover:underline"
+                       title="Ver QRCode">
+                      <i class="iconify tabler--qrcode text-base"></i>
+                      {{ sim.sim }}
+                    </a>
+                  {% else %}
+                    <a href="{{ url_cdn }}{{ sim.link }}"
+                       target="_blank"
+                       class="inline-flex items-center gap-1 text-sm hover:underline"
+                       title="Ver QRCode">
+                      <i class="iconify tabler--qrcode text-base"></i>
+                      {{ sim.sim }}
+                    </a>
+                  {% endif %}
+                {% else %}
+                  <span class="text-default-400">-</span>
+                {% endif %}
+              </td>
+              <td>
+                <span class="badge py-0 font-semibold text-2xs {% if sim.type_sim == 'esim' %}bg-info/15 text-info{% else %}bg-secondary/15 text-secondary{% endif %}">
+                  {{ sim.get_type_sim_display }}
+                </span>
+              </td>
+              <td>{{ sim.get_operator_display }}</td>
+              <td>
+                <span class="badge py-0 font-semibold text-2xs bg-secondary/15 text-secondary">{{ sim.get_sim_status_display }}</span>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="py-8 text-center text-default-400">Nenhum (e)SIM encontrado.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer flex flex-wrap items-center justify-between gap-3">
+      <div class="text-sm text-default-500">
+        {% if sims.paginator.count %}
+          Página {{ sims.number }} de {{ sims.paginator.num_pages }}
+        {% else %}
+          Nenhum registro
+        {% endif %}
+      </div>
+      <nav aria-label="Paginação de SIMs">
+        <ul class="pagination mb-0">
+          {% if sims.has_previous %}
+            <li class="page-item">
+              <a class="page-link"
+                 href="?page={{ sims.previous_page_number }}{{ url_filter }}"
+                 aria-label="Anterior">«</a>
+            </li>
+          {% endif %}
+          <li class="page-item disabled">
+            <span class="page-link">{{ sims.number }} / {{ sims.paginator.num_pages }}</span>
+          </li>
+          {% if sims.has_next %}
+            <li class="page-item">
+              <a class="page-link"
+                 href="?page={{ sims.next_page_number }}{{ url_filter }}"
+                 aria-label="Próxima">»</a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  </div>
+{% endblock page_content %}
+{% block scripts %}
+  <script>
+  (function () {
+    const checkAll = document.getElementById('checkAll')
+    if (checkAll) {
+      checkAll.addEventListener('change', () => {
+        document.querySelectorAll('.checkItem').forEach((checkbox) => {
+          checkbox.checked = checkAll.checked
+        })
+      })
+    }
+  })()
+  </script>
+{% endblock scripts %}

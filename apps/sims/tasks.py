@@ -7,7 +7,7 @@ import json
 from django.conf import settings
 import pytz
 
-from .classes import ApiCM, ApiTC, ApiAR, OperatorSelect, RateLimitExceeded
+from .classes import ApiCM, ApiCMHK, ApiTC, ApiAR, OperatorSelect, RateLimitExceeded, selectPlanCMHK
 from apps.orders.models import Orders, Notes
 from apps.orders.classes import ApiStore, StatusStore, NotesAdd, UpdateOrder, UpdateStore
 from apps.sims.models import Sims
@@ -757,6 +757,106 @@ def simActivateCM(id=None):
         conn.close()
 
     logger.info(f'>>>>>>>>>> ATIVAÇÂO CM FINALIZADA')
+
+
+@shared_task(time_limit=110, soft_time_limit=100)
+@periodic_task_lock(timeout=140)
+def simActivateCMHK(id=None):
+    import base64
+    import hashlib
+    import json
+    import http.client
+    from urllib.parse import urlparse
+    import time
+
+    tz = pytz.timezone(settings.TIME_ZONE)
+    today = datetime.now(tz).date()
+    tomorrow = today + timedelta(days=1)
+
+    logger.info('>>>>>>>>>> ATIVAÇÂO CMHK INICIADA')
+
+    if id is None:
+        orders_all = Orders.objects.filter(order_status='AA', id_sim__operator='CMHK', activation_date__lte=tomorrow)
+    else:
+        orders_all = Orders.objects.filter(pk=id)
+
+    if orders_all.count() == 0:
+        logger.info('>>>>>>>>>> ATIVAÇÂO CMHK FINALIZADA')
+        return
+
+    api_token = ApiCMHK.get_token()
+    if api_token == "error":
+        logger.error('>>>>>>>>>> ERRO DE TOKEN CMHK')
+        return
+
+    for order in orders_all:
+        time.sleep(0.5)
+        order = Orders.objects.get(pk=order.id)
+        order_id = order.order_id
+        order_item = order.id
+        order_product = order.product
+        order_day = str(order.days + 1)
+        order_data = str(order.data_day)
+        order_sim = order.id_sim.sim
+
+        logger.info(f'>>>>>>>>>> ATIVANDO SIM CMHK {order_sim} - {order_id}')
+
+        def errorData(data_dict=None):
+            note = f'Erro ao ativar o SIM {order_sim}. Verificar manualmente. ERRO: {data_dict}'
+            NotesAdd.addNote(order, note)
+            UpdateOrder.upStatus(order_item, 'EA')
+
+        def generate_password_digest(app_secret):
+            nonce = str(int(time.time() * 1000))
+            created = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+            digest = base64.b64encode(hashlib.sha256((nonce + created + app_secret).encode('utf-8')).digest()).decode('utf-8')
+            return nonce, created, digest
+
+        plan_code = selectPlanCMHK.selectPlanCod(order_product, order_day, order_data)
+        if plan_code is None:
+            NotesAdd.addNote(order, f'ERRO AO DEFINIR PLANO CMHK {order_product} - {order_day} - {order_data}')
+            errorData()
+            continue
+
+        url_api = f'{settings.APICMHK_URL}/aep/APP_createOrder_SBO/v1'
+        parsed_url = urlparse(url_api)
+        app_key = settings.APICMHK_KEY
+        app_secret = settings.APICMHK_SECRET
+        nonce, created, password_digest = generate_password_digest(app_secret)
+        headers = {
+            'Content-Type': 'application/json',
+            "Accept": "application/json",
+            "Authorization": 'WSSE realm="SDP", profile="UsernameToken", type="Appkey"',
+            "X-WSSE": f'UsernameToken Username="{app_key}", PasswordDigest="{password_digest}", Nonce="{nonce}", Created="{created}"',
+        }
+        payload = json.dumps({
+            "accessToken": api_token,
+            "dataBundleId": plan_code,
+            "ICCID": order_sim,
+            "thirdOrderId": order_item,
+            "includeCard": "0",
+            "is_Refuel": "1",
+            "quantity": "1",
+        })
+        conn = http.client.HTTPSConnection(parsed_url.hostname, parsed_url.port, timeout=10)
+        conn.request("POST", parsed_url.path, payload, headers)
+        res = conn.getresponse()
+        data = res.read()
+        if res.status != 200:
+            errorData(data.decode("utf-8"))
+        else:
+            data_dict = json.loads(data)
+            result_data = data_dict.get('description')
+            if result_data != 'Success':
+                errorData(data_dict)
+            else:
+                NotesAdd.addNote(order, f'SIM {order_sim} ativado na CMHK com sucesso')
+                UpdateOrder.upStatus(order_item, 'AT')
+                UpdateStore.upStore(order_id=order_id, status_g='AT')
+        conn.close()
+
+    logger.info('>>>>>>>>>> ATIVAÇÂO CMHK FINALIZADA')
+
             
 
 @shared_task

@@ -1,0 +1,156 @@
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    function onTabClickOnce(tabId, callback) {
+        const el = document.getElementById(tabId);
+        if (!el) return;
+        const handler = function() {
+            callback();
+            el.removeEventListener("click", handler);
+        };
+        el.addEventListener("click", handler);
+    }
+
+    const fontFamily = getComputedStyle(document.body).fontFamily || 'inherit';
+    const pedidosChartColor = '#23c6c8';
+
+    function pedidosLineOptions({ values, categories, title, xTitle, labelFormat }) {
+        return {
+            series: [{ name: "Pedidos", data: values }],
+            chart: {
+                height: 320,
+                type: 'line',
+                fontFamily: fontFamily,
+                zoom: { enabled: false },
+                toolbar: { show: false }
+            },
+            colors: [pedidosChartColor],
+            dataLabels: {
+                enabled: true,
+                style: {
+                    fontSize: '10px',
+                    fontWeight: 600,
+                    colors: [pedidosChartColor],
+                    fontFamily: fontFamily
+                },
+                background: {
+                    enabled: true,
+                    foreColor: '#fff',
+                    padding: 6,
+                    borderRadius: 4,
+                    borderWidth: 0,
+                    opacity: 0.9
+                },
+                offsetY: -2
+            },
+            stroke: {
+                width: [2.5],
+                curve: 'smooth'
+            },
+            markers: {
+                size: 4,
+                strokeWidth: 2,
+                hover: { size: 6 }
+            },
+            title: {
+                text: title,
+                align: 'left',
+                margin: 8,
+                style: {
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    color: '#8495ab',
+                    fontFamily: fontFamily
+                }
+            },
+            grid: {
+                borderColor: '#edeff3',
+                strokeDashArray: 4,
+                padding: { top: 0, right: 16, bottom: 0, left: 8 }
+            },
+            xaxis: {
+                title: {
+                    text: xTitle,
+                    style: { fontSize: '11px', fontWeight: 500, color: '#8495ab', fontFamily: fontFamily }
+                },
+                type: 'datetime',
+                categories: categories,
+                labels: {
+                    format: labelFormat,
+                    style: { fontSize: '11px', colors: '#8495ab', fontFamily: fontFamily }
+                },
+                axisBorder: { show: false },
+                axisTicks: { show: false }
+            },
+            yaxis: {
+                labels: {
+                    style: { fontSize: '11px', colors: '#8495ab', fontFamily: fontFamily }
+                }
+            },
+            legend: { show: false },
+            tooltip: {
+                theme: 'light',
+                style: { fontSize: '12px', fontFamily: fontFamily }
+            },
+            noData: {
+                text: "Sem dados para exibir",
+                style: { color: '#8495ab', fontSize: '13px', fontFamily: fontFamily }
+            }
+        };
+    }
+
+    try {
+        const weekSalesValuesRaw = '{{ weekSalesValues|escapejs|safe }}';
+        const weekSalesDatesRaw = '{{ weekSalesDates|escapejs|safe }}';
+        const weekSalesValues = weekSalesValuesRaw ? JSON.parse(weekSalesValuesRaw) : [];
+        const weekSalesDates = weekSalesDatesRaw ? JSON.parse(weekSalesDatesRaw) : [];
+        const target = document.querySelector("#ttSalesWeek");
+        if (target) {
+            new ApexCharts(target, pedidosLineOptions({
+                values: weekSalesValues,
+                categories: weekSalesDates,
+                title: '{{ dateWeek|date:"d/m/Y" }} — {{ dateYesterday|date:"d/m/Y" }}',
+                xTitle: 'Dias',
+                labelFormat: 'd/M'
+            })).render();
+        }
+    } catch (error) {
+        console.error("Erro ao renderizar o gráfico de vendas da semana:", error);
+    }
+
+    onTabClickOnce('total_sales-month-tab', function() {
+        try {
+            const monthSalesValuesRaw = '{{ monthSalesValues|escapejs|safe }}';
+            const monthSalesDatesRaw = '{{ monthSalesDates|escapejs|safe }}';
+            const monthSalesValues = monthSalesValuesRaw ? JSON.parse(monthSalesValuesRaw) : [];
+            const monthSalesDates = monthSalesDatesRaw ? JSON.parse(monthSalesDatesRaw) : [];
+            new ApexCharts(document.querySelector("#ttSalesMonth"), pedidosLineOptions({
+                values: monthSalesValues,
+                categories: monthSalesDates,
+                title: '{{ dateMonth|date:"d/m/Y" }} — {{ dateYesterday|date:"d/m/Y" }}',
+                xTitle: 'Dias',
+                labelFormat: 'd'
+            })).render();
+        } catch (error) {
+            console.error("Erro ao renderizar o gráfico de vendas do mês:", error);
+        }
+    });
+
+    onTabClickOnce('total_sales-year-tab', function() {
+        try {
+            const yearSalesValuesRaw = '{{ yearSalesValues|escapejs|safe }}';
+            const yearSalesDatesRaw = '{{ yearSalesDates|escapejs|safe }}';
+            const yearSalesValues = yearSalesValuesRaw ? JSON.parse(yearSalesValuesRaw) : [];
+            const yearSalesDates = yearSalesDatesRaw ? JSON.parse(yearSalesDatesRaw) : [];
+            new ApexCharts(document.querySelector("#ttSalesYear"), pedidosLineOptions({
+                values: yearSalesValues,
+                categories: yearSalesDates,
+                title: '{{ dateYear|date:"d/m/Y" }} — {{ dateYesterday|date:"d/m/Y" }}',
+                xTitle: 'Meses',
+                labelFormat: 'MMM'
+            })).render();
+        } catch (error) {
+            console.error("Erro ao renderizar o gráfico de vendas do ano:", error);
+        }
+    });
+});
+</script>

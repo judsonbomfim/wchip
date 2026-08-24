@@ -10,6 +10,7 @@ urlpatterns = [
     path('delsim', views.delSIMs, name='delsim'),
     path('delsimtc', views.delSimTC, name='delsimtc'),
     path('delsimcm', views.delSimCM, name='delsimcm'),
+    path('atualizar_lpa/', views.lpaChange, name='lpaChange'),
     # path('verificar', views.verify_sim, name='verify_sim'),
 
 ]

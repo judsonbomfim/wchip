@@ -5,214 +5,230 @@ from apps.sims.models import Sims
 from apps.orders.models import Orders
 import json
 from datetime import datetime, timedelta
-import pandas as pd
+from collections import Counter, defaultdict
 
 
-# Create your views here.
 @login_required(login_url='/login/')
 def index(request):
-    # Dates
     today = datetime.now()
     dateDay = today.date()
-    
-    # dateTomorrow = dateDay - timedelta(days=-1)
-    # dateYesterday = dateDay - timedelta(days=1)
-    # dateWeek = dateDay - timedelta(days=7)
-    # dateMonth = dateDay - timedelta(days=30)
-    # dateYear = dateDay - timedelta(days=365)   
-    
-    # # ACTIVATIONS
-    # activationOrders = Orders.objects.filter(activation_date=dateTomorrow)
-    # if activationOrders:
-    #     activationTomorrow = activationOrders.count()    
-    #     activList = pd.DataFrame(activationOrders.values('id_sim__operator')).rename(columns={'id_sim__operator': 'operator'})
-    #     activList = activList.groupby(['operator']).size().reset_index(name='countActiv')
-    # else:
-    #     activationTomorrow = 0
-    #     activList = pd.DataFrame({'operator': ['TM', 'CM', 'TC'], 'countActiv': [0, 0, 0]})
-          
-    # try: countActivTM = activList[activList['operator'] == 'TM']['countActiv'].values[0]
-    # except: countActivTM = 0
-    # try: countActivCM = activList[activList['operator'] == 'CM']['countActiv'].values[0]
-    # except: countActivCM = 0
-    # try: countActivTC = activList[activList['operator'] == 'TC']['countActiv'].values[0]
-    # except: countActivTC = 0
-    
-    # # Queries
-    # simsAll = Sims.objects.all()
-    # # Use range queries for each date range
-    # ordersWeek = Orders.objects.filter(order_date__range=(dateMonth, dateDay))
-    # ordersMonth = Orders.objects.filter(order_date__range=(dateMonth, dateDay))
-    # ordersYear = Orders.objects.filter(order_date__range=(dateYear, dateDay))     
-    
-    # # Convertendo a lista de dicionários em um DataFrame    
-    # fields_df = ['order_id','order_date', 'id_sim__type_sim', 'id_sim__operator']
-    # rename_df = {'id_sim__type_sim': 'type_sim', 'id_sim__operator': 'operator'}
-    
-    # # weekDf = pd.DataFrame(list(ordersWeek.values(*fields_df)))
-    # weekDf = pd.DataFrame(list(ordersYear.values(*fields_df)))
-    # weekDf = weekDf.rename(columns=rename_df)
-    # weekDf['order_date'] = pd.to_datetime(weekDf['order_date'].dt.date)
-    # # monthDf = pd.DataFrame(list(ordersMonth.values(*fields_df)))
-    # monthDf = pd.DataFrame(list(ordersYear.values(*fields_df)))
-    # monthDf = monthDf.rename(columns=rename_df)
-    # monthDf['order_date'] = pd.to_datetime(monthDf['order_date'].dt.date)
-    # yearDf = pd.DataFrame(list(ordersYear.values(*fields_df)))
-    # yearDf = yearDf.rename(columns=rename_df)
-    # yearDf['month'] = pd.to_datetime(yearDf['order_date'].dt.strftime('%Y-%m'))
-    # yearDf['order_date'] = pd.to_datetime(yearDf['order_date'].dt.date)
-    
-    # # SALES
-    # # --- Week
-    # weekSalesDup = weekDf.drop_duplicates(subset='order_id')
-    # weekSalesReport = weekSalesDup.groupby('order_date').size().reset_index(name='countSalesWeek')
-    # weekSalesDates = weekSalesReport['order_date'].tolist()
-    # weekSalesDays = [(dateSalesWeek).strftime('%Y-%m-%d') for dateSalesWeek in weekSalesDates]
-    # weekSalesDays = json.dumps(weekSalesDays)
-    # weekSalesValues = json.dumps(weekSalesReport['countSalesWeek'].tolist()) 
-    # # --- Month
-    # monthSalesDup = monthDf.drop_duplicates(subset='order_id')
-    # monthSalesReport = monthSalesDup.groupby('order_date').size().reset_index(name='countSalesMonth')
-    # monthSalesDays = monthSalesReport['order_date'].tolist()
-    # monthSalesDays = [(dateSalesMonth).strftime('%Y-%m-%d') for dateSalesMonth in monthSalesDays]
-    # monthSalesDays = json.dumps(monthSalesDays)
-    # monthSalesValues = json.dumps(monthSalesReport['countSalesMonth'].tolist())
-    # # --- Year
-    # yearSalesDup = yearDf.drop_duplicates(subset='order_id')
-    # yearSalesReport = yearSalesDup.groupby('month').size().reset_index(name='countSalesYear')   
-    # yearSalesDates = yearSalesReport['month'].tolist()
-    # yearSalesDates = [(dateSalesYear).strftime('%Y-%m') for dateSalesYear in yearSalesDates]
-    # yearSalesDates = json.dumps(yearSalesDates)    
-    # yearSalesValues = json.dumps(yearSalesReport['countSalesYear'].tolist())
-    
-    # # SIMs
-    # # --- Week  
-    # weekSimsReport = weekDf.groupby(['order_date','type_sim']).size().reset_index(name='countSimsWeek') 
-    # weekSimsS = weekSimsReport[(weekSimsReport['type_sim'] == 'esim')]
-    # weekSimsE = weekSimsReport[(weekSimsReport['type_sim'] == 'sim')]
-    # weekSalesD = weekSalesReport['order_date'].tolist()
-    # weekSimsDays = [(dateSimssWeek).strftime('%Y-%m-%d') for dateSimssWeek in weekSalesD]
-    # weekSimsDays = json.dumps(weekSimsDays)
-    # weekSimsValuesS = json.dumps(weekSimsS['countSimsWeek'].tolist())
-    # weekSimsValuesE = json.dumps(weekSimsE['countSimsWeek'].tolist())   
-    # # --- Month
-    # monthSimsReport = monthDf.groupby(['order_date','type_sim']).size().reset_index(name='countSimsMonth')
-    # monthSimsS = monthSimsReport[(monthSimsReport['type_sim'] == 'esim')]
-    # monthSimsE = monthSimsReport[(monthSimsReport['type_sim'] == 'sim')]
-    # monthSimsDays = monthSimsS['order_date'].tolist()
-    # monthSimsDays = [(dateSimsMonth).strftime('%Y-%m-%d') for dateSimsMonth in monthSimsDays]
-    # monthSimsDays = json.dumps(monthSimsDays)
-    # monthSimsValuesS = json.dumps(monthSimsS['countSimsMonth'].tolist())
-    # monthSimsValuesE = json.dumps(monthSimsE['countSimsMonth'].tolist())
-    # # --- Year
-    # try:
-    #     yearSimsReport = yearDf.groupby(['month','type_sim']).size().reset_index(name='countSimsYear')
-    #     yearSimsReport = yearSimsReport.pivot_table(index='month', columns='type_sim', values='countSimsYear', fill_value=0)
-    #     yearSimsValuesS = json.dumps(yearSimsReport['esim'].tolist())
-    #     yearSimsValuesE = json.dumps(yearSimsReport['sim'].tolist())
-    #     yearSimsDates = json.dumps([month.strftime('%Y-%m') for month in yearSimsReport.index])
-    # except Exception as e:
-    #     yearSimsValuesS = json.dumps([0,0,0,0,0,0,0,0,0,0,0,0])
-    #     yearSimsValuesE = json.dumps([0,0,0,0,0,0,0,0,0,0,0,0])
-    #     yearSimsDates = json.dumps(['2021-01','2021-02','2021-03','2021-04','2021-05','2021-06','2021-07','2021-08','2021-09','2021-10','2021-11','2021-12'])
-    
-    
-    # # OPERATOR
-    # # --- Week
-    # weekOperReport = weekDf.groupby(['order_date','operator']).size().reset_index(name='countOperWeek')
-    # weekOperTM = weekOperReport[(weekOperReport['operator'] == 'TM')]
-    # weekOperCM = weekOperReport[(weekOperReport['operator'] == 'CM')]
-    # weekOperTC = weekOperReport[(weekOperReport['operator'] == 'TC')]
-    # weekOperD = weekOperTM['order_date'].tolist()
-    # weekOperDates = [(dateOperWeek).strftime('%Y-%m-%d') for dateOperWeek in weekOperD]
-    # weekOperDates = json.dumps(weekOperDates)
-    # weekOperValuesTM = json.dumps(weekOperTM['countOperWeek'].tolist())
-    # weekOperValuesCM = json.dumps(weekOperCM['countOperWeek'].tolist())
-    # weekOperValuesTC = json.dumps(weekOperTC['countOperWeek'].tolist())
-    # # --- Month
-    # monthOperReport = monthDf.groupby(['order_date','operator']).size().reset_index(name='countOperMonth')
-    # monthOperTM = monthOperReport[(monthOperReport['operator'] == 'TM')]
-    # monthOperCM = monthOperReport[(monthOperReport['operator'] == 'CM')]
-    # monthOperTC = monthOperReport[(monthOperReport['operator'] == 'TC')]
-    # monthOperDates = monthOperTM['order_date'].tolist()
-    # monthOperDates = [(dateOperMonth).strftime('%Y-%m-%d') for dateOperMonth in monthOperDates]
-    # monthOperDates = json.dumps(monthOperDates)
-    # monthOperValuesTM = json.dumps(monthOperTM['countOperMonth'].tolist())
-    # monthOperValuesCM = json.dumps(monthOperCM['countOperMonth'].tolist())
-    # monthOperValuesTC = json.dumps(monthOperTC['countOperMonth'].tolist())    
-    # # --- Year
-    # try:
-    #     yearOperReport = yearDf.groupby(['month','operator']).size().reset_index(name='countSimsYear')
-    #     yearOperReport = yearOperReport.pivot_table(index='month', columns='operator', values='countSimsYear', fill_value=0)
-    #     yearOperValuesTM = json.dumps(yearOperReport['TM'].tolist())
-    #     yearOperValuesCM = json.dumps(yearOperReport['CM'].tolist())
-    #     yearOperValuesTC = json.dumps(yearOperReport['TC'].tolist())
-    #     yearOperDates = json.dumps([month.strftime('%Y-%m') for month in yearOperReport.index])
-    # except Exception as e:
-    #     yearOperValuesTM = json.dumps([0,0,0,0,0,0,0,0,0,0,0,0])
-    #     yearOperValuesCM = json.dumps([0,0,0,0,0,0,0,0,0,0,0,0])
-    #     yearOperValuesTC = json.dumps([0,0,0,0,0,0,0,0,0,0,0,0])
-    #     yearOperDates = json.dumps(['2021-01','2021-02','2021-03','2021-04','2021-05','2021-06','2021-07','2021-08','2021-09','2021-10','2021-11','2021-12'])        
 
-    # # Verificar estoque de operadoras
-    # sim_tm = simsAll.filter(sim_status='DS',operator='TM', type_sim='sim').count()
-    # esim_tm = simsAll.filter(sim_status='DS',operator='TM', type_sim='esim').count()
-    # sim_cm = simsAll.filter(sim_status='DS',operator='CM', type_sim='sim').count()
-    # esim_cm = simsAll.filter(sim_status='DS',operator='CM', type_sim='esim').count()
-    # sim_tc = simsAll.filter(sim_status='DS',operator='TC', type_sim='sim').count()
-    # esim_tc = simsAll.filter(sim_status='DS',operator='TC', type_sim='esim').count()
+    dateTomorrow = dateDay + timedelta(days=1)
+    dateYesterday = dateDay - timedelta(days=1)
+    dateWeek = dateDay - timedelta(days=7)
+    dateMonth = dateDay - timedelta(days=30)
+    dateYear = dateDay - timedelta(days=365)
 
-    # context= {
-    #     'sims': simsAll,
-    #     'sim_tm': sim_tm,
-    #     'esim_tm': esim_tm,
-    #     'sim_cm': sim_cm,
-    #     'esim_cm': esim_cm,
-    #     'sim_tc': sim_tc,
-    #     'esim_tc': esim_tc,
-    #     'dateDay': dateDay,
-    #     'dateYesterday': dateYesterday,
-    #     'dateWeek': dateWeek,
-    #     'dateMonth': dateMonth,
-    #     'dateYear': dateYear,
-    #     'activationTomorrow': activationTomorrow,
-    #     'countActivTM': countActivTM,
-    #     'countActivCM': countActivCM,
-    #     'countActivTC': countActivTC,
-    #     'weekSalesDates': weekSalesDays,
-    #     'weekSalesValues': weekSalesValues,
-    #     'weekSimsDates': weekSimsDays,
-    #     'weekSimsValuesS': weekSimsValuesS,
-    #     'weekSimsValuesE': weekSimsValuesE,        
-    #     'weekOperDates': weekOperDates,
-    #     'weekOperValuesTM': weekOperValuesTM,
-    #     'weekOperValuesCM': weekOperValuesCM,
-    #     'weekOperValuesTC': weekOperValuesTC,        
-    #     'monthSalesDates': monthSalesDays,
-    #     'monthSalesValues': monthSalesValues,
-    #     'monthSimsDays': monthSimsDays,
-    #     'monthSimsValuesS': monthSimsValuesS,
-    #     'monthSimsValuesE': monthSimsValuesE,
-    #     'monthOperDates': monthOperDates,
-    #     'monthOperValuesTM': monthOperValuesTM,
-    #     'monthOperValuesCM': monthOperValuesCM,
-    #     'monthOperValuesTC': monthOperValuesTC,
-    #     'yearSalesDates': yearSalesDates,
-    #     'yearSalesValues': yearSalesValues,
-    #     'yearSimsDates': yearSimsDates,
-    #     'yearSimsValuesS': yearSimsValuesS,
-    #     'yearSimsValuesE': yearSimsValuesE,
-    #     'yearOperDates': yearOperDates,
-    #     'yearOperValuesTM': yearOperValuesTM,
-    #     'yearOperValuesCM': yearOperValuesCM,
-    #     'yearOperValuesTC': yearOperValuesTC,        
-    # }
-    context= {
-        'texto': 'Bem-vindo a área administariva do sistema de gestão de vendas de SIM Cards.'
+    orders_pending = Orders.objects.filter(
+        activation_date__lte=dateDay
+    ).exclude(
+        order_status__in=['AT', 'CC', 'CN', 'DE', 'DA', 'ED', 'RB', 'RE']
+    ).order_by('activation_date')
+
+    activationOrders = Orders.objects.filter(activation_date=dateTomorrow)
+    operator_counts = Counter(activationOrders.values_list('id_sim__operator', flat=True))
+
+    countActivTM = operator_counts.get('TM', 0)
+    countActivCM = operator_counts.get('CM', 0)
+    countActivCMHK = operator_counts.get('CMHK', 0)
+    countActivTC = operator_counts.get('TC', 0)
+    countActivVR = operator_counts.get('VR', 0)
+
+    simsAll = Sims.objects.all()
+    ordersWeek = Orders.objects.filter(order_date__range=(dateWeek, dateDay))
+    ordersMonth = Orders.objects.filter(order_date__range=(dateMonth, dateDay))
+    ordersYear = Orders.objects.filter(order_date__range=(dateYear, dateDay))
+
+    fields = ['order_id', 'order_date', 'id_sim__type_sim', 'id_sim__operator']
+
+    def process_orders(orders_qs):
+        processed = []
+        for order in orders_qs.values(*fields):
+            order_date = order['order_date']
+            processed.append({
+                'order_id': order['order_id'],
+                'order_date': order_date.date() if hasattr(order_date, 'date') else order_date,
+                'type_sim': order['id_sim__type_sim'],
+                'operator': order['id_sim__operator'],
+            })
+        return processed
+
+    week_orders = process_orders(ordersWeek)
+    month_orders = process_orders(ordersMonth)
+
+    year_orders = []
+    for order in ordersYear.values(*fields):
+        order_date = order['order_date']
+        order_date = order_date.date() if hasattr(order_date, 'date') else order_date
+        year_orders.append({
+            'order_id': order['order_id'],
+            'order_date': order_date,
+            'month': order_date.replace(day=1),
+            'type_sim': order['id_sim__type_sim'],
+            'operator': order['id_sim__operator'],
+        })
+
+    unique_week_sales = {sale['order_id']: sale for sale in week_orders}.values()
+    sales_by_date_week = defaultdict(int)
+    for sale in unique_week_sales:
+        sales_by_date_week[sale['order_date']] += 1
+
+    unique_month_sales = {sale['order_id']: sale for sale in month_orders}.values()
+    sales_by_date_month = defaultdict(int)
+    for sale in unique_month_sales:
+        sales_by_date_month[sale['order_date']] += 1
+
+    unique_year_sales = {sale['order_id']: sale for sale in year_orders}.values()
+    sales_by_month_year = defaultdict(int)
+    for sale in unique_year_sales:
+        sales_by_month_year[sale['month']] += 1
+
+    all_week_dates = [dateWeek + timedelta(days=i) for i in range((dateDay - dateWeek).days + 1)]
+    all_month_dates = [dateMonth + timedelta(days=i) for i in range((dateDay - dateMonth).days + 1)]
+
+    all_year_months = []
+    current_month = dateYear.replace(day=1)
+    while current_month <= dateDay.replace(day=1):
+        all_year_months.append(current_month)
+        next_month = current_month.replace(day=28) + timedelta(days=4)
+        current_month = next_month.replace(day=1)
+
+    sales_by_date_week = {d: sales_by_date_week.get(d, 0) for d in all_week_dates}
+    sorted_sales_week = sorted(sales_by_date_week.items())
+    sales_by_date_month = {d: sales_by_date_month.get(d, 0) for d in all_month_dates}
+    sorted_sales_month = sorted(sales_by_date_month.items())
+    sales_by_month_year = {m: sales_by_month_year.get(m, 0) for m in all_year_months}
+    sorted_sales_year = sorted(sales_by_month_year.items())
+
+    weekSalesDates = json.dumps([d.strftime('%Y-%m-%d') for d, v in sorted_sales_week])
+    weekSalesValues = json.dumps([v for d, v in sorted_sales_week])
+    monthSalesDates = json.dumps([d.strftime('%Y-%m-%d') for d, v in sorted_sales_month])
+    monthSalesValues = json.dumps([v for d, v in sorted_sales_month])
+    yearSalesDates = json.dumps([d.strftime('%Y-%m') for d, v in sorted_sales_year])
+    yearSalesValues = json.dumps([v for d, v in sorted_sales_year])
+
+    sims_by_date_type_week = defaultdict(lambda: defaultdict(int))
+    for order in week_orders:
+        sims_by_date_type_week[order['order_date']][order['type_sim']] += 1
+    weekSimsDates = json.dumps([d.strftime('%Y-%m-%d') for d in all_week_dates])
+    weekSimsValuesS = json.dumps([sims_by_date_type_week[d].get('sim', 0) for d in all_week_dates])
+    weekSimsValuesE = json.dumps([sims_by_date_type_week[d].get('esim', 0) for d in all_week_dates])
+
+    sims_by_date_type_month = defaultdict(lambda: defaultdict(int))
+    for order in month_orders:
+        sims_by_date_type_month[order['order_date']][order['type_sim']] += 1
+    monthSimsDates = json.dumps([d.strftime('%Y-%m-%d') for d in all_month_dates])
+    monthSimsValuesS = json.dumps([sims_by_date_type_month[d].get('sim', 0) for d in all_month_dates])
+    monthSimsValuesE = json.dumps([sims_by_date_type_month[d].get('esim', 0) for d in all_month_dates])
+
+    sims_by_month_type_year = defaultdict(lambda: defaultdict(int))
+    for order in year_orders:
+        sims_by_month_type_year[order['month']][order['type_sim']] += 1
+    yearSimsDates = json.dumps([m.strftime('%Y-%m') for m in all_year_months])
+    yearSimsValuesS = json.dumps([sims_by_month_type_year[m].get('sim', 0) for m in all_year_months])
+    yearSimsValuesE = json.dumps([sims_by_month_type_year[m].get('esim', 0) for m in all_year_months])
+
+    oper_by_date_week = defaultdict(lambda: defaultdict(int))
+    for order in week_orders:
+        oper_by_date_week[order['order_date']][order['operator']] += 1
+    weekOperDates = json.dumps([d.strftime('%Y-%m-%d') for d in all_week_dates])
+    weekOperValuesTM = json.dumps([oper_by_date_week[d].get('TM', 0) for d in all_week_dates])
+    weekOperValuesCM = json.dumps([oper_by_date_week[d].get('CM', 0) for d in all_week_dates])
+    weekOperValuesCMHK = json.dumps([oper_by_date_week[d].get('CMHK', 0) for d in all_week_dates])
+    weekOperValuesTC = json.dumps([oper_by_date_week[d].get('TC', 0) for d in all_week_dates])
+    weekOperValuesVR = json.dumps([oper_by_date_week[d].get('VR', 0) for d in all_week_dates])
+
+    oper_by_date_month = defaultdict(lambda: defaultdict(int))
+    for order in month_orders:
+        oper_by_date_month[order['order_date']][order['operator']] += 1
+    monthOperDates = json.dumps([d.strftime('%Y-%m-%d') for d in all_month_dates])
+    monthOperValuesTM = json.dumps([oper_by_date_month[d].get('TM', 0) for d in all_month_dates])
+    monthOperValuesCM = json.dumps([oper_by_date_month[d].get('CM', 0) for d in all_month_dates])
+    monthOperValuesCMHK = json.dumps([oper_by_date_month[d].get('CMHK', 0) for d in all_month_dates])
+    monthOperValuesTC = json.dumps([oper_by_date_month[d].get('TC', 0) for d in all_month_dates])
+    monthOperValuesVR = json.dumps([oper_by_date_month[d].get('VR', 0) for d in all_month_dates])
+
+    oper_by_month_year = defaultdict(lambda: defaultdict(int))
+    for order in year_orders:
+        oper_by_month_year[order['month']][order['operator']] += 1
+    yearOperDates = json.dumps([m.strftime('%Y-%m') for m in all_year_months])
+    yearOperValuesTM = json.dumps([oper_by_month_year[m].get('TM', 0) for m in all_year_months])
+    yearOperValuesCM = json.dumps([oper_by_month_year[m].get('CM', 0) for m in all_year_months])
+    yearOperValuesCMHK = json.dumps([oper_by_month_year[m].get('CMHK', 0) for m in all_year_months])
+    yearOperValuesTC = json.dumps([oper_by_month_year[m].get('TC', 0) for m in all_year_months])
+    yearOperValuesVR = json.dumps([oper_by_month_year[m].get('VR', 0) for m in all_year_months])
+
+    sim_tm = simsAll.filter(sim_status='DS', operator='TM', type_sim='sim').count()
+    esim_tm = simsAll.filter(sim_status='DS', operator='TM', type_sim='esim').count()
+    sim_cm = simsAll.filter(sim_status='DS', operator='CM', type_sim='sim').count()
+    esim_cm = simsAll.filter(sim_status='DS', operator='CM', type_sim='esim').count()
+    sim_cmhk = simsAll.filter(sim_status='DS', operator='CMHK', type_sim='sim').count()
+    esim_cmhk = simsAll.filter(sim_status='DS', operator='CMHK', type_sim='esim').count()
+    sim_tc = simsAll.filter(sim_status='DS', operator='TC', type_sim='sim').count()
+    esim_tc = simsAll.filter(sim_status='DS', operator='TC', type_sim='esim').count()
+    sim_vr = simsAll.filter(sim_status='DS', operator='VR', type_sim='sim').count()
+    esim_vr = simsAll.filter(sim_status='DS', operator='VR', type_sim='esim').count()
+
+    context = {
+        'texto': 'Bem-vindo a área administrativa do sistema de gestão de vendas de SIM Cards.',
+        'sims': simsAll,
+        'sim_tm': sim_tm,
+        'esim_tm': esim_tm,
+        'sim_cm': sim_cm,
+        'esim_cm': esim_cm,
+        'sim_cmhk': sim_cmhk,
+        'esim_cmhk': esim_cmhk,
+        'sim_tc': sim_tc,
+        'esim_tc': esim_tc,
+        'sim_vr': sim_vr,
+        'esim_vr': esim_vr,
+        'dateDay': dateDay,
+        'dateYesterday': dateYesterday,
+        'dateWeek': dateWeek,
+        'dateMonth': dateMonth,
+        'dateYear': dateYear,
+        'orders_pending': orders_pending,
+        'countActivTM': countActivTM,
+        'countActivCM': countActivCM,
+        'countActivCMHK': countActivCMHK,
+        'countActivTC': countActivTC,
+        'countActivVR': countActivVR,
+        'weekSalesDates': weekSalesDates,
+        'weekSalesValues': weekSalesValues,
+        'weekSimsDates': weekSimsDates,
+        'weekSimsValuesS': weekSimsValuesS,
+        'weekSimsValuesE': weekSimsValuesE,
+        'weekOperDates': weekOperDates,
+        'weekOperValuesTM': weekOperValuesTM,
+        'weekOperValuesCM': weekOperValuesCM,
+        'weekOperValuesCMHK': weekOperValuesCMHK,
+        'weekOperValuesTC': weekOperValuesTC,
+        'weekOperValuesVR': weekOperValuesVR,
+        'monthSalesDates': monthSalesDates,
+        'monthSalesValues': monthSalesValues,
+        'monthSimsDates': monthSimsDates,
+        'monthSimsValuesS': monthSimsValuesS,
+        'monthSimsValuesE': monthSimsValuesE,
+        'monthOperDates': monthOperDates,
+        'monthOperValuesTM': monthOperValuesTM,
+        'monthOperValuesCM': monthOperValuesCM,
+        'monthOperValuesCMHK': monthOperValuesCMHK,
+        'monthOperValuesTC': monthOperValuesTC,
+        'monthOperValuesVR': monthOperValuesVR,
+        'yearSalesDates': yearSalesDates,
+        'yearSalesValues': yearSalesValues,
+        'yearSimsDates': yearSimsDates,
+        'yearSimsValuesS': yearSimsValuesS,
+        'yearSimsValuesE': yearSimsValuesE,
+        'yearOperDates': yearOperDates,
+        'yearOperValuesTM': yearOperValuesTM,
+        'yearOperValuesCM': yearOperValuesCM,
+        'yearOperValuesCMHK': yearOperValuesCMHK,
+        'yearOperValuesTC': yearOperValuesTC,
+        'yearOperValuesVR': yearOperValuesVR,
     }
-    
-    
-    return render(request, 'painel/dashboard/index.html', context)
+
+    return render(request, 'painel/dashboard/dashboard.html', context)
 
 
 @login_required(login_url='/login/')

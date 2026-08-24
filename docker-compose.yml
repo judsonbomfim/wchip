@@ -15,6 +15,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - IMAGE_NAME=djangoweb:latest
+      - COLLECTSTATIC_ON_STARTUP=false
     depends_on:
       - redis
     volumes:
