@@ -597,6 +597,8 @@ def ord_edit(request,id):
         if email == '':
             email = order.email
                 
+        previous_status = order.order_status
+
         order_put = Orders.objects.get(pk=order.id)
         order_put.days = days
         order_put.product = product
@@ -640,20 +642,42 @@ def ord_edit(request,id):
             if up_plan:
                 addNote(f'Plano alterado')
         except: pass
-        
-        # Conect Store
-        apiStore = ApiStore.conectApiStore() 
             
-        # Status Notes
-        if ord_st != order.order_status:
-            # Alterar status
-            # Status sis : Status Loja
-            orders_up_status.delay([order.id], ord_st, request.user.id)
-                       
-            # Enviar email
-            if ord_st == 'AT' or (ord_st == 'AA' and operator != 'AR'):
-                send_email_sims(id=order_id)                
-                messages.success(request,'E-mail enviado com sucesso para o cliente!')     
+        # Status: sincroniza loja/notas/e-mail sem depender do Redis (.delay estoura e
+        # interrompe o redirect mesmo com o status já gravado no banco).
+        if ord_st and ord_st != previous_status:
+            try:
+                orders_up_status(
+                    [order.id],
+                    ord_st,
+                    request.user.id,
+                    previous_status=previous_status,
+                )
+            except Exception:
+                logger.exception(
+                    'Falha ao sincronizar status do pedido %s (status local já salvo: %s → %s)',
+                    order.id,
+                    previous_status,
+                    ord_st,
+                )
+                status_labels = dict(Orders.order_status.field.choices)
+                addNote(
+                    f'Alterado de {status_labels.get(previous_status, previous_status)} '
+                    f'para {status_labels.get(ord_st, ord_st)}'
+                )
+                messages.warning(
+                    request,
+                    'Status atualizado no sistema, mas a sincronização com a loja falhou.',
+                )
+            else:
+                # orders_up_status já envia e-mail para AA (não-AR) e AT (AR).
+                # Mantém o e-mail de AT das demais operadoras (comportamento anterior do edit).
+                if ord_st == 'AT' and operator and operator != 'AR':
+                    try:
+                        send_email_sims(id=order.id)
+                        messages.success(request, 'E-mail enviado com sucesso para o cliente!')
+                    except Exception:
+                        logger.exception('Falha ao enviar e-mail do pedido %s', order.id)
         
         for msg_e in msg_error:
             messages.error(request,msg_e)

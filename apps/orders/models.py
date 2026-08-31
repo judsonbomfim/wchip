@@ -27,6 +27,7 @@ DATA = [
     ('500mb-dia', '500MB / Dia'),
     ('1gb-dia', '1GB / Dia'),
     ('2gb-dia', '2GB / Dia'),
+    ('3gb-dia', '3GB / Dia'),
     ('ilimitado', 'Ilimitado'),
     ('1gb-periodo', '1GB / Período'),
     ('2gb-periodo', '2GB / Período'),
@@ -95,7 +96,7 @@ class Orders(models.Model):
     activation_date = models.DateField()
     order_status = models.CharField(max_length=4, choices=ORDER_STATUS, default='PR')
     type_sim = models.CharField(max_length=4, null=True, blank=True, default='sim')
-    oper_sim = models.CharField(max_length=2, null=True, blank=True)
+    oper_sim = models.CharField(max_length=4, null=True, blank=True)
     id_sim = models.ForeignKey(Sims, on_delete=models.DO_NOTHING, null=True, blank=True)
     tracking = models.CharField(max_length=25, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -294,13 +294,10 @@ def orders_auto():
     send_email_sims()
 
 @shared_task
-def orders_up_status(ord_id, ord_s, id_user=None, skip_sim_deactivate=False):
+def orders_up_status(ord_id, ord_s, id_user=None, skip_sim_deactivate=False, previous_status=None):
     from apps.sims.tasks import simDeactivateTC
     from apps.send_email.tasks import send_email_sims
 
-    ord_id = ord_id
-    ord_s = ord_s
-    
     if isinstance(ord_id, (int, str)):
         ord_ids = [ord_id]
     else:
@@ -320,11 +317,17 @@ def orders_up_status(ord_id, ord_s, id_user=None, skip_sim_deactivate=False):
         order = Orders.objects.get(pk=o_id)
         
         order_id = order.id
-        order_st = order.order_status
-        order_plan = order.get_product_display()
-        try: type_sim = order.id_sim.type_sim
-        except: type_sim = 'esim'
-        apiStore = ApiStore.conectApiStore()
+        # Se o caller já gravou o status, usa previous_status para a nota correta
+        order_st = previous_status if previous_status is not None else order.order_status
+        try:
+            type_sim = order.id_sim.type_sim
+        except Exception:
+            type_sim = 'esim'
+        operator = None
+        try:
+            operator = order.id_sim.operator
+        except Exception:
+            operator = order.oper_sim
 
         # Save status System
         order.order_status = ord_s
@@ -357,20 +360,27 @@ def orders_up_status(ord_id, ord_s, id_user=None, skip_sim_deactivate=False):
         
         # Status sis : Status Loja
         status_sis_site = StatusStore.st_sis_site()
-        # Só cancelar se todos os itens estiverem cancelados
-        if order_itens == 0 and ord_s == 'CC':
-            logger.info(f'--------------------------- Alterar STATUS Cancelled')         
-            update_store = {
-                'status': 'cancelled'
-            }
-            apiStore.put(f'orders/{order.order_id}', update_store).json()
-        elif ord_s != 'CC' or ord_s != 'DE':
-            logger.info(f'--------------------------- Alterar STATUS Loja')            
-            if ord_s in status_sis_site:
+        try:
+            apiStore = ApiStore.conectApiStore()
+            # Só cancelar se todos os itens estiverem cancelados
+            if order_itens == 0 and ord_s == 'CC':
+                logger.info(f'--------------------------- Alterar STATUS Cancelled')         
                 update_store = {
-                    'status': status_sis_site[ord_s]
+                    'status': 'cancelled'
                 }
                 apiStore.put(f'orders/{order.order_id}', update_store).json()
+            elif ord_s not in ('CC', 'DE'):
+                logger.info(f'--------------------------- Alterar STATUS Loja')            
+                if ord_s in status_sis_site:
+                    update_store = {
+                        'status': status_sis_site[ord_s]
+                    }
+                    apiStore.put(f'orders/{order.order_id}', update_store).json()
+        except Exception:
+            logger.exception(
+                'Falha ao sincronizar status na loja para pedido %s',
+                order.order_id,
+            )
                 
         # Save Notes
         def addNote(t_note):
@@ -382,18 +392,21 @@ def orders_up_status(ord_id, ord_s, id_user=None, skip_sim_deactivate=False):
             )
             add_sim.save()
         
-        ord_status = Orders.order_status.field.choices
-        for st in ord_status:
-            if order_st == st[0] :
-                addNote(f'Alterado de {st[1]} para {order.get_order_status_display()}')
+        if order_st != ord_s:
+            status_labels = dict(Orders.order_status.field.choices)
+            addNote(
+                f'Alterado de {status_labels.get(order_st, order_st)} '
+                f'para {status_labels.get(ord_s, ord_s)}'
+            )
         
-        # Enviar email
-        if ord_s == 'AA' and order.id_sim.operator != 'AR':
-            send_email_sims.delay(id=order_id)
-        elif ord_s == 'AT' and order.id_sim.operator == 'AR':
-            send_email_sims.delay(id=order_id)
-        # if ord_s == 'CN' and (type_sim == 'sim' or order_plan == 'USA'):
-        #     send_email_sims.delay(id=order.id)
+        # Enviar email (pk do pedido, não order_id da loja)
+        try:
+            if ord_s == 'AA' and operator and operator != 'AR':
+                send_email_sims(id=order_id)
+            elif ord_s == 'AT' and operator == 'AR':
+                send_email_sims(id=order_id)
+        except Exception:
+            logger.exception('Falha ao enviar e-mail após mudança de status do pedido %s', order_id)
 
 
 @shared_task
