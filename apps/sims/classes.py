@@ -1421,13 +1421,87 @@ class qrcodeChange():
         return f"{settings.URL_CDN}{link}"
 
     @staticmethod
+    def _decode_candidates(bgr_image):
+        """Gera variantes da imagem para o OpenCV (cartões com título/barcode)."""
+        gray = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2GRAY)
+        height, width = gray.shape
+        variants = [bgr_image, gray]
+        for scale in (2, 3):
+            variants.append(
+                cv2.resize(gray, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
+            )
+
+        # Maior região quase quadrada (QR costuma ser o bloco central)
+        inverted = cv2.bitwise_not(gray)
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+        closed = cv2.morphologyEx(inverted, cv2.MORPH_CLOSE, kernel)
+        _, thresholded = cv2.threshold(
+            closed, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
+        )
+        contours, _ = cv2.findContours(
+            thresholded, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+        )
+        square_candidates = []
+        min_area = (height * width) * 0.05
+        for contour in contours:
+            x, y, box_w, box_h = cv2.boundingRect(contour)
+            area = box_w * box_h
+            if area < min_area:
+                continue
+            ratio = box_w / float(box_h)
+            if 0.7 <= ratio <= 1.3:
+                square_candidates.append((area, x, y, box_w, box_h))
+        square_candidates.sort(reverse=True)
+        for _, x, y, box_w, box_h in square_candidates[:4]:
+            for pad_frac in (0.05, 0.12):
+                pad = int(pad_frac * max(box_w, box_h))
+                x1, y1 = max(0, x - pad), max(0, y - pad)
+                x2, y2 = min(width, x + box_w + pad), min(height, y + box_h + pad)
+                crop = gray[y1:y2, x1:x2]
+                if crop.size == 0:
+                    continue
+                for scale in (2, 3):
+                    variants.append(
+                        cv2.resize(
+                            crop, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC
+                        )
+                    )
+
+        # Cartão "ESim Activation Code": corta título e barcode
+        for top, bottom, left, right in (
+            (0.08, 0.62, 0.15, 0.85),
+            (0.06, 0.60, 0.12, 0.88),
+            (0.05, 0.58, 0.18, 0.82),
+        ):
+            crop = gray[
+                int(height * top):int(height * bottom),
+                int(width * left):int(width * right),
+            ]
+            if crop.size == 0:
+                continue
+            for scale in (2, 3):
+                variants.append(
+                    cv2.resize(
+                        crop, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC
+                    )
+                )
+
+        _, otsu = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        variants.append(
+            cv2.resize(otsu, None, fx=2, fy=2, interpolation=cv2.INTER_NEAREST)
+        )
+        return variants
+
+    @staticmethod
     def read_qr_code(file_path):
         parsed_url = urlparse(file_path)
 
         if parsed_url.scheme in ('http', 'https'):
             with urlopen(file_path, timeout=HTTP_TIMEOUT) as response:
                 image_bytes = response.read()
-            qr_image = cv2.imdecode(np.frombuffer(image_bytes, dtype=np.uint8), cv2.IMREAD_COLOR)
+            qr_image = cv2.imdecode(
+                np.frombuffer(image_bytes, dtype=np.uint8), cv2.IMREAD_COLOR
+            )
         else:
             qr_image = cv2.imread(file_path)
 
@@ -1435,11 +1509,17 @@ class qrcodeChange():
             raise ValueError(f'Nao foi possivel carregar a imagem do QR code: {file_path}')
 
         qr_detector = cv2.QRCodeDetector()
-        data, points, _ = qr_detector.detectAndDecode(qr_image)
-        print(f">>>>> Decoded data: {data}")
-        if data:
-            return data
-        return None
+        fallback = None
+        for candidate in qrcodeChange._decode_candidates(qr_image):
+            data, _, _ = qr_detector.detectAndDecode(candidate)
+            if not data:
+                continue
+            print(f">>>>> Decoded data: {data}")
+            if data.startswith('LPA:'):
+                return data
+            if fallback is None:
+                fallback = data
+        return fallback
 
     @staticmethod
     def build_qr_file(lpa, sim):

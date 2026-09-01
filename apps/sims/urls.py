@@ -11,6 +11,7 @@ urlpatterns = [
     path('delsimtc', views.delSimTC, name='delsimtc'),
     path('delsimcm', views.delSimCM, name='delsimcm'),
     path('atualizar_lpa/', views.lpaChange, name='lpaChange'),
+    path('<int:sim_id>/gerar_lpa/', views.sims_gerar_lpa, name='sims_gerar_lpa'),
     # path('verificar', views.verify_sim, name='verify_sim'),
 
 ]

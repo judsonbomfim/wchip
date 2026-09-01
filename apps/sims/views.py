@@ -2,9 +2,10 @@ from venv import logger
 
 from django.contrib.auth.decorators import login_required
 from rolepermissions.decorators import has_permission_decorator
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.http import HttpResponse
 from django.urls import reverse
+from django.views.decorators.http import require_POST
 from datetime import date
 from django.core.paginator import Paginator
 from django.contrib import messages
@@ -17,7 +18,7 @@ import imghdr
 import logging
 import boto3
 from apps.sims.models import Sims
-from apps.sims.classes import ensure_tm_esim_padrao_lpa, qrcodeChange
+from apps.sims.classes import TM_ESIM_PADRAO_PK, ensure_tm_esim_padrao_lpa, qrcodeChange
 from apps.orders.models import Orders
 from apps.orders.classes import ApiStore, DateFormats
 from .tasks import sims_in_orders
@@ -206,9 +207,57 @@ def sims_list(request):
         'sim_vr': sim_vr,
         'esim_vr': esim_vr,
         'url_filter': url_filter,
+        'link_esim_android': settings.LINK_ESIM_ANDROID,
+        'link_esim_ios': settings.LINK_ESIM_IOS,
     }
        
     return render(request, 'painel/sims/index.html', context)
+
+
+@login_required(login_url='/login/')
+@has_permission_decorator('view_sims')
+@require_POST
+def sims_gerar_lpa(request, sim_id):
+    """Gera LPA a partir do QR do eSIM e redireciona para a lista."""
+    sim = get_object_or_404(Sims, pk=sim_id)
+    next_url = request.POST.get('next') or reverse('sims_index')
+
+    if sim.type_sim != 'esim':
+        messages.error(request, f'{sim.sim} não é eSIM.')
+        return redirect(next_url)
+
+    current_lpa = (sim.lpa or '').strip()
+    if current_lpa.startswith('LPA:'):
+        messages.info(request, f'{sim.sim} já possui LPA.')
+        return redirect(next_url)
+
+    try:
+        if sim.id == TM_ESIM_PADRAO_PK:
+            ensure_tm_esim_padrao_lpa(sim)
+            sim.refresh_from_db()
+        else:
+            new_lpa = read_lpa_from_link(sim.link)
+            if new_lpa and str(new_lpa).startswith('LPA:'):
+                sim.lpa = new_lpa
+                sim.save(update_fields=['lpa'])
+            else:
+                messages.error(
+                    request,
+                    f'Não foi possível ler o LPA do QR de {sim.sim}. '
+                    f'Verifique o link da imagem.',
+                )
+                return redirect(next_url)
+    except Exception as e:
+        logger.error('Erro ao gerar LPA do SIM %s: %s', sim.sim, e, exc_info=True)
+        messages.error(request, f'Erro ao gerar LPA de {sim.sim}: {e}')
+        return redirect(next_url)
+
+    if (sim.lpa or '').startswith('LPA:'):
+        messages.success(request, f'LPA gerado para {sim.sim}.')
+    else:
+        messages.error(request, f'LPA não foi gravado para {sim.sim}.')
+    return redirect(next_url)
+
 
 @login_required(login_url='/login/')
 @has_permission_decorator('add_sims')

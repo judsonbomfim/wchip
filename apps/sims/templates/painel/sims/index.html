@@ -89,6 +89,7 @@
             <th>Tipo Sim</th>
             <th>Operadora</th>
             <th>Status</th>
+            <th class="text-center">Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -105,27 +106,49 @@
                 <span class="text-sm font-semibold text-default-800">{{ sim.sim }}</span>
               </td>
               <td>
-                {% if sim.type_sim == 'esim' and sim.link and sim.link != '-' %}
-                  {% if sim.operator == 'AR' %}
-                    <a href="{{ sim.link }}"
-                       target="_blank"
-                       class="inline-flex items-center gap-1 text-sm hover:underline"
-                       title="Ver QRCode">
-                      <i class="iconify tabler--qrcode text-base"></i>
-                      {{ sim.sim }}
-                    </a>
+                <div class="flex flex-wrap items-center gap-1">
+                  {% if sim.type_sim == 'esim' %}
+                    {% if sim.operator == 'AR' and sim.link and sim.link != '-' %}
+                      <a class="btn btn-icon btn-sm border border-default-300 hover:border-default-400"
+                         href="{{ sim.link }}"
+                         target="_blank"
+                         title="Ver QRCode">
+                        <i class="iconify tabler--qrcode text-base"></i>
+                      </a>
+                    {% elif sim.link and sim.link != '-' %}
+                      <a class="btn btn-icon btn-sm border border-default-300 hover:border-default-400"
+                         href="{{ url_cdn }}{{ sim.link }}"
+                         target="_blank"
+                         title="Ver QRCode">
+                        <i class="iconify tabler--qrcode text-base"></i>
+                      </a>
+                    {% else %}
+                      <span class="text-default-400">-</span>
+                    {% endif %}
+                    {% if sim.lpa and sim.lpa|slice:":4" == "LPA:" %}
+                      <a class="btn btn-icon btn-sm border border-default-300 hover:border-default-400"
+                         href="#"
+                         title="Copiar link Android"
+                         data-esim-prefix="{{ link_esim_android }}"
+                         data-esim-lpa="{{ sim.lpa }}"
+                         data-copy-label="Link Android copiado"
+                         onclick="return copyActivationLink(this);">
+                        <i class="iconify tabler--brand-android text-base"></i>
+                      </a>
+                      <a class="btn btn-icon btn-sm border border-default-300 hover:border-default-400"
+                         href="#"
+                         title="Copiar link iOS"
+                         data-esim-prefix="{{ link_esim_ios }}"
+                         data-esim-lpa="{{ sim.lpa }}"
+                         data-copy-label="Link iOS copiado"
+                         onclick="return copyActivationLink(this);">
+                        <i class="iconify tabler--brand-apple text-base"></i>
+                      </a>
+                    {% endif %}
                   {% else %}
-                    <a href="{{ url_cdn }}{{ sim.link }}"
-                       target="_blank"
-                       class="inline-flex items-center gap-1 text-sm hover:underline"
-                       title="Ver QRCode">
-                      <i class="iconify tabler--qrcode text-base"></i>
-                      {{ sim.sim }}
-                    </a>
+                    <span class="text-default-400">-</span>
                   {% endif %}
-                {% else %}
-                  <span class="text-default-400">-</span>
-                {% endif %}
+                </div>
               </td>
               <td>
                 <span class="badge py-0 font-semibold text-2xs {% if sim.type_sim == 'esim' %}bg-info/15 text-info{% else %}bg-secondary/15 text-secondary{% endif %}">
@@ -136,10 +159,33 @@
               <td>
                 <span class="badge py-0 font-semibold text-2xs bg-secondary/15 text-secondary">{{ sim.get_sim_status_display }}</span>
               </td>
+              <td class="text-center">
+                {% if sim.type_sim == 'esim' %}
+                  {% if not sim.lpa or sim.lpa|slice:":4" != "LPA:" %}
+                    <form action="{% url 'sims_gerar_lpa' sim.id %}"
+                          method="post"
+                          class="inline">
+                      {% csrf_token %}
+                      <input type="hidden"
+                             name="next"
+                             value="{{ request.get_full_path }}" />
+                      <button type="submit"
+                              class="btn btn-icon btn-sm border border-default-300 hover:border-default-400"
+                              title="Gerar LPA a partir do QR">
+                        <i class="iconify tabler--scan text-base"></i>
+                      </button>
+                    </form>
+                  {% else %}
+                    <span class="text-default-400">-</span>
+                  {% endif %}
+                {% else %}
+                  <span class="text-default-400">-</span>
+                {% endif %}
+              </td>
             </tr>
           {% empty %}
             <tr>
-              <td colspan="6" class="py-8 text-center text-default-400">Nenhum (e)SIM encontrado.</td>
+              <td colspan="7" class="py-8 text-center text-default-400">Nenhum (e)SIM encontrado.</td>
             </tr>
           {% endfor %}
         </tbody>
@@ -176,6 +222,9 @@
       </nav>
     </div>
   </div>
+  <div id="clipboard-feedback-container" class="fixed bottom-4 right-4 z-50 hidden">
+    <div id="clipboard-feedback" class="rounded-md px-4 py-3 text-sm text-white shadow-lg"></div>
+  </div>
 {% endblock page_content %}
 {% block scripts %}
   <script>
@@ -187,6 +236,65 @@
           checkbox.checked = checkAll.checked
         })
       })
+    }
+
+    function showClipboardFeedback(message, isError) {
+      const container = document.getElementById('clipboard-feedback-container')
+      const feedback = document.getElementById('clipboard-feedback')
+      if (!container || !feedback) return
+      feedback.textContent = message
+      feedback.className = `rounded-md px-4 py-3 text-sm text-white shadow-lg ${isError ? 'bg-danger' : 'bg-success'}`
+      container.classList.remove('hidden')
+      window.clearTimeout(window.clipboardFeedbackTimeout)
+      window.clipboardFeedbackTimeout = window.setTimeout(() => {
+        container.classList.add('hidden')
+      }, 2500)
+    }
+
+    async function copyTextToClipboard(text, successMessage) {
+      if (!text) {
+        showClipboardFeedback('Link não configurado.', true)
+        return
+      }
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text)
+          showClipboardFeedback(successMessage)
+          return
+        }
+        throw new Error('Clipboard API indisponível')
+      } catch (error) {
+        const tempInput = document.createElement('textarea')
+        tempInput.value = text
+        tempInput.setAttribute('readonly', '')
+        tempInput.style.position = 'fixed'
+        tempInput.style.top = '-9999px'
+        document.body.appendChild(tempInput)
+        tempInput.select()
+        let copied = false
+        try {
+          copied = document.execCommand('copy')
+        } catch (e) {
+          copied = false
+        }
+        document.body.removeChild(tempInput)
+        showClipboardFeedback(copied ? successMessage : 'Não foi possível copiar o link.', !copied)
+      }
+    }
+
+    window.copyActivationLink = function (element) {
+      if (!element) {
+        showClipboardFeedback('Não foi possível copiar o link.', true)
+        return false
+      }
+      const prefix = (element.dataset.esimPrefix || '').trim()
+      const lpa = (element.dataset.esimLpa || '').trim()
+      if (!prefix || !lpa || !lpa.startsWith('LPA:')) {
+        showClipboardFeedback('LPA inválido ou ausente. Não foi possível copiar o link.', true)
+        return false
+      }
+      copyTextToClipboard(`${prefix}${lpa}`, element.dataset.copyLabel)
+      return false
     }
   })()
   </script>
