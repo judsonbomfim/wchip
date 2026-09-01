@@ -11,18 +11,9 @@ PRODUCT = [
     ('980', 'A. Norte Controle'),
     ('977', 'EUA Ilimitado'),
     ('975', 'Mundo Controle'),
+    ('974', 'Europa Flex'),    
     ('971', 'Europa Controle'),
     ('001', 'EUA T-mobile'),
-    # Legado
-    ('4816', 'Europa Flex (E)'),
-    ('4763', 'Africa Flex'),
-    ('4752', 'Cuba Flex'),
-    ('4735', 'Oceania Flex'),
-    ('4718', 'Caribe Flex'),
-    ('981', 'A. Norte Flex'),
-    ('976', 'EUA Flex'),    
-    ('974', 'Europa Flex'),
-    
 ]
 
 DATA = [

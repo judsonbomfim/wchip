@@ -41,7 +41,8 @@
           <select class="form-select" name="sim_type_f" form="simsForm">
             <option value="">Tipo</option>
             {% for sim_t in sims_types %}
-              <option value="{{ sim_t.0 }}" {% if sim_type_f == sim_t.0 %}selected{% endif %}>{{ sim_t.1 }}</option>
+              <option value="{{ sim_t.0 }}"
+                      {% if sim_type_f == sim_t.0 %}selected{% endif %}>{{ sim_t.1 }}</option>
             {% endfor %}
           </select>
         </div>
@@ -50,7 +51,8 @@
           <select class="form-select" name="sim_status_f" form="simsForm">
             <option value="">Status</option>
             {% for sim_s in sims_status %}
-              <option value="{{ sim_s.0 }}" {% if sim_status_f == sim_s.0 %}selected{% endif %}>{{ sim_s.1 }}</option>
+              <option value="{{ sim_s.0 }}"
+                      {% if sim_status_f == sim_s.0 %}selected{% endif %}>{{ sim_s.1 }}</option>
             {% endfor %}
           </select>
         </div>
@@ -59,7 +61,8 @@
           <select class="form-select" name="sim_oper_f" form="simsForm">
             <option value="">Operadora</option>
             {% for sim_o in sims_oper %}
-              <option value="{{ sim_o.0 }}" {% if sim_oper_f == sim_o.0 %}selected{% endif %}>{{ sim_o.1 }}</option>
+              <option value="{{ sim_o.0 }}"
+                      {% if sim_oper_f == sim_o.0 %}selected{% endif %}>{{ sim_o.1 }}</option>
             {% endfor %}
           </select>
         </div>
@@ -82,7 +85,9 @@
         <thead class="thead-sm">
           <tr class="bg-light/25 text-2xs uppercase">
             <th class="w-[1%]">
-              <input class="form-checkbox form-checkbox-light size-4.5" type="checkbox" id="checkAll" />
+              <input class="form-checkbox form-checkbox-light size-4.5"
+                     type="checkbox"
+                     id="checkAll" />
             </th>
             <th>SIM</th>
             <th>Link</th>
@@ -166,9 +171,7 @@
                           method="post"
                           class="inline">
                       {% csrf_token %}
-                      <input type="hidden"
-                             name="next"
-                             value="{{ request.get_full_path }}" />
+                      <input type="hidden" name="next" value="{{ request.get_full_path }}" />
                       <button type="submit"
                               class="btn btn-icon btn-sm border border-default-300 hover:border-default-400"
                               title="Gerar LPA a partir do QR">
@@ -222,8 +225,10 @@
       </nav>
     </div>
   </div>
-  <div id="clipboard-feedback-container" class="fixed bottom-4 right-4 z-50 hidden">
-    <div id="clipboard-feedback" class="rounded-md px-4 py-3 text-sm text-white shadow-lg"></div>
+  <div id="clipboard-feedback-container"
+       class="fixed bottom-4 right-4 z-50 hidden">
+    <div id="clipboard-feedback"
+         class="rounded-md px-4 py-3 text-sm text-white shadow-lg"></div>
   </div>
 {% endblock page_content %}
 {% block scripts %}

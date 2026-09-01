@@ -5,7 +5,7 @@
   {% include 'painel/partials/page-title.html' with subtitle='Pedidos' title='Ativações de Pedidos' %}
 {% endblock page_title %}
 {% block page_content %}
-  <div class="mb-5 grid grid-cols-1 gap-base sm:grid-cols-2 xl:grid-cols-5">
+  <div class="mb-5 grid grid-cols-1 gap-base sm:grid-cols-2 xl:grid-cols-4">
     <div class="card">
       <div class="card-body">
         <div class="flex items-center justify-between gap-3">
@@ -62,32 +62,21 @@
         </div>
       </div>
     </div>
-    <div class="card">
-      <div class="card-body">
-        <div class="flex items-center justify-between gap-3">
-          <div>
-            <h5 class="mb-1 text-sm font-semibold uppercase text-default-500">Verizon</h5>
-            <p class="mb-0 text-2xl font-semibold text-default-800">{{ countActivVR }}</p>
-            <p class="mb-0 text-xs text-default-400">Ativações</p>
-          </div>
-          <span class="flex size-11 shrink-0 items-center justify-center rounded-full bg-success/15 text-success">
-            <i class="iconify tabler--device-sim size-5"></i>
-          </span>
-        </div>
-      </div>
-    </div>
   </div>
-
-  <form action="{% url 'orders_activations' %}" method="post" id="activationsForm">
+  <form action="{% url 'orders_activations' %}"
+        method="post"
+        id="activationsForm">
     {% csrf_token %}
   </form>
-
   <div class="card">
     <div class="card-header">
       <div class="flex flex-wrap items-center gap-2.5">
         {% if request.user|can:'edit_orders' %}
           <div class="w-40 shrink-0">
-            <select class="form-select" name="ord_staus" id="ord_status" form="activationsForm">
+            <select class="form-select"
+                    name="ord_staus"
+                    id="ord_status"
+                    form="activationsForm">
               <option value="" selected>Alterar Status</option>
               {% for ord_st in ord_st_list %}
                 <option value="{{ ord_st.0 }}">{{ ord_st.1 }}</option>
@@ -133,7 +122,8 @@
             <option value="">Status</option>
             {% for ord_st in ord_st_list %}
               {% if ord_st.2 != 0 %}
-                <option value="{{ ord_st.0 }}" {% if ord_st_f == ord_st.0 %}selected{% endif %}>{{ ord_st.1 }} ({{ ord_st.2 }})</option>
+                <option value="{{ ord_st.0 }}"
+                        {% if ord_st_f == ord_st.0 %}selected{% endif %}>{{ ord_st.1 }} ({{ ord_st.2 }})</option>
               {% endif %}
             {% endfor %}
           </select>
@@ -166,7 +156,9 @@
         <thead class="thead-sm">
           <tr class="bg-light/25 text-2xs uppercase">
             <th class="w-[1%]">
-              <input class="form-checkbox form-checkbox-light size-4.5" type="checkbox" id="checkAll" />
+              <input class="form-checkbox form-checkbox-light size-4.5"
+                     type="checkbox"
+                     id="checkAll" />
             </th>
             <th>Pedido</th>
             <th>Cliente</th>
@@ -224,7 +216,9 @@
                 <div class="flex justify-center gap-1">
                   {% if order.cell_mod %}
                     <div class="hs-tooltip inline-block [--placement:top] [--trigger:click]">
-                      <button type="button" class="hs-tooltip-toggle inline-flex items-center justify-center" aria-label="Modelo do celular">
+                      <button type="button"
+                              class="hs-tooltip-toggle inline-flex items-center justify-center"
+                              aria-label="Modelo do celular">
                         <i class="iconify tabler--device-mobile text-primary text-lg"></i>
                       </button>
                       <span class="hs-tooltip-content hs-tooltip-shown:opacity-100 hs-tooltip-shown:visible border-default-300 invisible absolute z-70 inline-block max-w-xs rounded-md border bg-card px-3 py-2 text-start text-xs font-medium text-default-800 opacity-0 shadow-lg transition-opacity"
@@ -233,7 +227,9 @@
                   {% endif %}
                   {% if order.cell_imei %}
                     <div class="hs-tooltip inline-block [--placement:top] [--trigger:click]">
-                      <button type="button" class="hs-tooltip-toggle inline-flex items-center justify-center" aria-label="IMEI">
+                      <button type="button"
+                              class="hs-tooltip-toggle inline-flex items-center justify-center"
+                              aria-label="IMEI">
                         <i class="iconify tabler--device-mobile text-secondary text-lg"></i>
                       </button>
                       <span class="hs-tooltip-content hs-tooltip-shown:opacity-100 hs-tooltip-shown:visible border-default-300 invisible absolute z-70 inline-block max-w-xs break-all rounded-md border bg-card px-3 py-2 text-start text-xs font-medium text-default-800 opacity-0 shadow-lg transition-opacity"
@@ -242,7 +238,9 @@
                   {% endif %}
                   {% if order.cell_eid %}
                     <div class="hs-tooltip inline-block [--placement:top] [--trigger:click]">
-                      <button type="button" class="hs-tooltip-toggle inline-flex items-center justify-center" aria-label="EID">
+                      <button type="button"
+                              class="hs-tooltip-toggle inline-flex items-center justify-center"
+                              aria-label="EID">
                         <i class="iconify tabler--device-mobile text-default-400 text-lg"></i>
                       </button>
                       <span class="hs-tooltip-content hs-tooltip-shown:opacity-100 hs-tooltip-shown:visible border-default-300 invisible absolute z-70 inline-block max-w-xs break-all rounded-md border bg-card px-3 py-2 text-start text-xs font-medium text-default-800 opacity-0 shadow-lg transition-opacity"

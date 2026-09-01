@@ -447,7 +447,7 @@ def ord_edit(request,id):
             
         order = Orders.objects.get(pk=id)
         ord_status = Orders.order_status.field.choices
-        ord_product = Orders.product.field.choices
+        ord_product = sorted(Orders.product.field.choices, key=lambda item: item[1].casefold())
         ord_data_day = Orders.data_day.field.choices
         ord_operators = Sims.operator.field.choices
         
