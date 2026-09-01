@@ -340,8 +340,14 @@ APIAIRALO_KEY = str(os.getenv('APIAIRALO_KEY'))
 APIAIRALO_SECRET = str(os.getenv('APIAIRALO_SECRET'))
 APIAIRALO_URL = str(os.getenv('APIAIRALO_URL'))
 
-LINK_ESIM_ANDROID = os.getenv('LINK_ESIM_ANDROID') or 'https://esimsetup.android.com/esim_qrcode_provisioning?carddata='
-LINK_ESIM_IOS = os.getenv('LINK_ESIM_IOS') or 'https://esimsetup.apple.com/esim_qrcode_provisioning?carddata='
+LINK_ESIM_ANDROID = str(
+    os.getenv('LINK_ESIM_ANDROID')
+    or 'https://esimsetup.android.com/esim_qrcode_provisioning?carddata='
+)
+LINK_ESIM_IOS = str(
+    os.getenv('LINK_ESIM_IOS')
+    or 'https://esimsetup.apple.com/esim_qrcode_provisioning?carddata='
+)
 
 
 # LOGGING CONFIGURATION

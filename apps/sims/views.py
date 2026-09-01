@@ -34,11 +34,46 @@ def get_s3_client():
     )
 
 def upload_file_to_s3(file):
+    """
+    Envia o arquivo para ``media/<nome>`` no S3 e devolve o path relativo
+    (ex.: ``/media/iccid.jpg``) para concatenar com ``URL_CDN``.
+
+    Não use ``default_storage.url('media/...')``: o storage já tem
+    ``location=media``, o que gerava ``/media/media/...``. Tampouco faça
+    ``.replace(AWS_S3_CUSTOM_DOMAIN)`` quando o domínio vem sem ``https://`` —
+    isso gravava ``https:///media/media/...``.
+    """
     s3 = get_s3_client()
     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-    file_path = f"{settings.MEDIA_LOCATION}/{file.name}"
-    s3.upload_fileobj(file, bucket_name, file_path)
-    return default_storage.url(file_path)
+    media_location = getattr(settings, 'MEDIA_LOCATION', 'media')
+    object_key = f"{media_location}/{file.name}"
+    if hasattr(file, 'seek'):
+        file.seek(0)
+    s3.upload_fileobj(file, bucket_name, object_key)
+    return f'/{object_key}'
+
+
+def normalize_sim_qr_link(link):
+    """Normaliza links de QR gravados com path/domínio incorretos."""
+    if not link or link == '-':
+        return link
+    value = str(link).strip()
+    # https:///media/media/x.jpg  ou  https:///media/x.jpg
+    value = value.replace('https:///', '/').replace('http:///', '/')
+    # URL absoluta do próprio CDN/S3 → só o path
+    if value.startswith('http://') or value.startswith('https://'):
+        from urllib.parse import urlparse
+        path = urlparse(value).path or ''
+        if path.startswith('/media/'):
+            value = path
+    # Path relativo sem barra inicial
+    if value and not value.startswith('/') and not value.startswith('http'):
+        value = f'/{value.lstrip("/")}'
+    # /media/media/x.jpg → /media/x.jpg
+    while '/media/media/' in value:
+        value = value.replace('/media/media/', '/media/', 1)
+    return value
+
 
 def qr_image_url(link):
     return qrcodeChange.resolve_qr_url(link)
@@ -325,8 +360,7 @@ def sims_add_esim(request):
             
             fileurl = ''
             if imghdr.what(sim_img):
-                fileurl = upload_file_to_s3(sim_img)
-                fileurl = fileurl.replace(settings.URL_CDN,'')
+                fileurl = normalize_sim_qr_link(upload_file_to_s3(sim_img))
             else:
                 messages.error(request,'O arquivo não é uma imagem. Verifique por favor!')
                 return render(request, 'painel/sims/add-esim.html', {'operator_list': Sims.operator.field.choices})           
@@ -351,6 +385,13 @@ def sims_add_esim(request):
                 operator = operator
             )
             add_sim.save()
+
+            if not lpa:
+                messages.warning(
+                    request,
+                    f'eSIM {sim_i[0]} cadastrado, mas o LPA não pôde ser lido do QR. '
+                    f'Rode /sims/atualizar_lpa/ ou edite o LPA manualmente.',
+                )
 
         messages.success(request,'Lista gravada com sucesso')
         return render(request, 'painel/sims/add-esim.html', {'operator_list': Sims.operator.field.choices})
