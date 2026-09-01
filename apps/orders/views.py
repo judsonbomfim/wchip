@@ -415,12 +415,25 @@ def ord_add(request):
         messages.error(request, 'Erro de limite de dados no banco. Execute as migrações do app orders e tente novamente.')
         return render(request, 'painel/orders/add.html', context)
 
-    if ord_note:
+    try:
+        id_user = User.objects.get(pk=request.user.id)
+        type_note = 'P'
+    except User.DoesNotExist:
+        id_user = None
+        type_note = 'S'
+
+    Notes.objects.create(
+        id_item=order,
+        id_user=id_user,
+        note='Pedido inserido no sistema',
+        type_note=type_note,
+    )
+    if ord_note and ord_note.strip():
         Notes.objects.create(
             id_item=order,
-            id_user=User.objects.get(pk=request.user.id),
-            note=ord_note,
-            type_note='P',
+            id_user=id_user,
+            note=ord_note.strip(),
+            type_note=type_note,
         )
 
     messages.success(request, f'Pedido {order.item_id} criado com sucesso!')
