@@ -43,17 +43,28 @@ def index(request):
     ordersMonth = chart_orders.filter(order_date__gte=dateMonth, order_date__lt=dateTomorrow)
     ordersYear = chart_orders.filter(order_date__gte=dateYear, order_date__lt=dateTomorrow)
 
-    fields = ['order_id', 'order_date', 'id_sim__type_sim', 'id_sim__operator']
+    # item_id = 1 linha de venda (loja ou manual). type_sim/oper_sim cobrem
+    # pedidos manuais ainda sem id_sim ou com tipo/operadora só no pedido.
+    fields = [
+        'item_id',
+        'order_id',
+        'order_date',
+        'type_sim',
+        'oper_sim',
+        'id_sim__type_sim',
+        'id_sim__operator',
+    ]
 
     def process_orders(orders_qs):
         processed = []
         for order in orders_qs.values(*fields):
             order_date = order['order_date']
             processed.append({
+                'item_id': order['item_id'],
                 'order_id': order['order_id'],
                 'order_date': order_date.date() if hasattr(order_date, 'date') else order_date,
-                'type_sim': order['id_sim__type_sim'],
-                'operator': order['id_sim__operator'],
+                'type_sim': order['id_sim__type_sim'] or order['type_sim'],
+                'operator': order['id_sim__operator'] or order['oper_sim'],
             })
         return processed
 
@@ -65,24 +76,26 @@ def index(request):
         order_date = order['order_date']
         order_date = order_date.date() if hasattr(order_date, 'date') else order_date
         year_orders.append({
+            'item_id': order['item_id'],
             'order_id': order['order_id'],
             'order_date': order_date,
             'month': order_date.replace(day=1),
-            'type_sim': order['id_sim__type_sim'],
-            'operator': order['id_sim__operator'],
+            'type_sim': order['id_sim__type_sim'] or order['type_sim'],
+            'operator': order['id_sim__operator'] or order['oper_sim'],
         })
 
-    unique_week_sales = {sale['order_id']: sale for sale in week_orders}.values()
+    # SIMs Vendidos: 1 ponto por item (inclui manuais e multi-item da loja)
+    unique_week_sales = {sale['item_id']: sale for sale in week_orders}.values()
     sales_by_date_week = defaultdict(int)
     for sale in unique_week_sales:
         sales_by_date_week[sale['order_date']] += 1
 
-    unique_month_sales = {sale['order_id']: sale for sale in month_orders}.values()
+    unique_month_sales = {sale['item_id']: sale for sale in month_orders}.values()
     sales_by_date_month = defaultdict(int)
     for sale in unique_month_sales:
         sales_by_date_month[sale['order_date']] += 1
 
-    unique_year_sales = {sale['order_id']: sale for sale in year_orders}.values()
+    unique_year_sales = {sale['item_id']: sale for sale in year_orders}.values()
     sales_by_month_year = defaultdict(int)
     for sale in unique_year_sales:
         sales_by_month_year[sale['month']] += 1
@@ -112,29 +125,34 @@ def index(request):
     yearSalesValues = json.dumps([v for d, v in sorted_sales_year])
 
     sims_by_date_type_week = defaultdict(lambda: defaultdict(int))
-    for order in week_orders:
-        sims_by_date_type_week[order['order_date']][order['type_sim']] += 1
+    for order in {o['item_id']: o for o in week_orders}.values():
+        if order['type_sim'] in ('sim', 'esim'):
+            sims_by_date_type_week[order['order_date']][order['type_sim']] += 1
     weekSimsDates = json.dumps([d.strftime('%Y-%m-%d') for d in all_week_dates])
     weekSimsValuesS = json.dumps([sims_by_date_type_week[d].get('sim', 0) for d in all_week_dates])
     weekSimsValuesE = json.dumps([sims_by_date_type_week[d].get('esim', 0) for d in all_week_dates])
 
     sims_by_date_type_month = defaultdict(lambda: defaultdict(int))
-    for order in month_orders:
-        sims_by_date_type_month[order['order_date']][order['type_sim']] += 1
+    for order in {o['item_id']: o for o in month_orders}.values():
+        if order['type_sim'] in ('sim', 'esim'):
+            sims_by_date_type_month[order['order_date']][order['type_sim']] += 1
     monthSimsDates = json.dumps([d.strftime('%Y-%m-%d') for d in all_month_dates])
     monthSimsValuesS = json.dumps([sims_by_date_type_month[d].get('sim', 0) for d in all_month_dates])
     monthSimsValuesE = json.dumps([sims_by_date_type_month[d].get('esim', 0) for d in all_month_dates])
 
     sims_by_month_type_year = defaultdict(lambda: defaultdict(int))
-    for order in year_orders:
-        sims_by_month_type_year[order['month']][order['type_sim']] += 1
+    for order in {o['item_id']: o for o in year_orders}.values():
+        if order['type_sim'] in ('sim', 'esim'):
+            sims_by_month_type_year[order['month']][order['type_sim']] += 1
     yearSimsDates = json.dumps([m.strftime('%Y-%m') for m in all_year_months])
     yearSimsValuesS = json.dumps([sims_by_month_type_year[m].get('sim', 0) for m in all_year_months])
     yearSimsValuesE = json.dumps([sims_by_month_type_year[m].get('esim', 0) for m in all_year_months])
 
+    unique_week_oper = {order['item_id']: order for order in week_orders}.values()
     oper_by_date_week = defaultdict(lambda: defaultdict(int))
-    for order in week_orders:
-        oper_by_date_week[order['order_date']][order['operator']] += 1
+    for order in unique_week_oper:
+        if order['operator']:
+            oper_by_date_week[order['order_date']][order['operator']] += 1
     weekOperDates = json.dumps([d.strftime('%Y-%m-%d') for d in all_week_dates])
     weekOperValuesTM = json.dumps([oper_by_date_week[d].get('TM', 0) for d in all_week_dates])
     weekOperValuesCM = json.dumps([oper_by_date_week[d].get('CM', 0) for d in all_week_dates])
@@ -142,9 +160,11 @@ def index(request):
     weekOperValuesTC = json.dumps([oper_by_date_week[d].get('TC', 0) for d in all_week_dates])
     weekOperValuesVR = json.dumps([oper_by_date_week[d].get('VR', 0) for d in all_week_dates])
 
+    unique_month_oper = {order['item_id']: order for order in month_orders}.values()
     oper_by_date_month = defaultdict(lambda: defaultdict(int))
-    for order in month_orders:
-        oper_by_date_month[order['order_date']][order['operator']] += 1
+    for order in unique_month_oper:
+        if order['operator']:
+            oper_by_date_month[order['order_date']][order['operator']] += 1
     monthOperDates = json.dumps([d.strftime('%Y-%m-%d') for d in all_month_dates])
     monthOperValuesTM = json.dumps([oper_by_date_month[d].get('TM', 0) for d in all_month_dates])
     monthOperValuesCM = json.dumps([oper_by_date_month[d].get('CM', 0) for d in all_month_dates])
@@ -152,9 +172,11 @@ def index(request):
     monthOperValuesTC = json.dumps([oper_by_date_month[d].get('TC', 0) for d in all_month_dates])
     monthOperValuesVR = json.dumps([oper_by_date_month[d].get('VR', 0) for d in all_month_dates])
 
+    unique_year_oper = {order['item_id']: order for order in year_orders}.values()
     oper_by_month_year = defaultdict(lambda: defaultdict(int))
-    for order in year_orders:
-        oper_by_month_year[order['month']][order['operator']] += 1
+    for order in unique_year_oper:
+        if order['operator']:
+            oper_by_month_year[order['month']][order['operator']] += 1
     yearOperDates = json.dumps([m.strftime('%Y-%m') for m in all_year_months])
     yearOperValuesTM = json.dumps([oper_by_month_year[m].get('TM', 0) for m in all_year_months])
     yearOperValuesCM = json.dumps([oper_by_month_year[m].get('CM', 0) for m in all_year_months])
