@@ -113,7 +113,7 @@
       <!-- [if mso]></td></tr></table><![endif] -->
     </td>
   </tr>
-  {% if type_sim == 'esim' and lpa %}
+  {% if type_sim == 'esim' and lpa and lpa|slice:":4" == "LPA:" and link_esim_ios and link_esim_android %}
   <tr>
     <td align="left" style="padding:0;Margin:0;padding-top:10px;padding-left:20px;padding-right:20px;padding-bottom:10px">
       <table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">

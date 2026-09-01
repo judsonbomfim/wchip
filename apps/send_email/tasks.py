@@ -82,6 +82,9 @@ def send_email_sims(id=None):
         countries = order.countries
         operator = order.id_sim.operator
         lpa = order.id_sim.lpa if order.id_sim and order.id_sim.lpa else ''
+        lpa = (lpa or '').strip()
+        if not lpa.startswith('LPA:'):
+            lpa = ''
                 
         context = {
             'url_site': url_site,
@@ -95,8 +98,8 @@ def send_email_sims(id=None):
             'product_plan': product_plan,
             'type_sim': type_sim,
             'lpa': lpa,
-            'link_esim_android': settings.LINK_ESIM_ANDROID,
-            'link_esim_ios': settings.LINK_ESIM_IOS,
+            'link_esim_android': settings.LINK_ESIM_ANDROID or '',
+            'link_esim_ios': settings.LINK_ESIM_IOS or '',
             'countries': countries,
             'tracking': order.tracking,
             'operator': operator,

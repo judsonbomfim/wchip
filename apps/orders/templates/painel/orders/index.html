@@ -181,24 +181,26 @@
                           <i class="iconify tabler--qrcode text-base"></i>
                         </a>
                       {% endif %}
-                      <a class="btn btn-icon btn-sm border border-default-300 hover:border-default-400{% if not order.id_sim.lpa %} opacity-40{% endif %}"
-                         href="#"
-                         title="{% if order.id_sim.lpa %}Copiar link Android{% else %}LPA não cadastrado — rode /sims/atualizar_lpa/{% endif %}"
-                         data-esim-prefix="{{ link_esim_android }}"
-                         data-esim-lpa="{{ order.id_sim.lpa|default:'' }}"
-                         data-copy-label="Link Android copiado"
-                         onclick="return copyActivationLink(this);">
-                        <i class="iconify tabler--brand-android text-base"></i>
-                      </a>
-                      <a class="btn btn-icon btn-sm border border-default-300 hover:border-default-400{% if not order.id_sim.lpa %} opacity-40{% endif %}"
-                         href="#"
-                         title="{% if order.id_sim.lpa %}Copiar link iOS{% else %}LPA não cadastrado — rode /sims/atualizar_lpa/{% endif %}"
-                         data-esim-prefix="{{ link_esim_ios }}"
-                         data-esim-lpa="{{ order.id_sim.lpa|default:'' }}"
-                         data-copy-label="Link iOS copiado"
-                         onclick="return copyActivationLink(this);">
-                        <i class="iconify tabler--brand-apple text-base"></i>
-                      </a>
+                      {% if order.id_sim.lpa and order.id_sim.lpa|slice:":4" == "LPA:" %}
+                        <a class="btn btn-icon btn-sm border border-default-300 hover:border-default-400"
+                           href="#"
+                           title="Copiar link Android"
+                           data-esim-prefix="{{ link_esim_android }}"
+                           data-esim-lpa="{{ order.id_sim.lpa }}"
+                           data-copy-label="Link Android copiado"
+                           onclick="return copyActivationLink(this);">
+                          <i class="iconify tabler--brand-android text-base"></i>
+                        </a>
+                        <a class="btn btn-icon btn-sm border border-default-300 hover:border-default-400"
+                           href="#"
+                           title="Copiar link iOS"
+                           data-esim-prefix="{{ link_esim_ios }}"
+                           data-esim-lpa="{{ order.id_sim.lpa }}"
+                           data-copy-label="Link iOS copiado"
+                           onclick="return copyActivationLink(this);">
+                          <i class="iconify tabler--brand-apple text-base"></i>
+                        </a>
+                      {% endif %}
                     {% endif %}
                   {% else %}
                     <span class="text-default-400">-</span>
@@ -643,13 +645,14 @@
       showClipboardFeedback('Não foi possível copiar o link.', true)
       return false
     }
+    const prefix = (element.dataset.esimPrefix || '').trim()
     // LPA deve ficar literal (sem encodeURIComponent): Apple/Google exigem $ e : no carddata.
-    const text = `${element.dataset.esimPrefix || ''}${element.dataset.esimLpa || ''}`
-    if (!text) {
-      showClipboardFeedback('Não foi possível copiar o link.', true)
+    const lpa = (element.dataset.esimLpa || '').trim()
+    if (!prefix || !lpa || !lpa.startsWith('LPA:')) {
+      showClipboardFeedback('LPA inválido ou ausente. Não foi possível copiar o link.', true)
       return false
     }
-    copyTextToClipboard(text, element.dataset.copyLabel)
+    copyTextToClipboard(`${prefix}${lpa}`, element.dataset.copyLabel)
     return false
   }
   </script>
