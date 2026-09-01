@@ -183,7 +183,9 @@ USE_S3 = env('USE_S3')
 AWS_ACCESS_KEY_ID = str(env('AWS_ACCESS_KEY_ID'))
 AWS_SECRET_ACCESS_KEY = str(env('AWS_SECRET_ACCESS_KEY'))
 AWS_STORAGE_BUCKET_NAME = str(env('AWS_STORAGE_BUCKET_NAME'))
-AWS_S3_CUSTOM_DOMAIN = str(env('AWS_S3_CUSTOM_DOMAIN'))
+# Opcional: CDN/CloudFront. Host cru do S3 (*.amazonaws.com) NÃO serve —
+# o django-storages desliga URL assinada e o bucket privado responde 403.
+AWS_S3_CUSTOM_DOMAIN = str(env('AWS_S3_CUSTOM_DOMAIN', default='')).strip().strip('"').strip("'")
 AWS_DEFAULT_ACL = None
 # AWS_S3_OBJECT_PARAMETERS = {
 #     'CacheControl': 'max-age=86400',
@@ -194,11 +196,27 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
+def _s3_host_is_raw_amazonaws(domain: str) -> bool:
+    d = (domain or '').lower()
+    return (not d) or 'amazonaws.com' in d
+
 if USE_S3:
     STATIC_LOCATION = 'static'
-    STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{STATIC_LOCATION}/'
     MEDIA_LOCATION = 'media'
-    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{MEDIA_LOCATION}/'
+
+    # Bucket wchip tem BlockPublicAcls: ACL public-read é impossível.
+    # Com custom_domain = host S3, as URLs saem sem assinatura → 403.
+    # Solução: não usar custom_domain e deixar o storages assinar (querystring).
+    if _s3_host_is_raw_amazonaws(AWS_S3_CUSTOM_DOMAIN):
+        AWS_S3_CUSTOM_DOMAIN = None
+        AWS_QUERYSTRING_AUTH = True
+        STATIC_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{STATIC_LOCATION}/'
+        MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{MEDIA_LOCATION}/'
+    else:
+        AWS_QUERYSTRING_AUTH = False
+        STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{STATIC_LOCATION}/'
+        MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{MEDIA_LOCATION}/'
+
     STORAGES = {
         'default': {
             'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
