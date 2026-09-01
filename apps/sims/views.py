@@ -17,7 +17,7 @@ import imghdr
 import logging
 import boto3
 from apps.sims.models import Sims
-from apps.sims.classes import qrcodeChange
+from apps.sims.classes import ensure_tm_esim_padrao_lpa, qrcodeChange
 from apps.orders.models import Orders
 from apps.orders.classes import ApiStore, DateFormats
 from .tasks import sims_in_orders
@@ -538,6 +538,11 @@ def delSimCM(request):
 #     return HttpResponse('Links corrigidos com sucesso')
 
 def lpaChange(request):
+    # SIM padrão TM (compartilhado pelos eSIM EUA) — prioridade
+    padrao = ensure_tm_esim_padrao_lpa()
+    if padrao and (padrao.lpa or '').startswith('LPA:'):
+        logger.info('SIM padrão TM com LPA: %s', padrao.lpa)
+
     sims = Sims.objects.filter(
         type_sim='esim',
         sim_status__in=['DS', 'AT'],
@@ -550,6 +555,8 @@ def lpaChange(request):
     ).order_by('id')
     total = sims.count()
     contagem = 0
+    filled = 0
+    failed = 0
     start_message = f"Iniciando lpaChange. Total de eSIMs sem LPA: {total}"
     logger.info(start_message)
     print(start_message, flush=True)
@@ -558,25 +565,41 @@ def lpaChange(request):
         empty_message = "lpaChange finalizado sem registros para processar."
         logger.info(empty_message)
         print(empty_message, flush=True)
-        return HttpResponse('Nenhum eSIM sem LPA encontrado para processamento.')
+        msg = 'Nenhum eSIM sem LPA encontrado para processamento.'
+        if padrao and (padrao.lpa or '').startswith('LPA:'):
+            msg += f' SIM padrão TM OK ({padrao.lpa}).'
+        return HttpResponse(msg)
 
     for sim in sims:
-        link_qrcode = qr_image_url(sim.link)
         try:
+            link_qrcode = qr_image_url(sim.link)
             new_lpa = qrcodeChange.read_qr_code(link_qrcode) if link_qrcode else None
-            if new_lpa:
+            if new_lpa and str(new_lpa).startswith('LPA:'):
                 sim.lpa = new_lpa
                 sim.save()
+                filled += 1
+            else:
+                failed += 1
+
             contagem += 1
             if contagem == 1 or contagem % 100 == 0 or contagem == total:
-                progress_message = f"Processado SIM: {sim.sim} - TOTAL: {contagem}/{total}"
+                progress_message = (
+                    f"Processado SIM: {sim.sim} - TOTAL: {contagem}/{total} "
+                    f"(preenchidos: {filled}, falhas: {failed})"
+                )
                 logger.info(progress_message)
                 print(progress_message, flush=True)
         except Exception as e:
+            failed += 1
+            contagem += 1
             error_message = f"Erro ao atualizar LPA para SIM {sim.sim}: {e}"
             logger.error(error_message)
             print(error_message, flush=True)
-    finish_message = f"lpaChange finalizado. Total processado: {contagem}/{total}"
+
+    finish_message = (
+        f"lpaChange finalizado. Processados: {contagem}/{total}. "
+        f"LPA preenchidos: {filled}. Falhas: {failed}."
+    )
     logger.info(finish_message)
     print(finish_message, flush=True)
-    return HttpResponse('Processando atualização de LPA... Aguarde alguns minutos e atualize a página de pedidos')
+    return HttpResponse(finish_message)

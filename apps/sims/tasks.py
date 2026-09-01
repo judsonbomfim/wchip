@@ -7,7 +7,16 @@ import json
 from django.conf import settings
 import pytz
 
-from .classes import ApiCM, ApiCMHK, ApiTC, ApiAR, RateLimitExceeded, selectPlanCMHK
+from .classes import (
+    ApiCM,
+    ApiCMHK,
+    ApiTC,
+    ApiAR,
+    RateLimitExceeded,
+    selectPlanCMHK,
+    TM_ESIM_PADRAO_PK,
+    ensure_tm_esim_padrao_lpa,
+)
 from apps.orders.models import Orders, Notes
 from apps.orders.classes import NotesAdd, UpdateOrder, UpdateStore
 from apps.sims.models import Sims
@@ -77,8 +86,13 @@ def sims_in_orders():
                         
             # Select SIM
             if esim_eua:
-                sim_ds = Sims.objects.all().get(pk=465)
-                addNote(f'eSIM EUA - SIM padrão adicionado')
+                sim_ds = ensure_tm_esim_padrao_lpa(
+                    Sims.objects.filter(pk=TM_ESIM_PADRAO_PK).first()
+                )
+                if not sim_ds:
+                    addNote('SIM padrão TM (eSIM EUA) não encontrado')
+                    continue
+                addNote('eSIM EUA - SIM padrão adicionado')
             else:
                 sim_ds = Sims.objects.all().order_by('id').filter(operator=oper_sel_i, type_sim=type_sim_i, sim_status='DS').first()
                 if sim_ds:

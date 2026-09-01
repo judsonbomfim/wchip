@@ -1358,16 +1358,54 @@ class ApiAR:
                 'Erro ao ler LPA do eSIM Airalo %s: %s', iccid, e, exc_info=True
             )
         add_sim = Sims(
-            sim = iccid,
-            lpa = lpa,
-            link = qrcode_url,
-            type_sim = 'esim',
-            operator = 'AR',
-            sim_status = 'AT'
+            sim=iccid,
+            lpa=lpa,
+            link=qrcode_url,
+            type_sim='esim',
+            operator='AR',
+            sim_status='AT',
         )
-        add_sim.save()        
-        id_sim = add_sim.id
-        return id_sim
+        add_sim.save()
+        return add_sim.id
+
+
+# eSIM EUA T-Mobile — SIM compartilhado (ICCID placeholder + QR fixo no S3)
+TM_ESIM_PADRAO_PK = 465
+TM_ESIM_PADRAO_LINK = '/media/890100000000000000F.jpeg'
+TM_ESIM_PADRAO_LPA = 'LPA:1$T-MOBILE.GDSB.NET$'
+
+
+def ensure_tm_esim_padrao_lpa(sim=None):
+    """Garante link + LPA no SIM padrão TM usado por todos os eSIM EUA."""
+    if sim is None:
+        sim = Sims.objects.filter(pk=TM_ESIM_PADRAO_PK).first()
+    if sim is None:
+        return None
+
+    changed = False
+    if not sim.link or str(sim.link).strip() in ('', '-'):
+        sim.link = TM_ESIM_PADRAO_LINK
+        changed = True
+
+    lpa = (sim.lpa or '').strip()
+    if not lpa.startswith('LPA:'):
+        new_lpa = None
+        try:
+            qr_url = qrcodeChange.resolve_qr_url(sim.link)
+            if qr_url:
+                new_lpa = qrcodeChange.read_qr_code(qr_url)
+        except Exception as e:
+            logging.getLogger('apps.sims').error(
+                'Erro ao ler LPA do SIM padrão TM: %s', e, exc_info=True
+            )
+        if not new_lpa or not str(new_lpa).startswith('LPA:'):
+            new_lpa = TM_ESIM_PADRAO_LPA
+        sim.lpa = new_lpa
+        changed = True
+
+    if changed:
+        sim.save(update_fields=['link', 'lpa'])
+    return sim
 
 
 class qrcodeChange():
