@@ -643,18 +643,12 @@
       showClipboardFeedback('Não foi possível copiar o link.', true)
       return false
     }
-    const prefix = element.dataset.esimPrefix || ''
-    const lpa = (element.dataset.esimLpa || '').trim()
-    if (!lpa) {
-      showClipboardFeedback('LPA não cadastrado neste eSIM. Rode /sims/atualizar_lpa/.', true)
-      return false
-    }
-    if (!prefix) {
-      showClipboardFeedback('URL Android/iOS não configurada (LINK_ESIM_*).', true)
-      return false
-    }
     // LPA deve ficar literal (sem encodeURIComponent): Apple/Google exigem $ e : no carddata.
-    const text = `${prefix}${lpa}`
+    const text = `${element.dataset.esimPrefix || ''}${element.dataset.esimLpa || ''}`
+    if (!text) {
+      showClipboardFeedback('Não foi possível copiar o link.', true)
+      return false
+    }
     copyTextToClipboard(text, element.dataset.copyLabel)
     return false
   }
