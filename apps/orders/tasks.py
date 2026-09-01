@@ -149,6 +149,10 @@ def order_import():
                     order_status_i = 'AS'
                     
                     order_date_i = DateFormats.dateHour(order['date_created'])
+                    
+                    # Planos de voz EUA T-mobile
+                    if product_i == '977' and voice_i == True and type_sim_i == 'esim':
+                        product_i = '001'
 
                     if days_i is not None:
                         try:
@@ -382,15 +386,16 @@ def orders_up_status(ord_id, ord_s, id_user=None, skip_sim_deactivate=False, pre
                 order.order_id,
             )
                 
-        # Save Notes
+        # Save Notes (P = usuário, S = sistema)
+        type_note = 'P' if user is not None else 'S'
+
         def addNote(t_note):
-            add_sim = Notes( 
-                id_item = Orders.objects.get(pk=order.id),
-                id_user = user,
-                note = t_note,
-                type_note = 'S',
-            )
-            add_sim.save()
+            Notes(
+                id_item=Orders.objects.get(pk=order.id),
+                id_user=user,
+                note=t_note,
+                type_note=type_note,
+            ).save()
         
         if order_st != ord_s:
             status_labels = dict(Orders.order_status.field.choices)

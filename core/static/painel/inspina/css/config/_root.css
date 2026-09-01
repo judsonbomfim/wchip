@@ -9,7 +9,7 @@
 
     --color-card: var(--color-white);
 
-    --color-primary: #002F7C;
+    --color-primary: #0C2542;
     --color-secondary: #03559B;
     --color-success: #0acf97;
     --color-info: #23c6c8;
@@ -98,7 +98,7 @@
 :root {
     color-scheme: light;
 
-    --color-chart-primary: #002F7C;
+    --color-chart-primary: #0C2542;
     --color-chart-secondary: #03559B;
     --color-chart-alpha: #23c6c8;
     --color-chart-beta: #ed5565;

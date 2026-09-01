@@ -14,7 +14,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Inicialize o `environ`
 env = environ.Env(
-    DEBUG=(bool, False)
+    DEBUG=(bool, False),
+    # Default True: produção segura se a var faltar; local usa USE_S3=False no .env
+    USE_S3=(bool, True),
 )
 
 # Leia o arquivo `.env`
@@ -177,6 +179,8 @@ URL_PAINEL = str(env('URL_PAINEL'))
 URL_CDN = 'https://'+str(env('URL_CDN'))
 
 
+USE_S3 = env('USE_S3')
+
 AWS_ACCESS_KEY_ID = str(env('AWS_ACCESS_KEY_ID'))
 AWS_SECRET_ACCESS_KEY = str(env('AWS_SECRET_ACCESS_KEY'))
 AWS_STORAGE_BUCKET_NAME = str(env('AWS_STORAGE_BUCKET_NAME'))
@@ -186,20 +190,25 @@ AWS_DEFAULT_ACL = None
 #     'CacheControl': 'max-age=86400',
 # }
 
-STATIC_LOCATION = 'static'
-
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'core/static'),
 ]
-
-STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{STATIC_LOCATION}/'
-STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-
-MEDIA_LOCATION = 'media'
-MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{MEDIA_LOCATION}/'
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+if USE_S3:
+    STATIC_LOCATION = 'static'
+    STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{STATIC_LOCATION}/'
+    STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    MEDIA_LOCATION = 'media'
+    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{MEDIA_LOCATION}/'
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+else:
+    # Local: USE_S3=False no .env — CSS/JS/imagens em core/static via runserver
+    STATIC_URL = '/static/'
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 
 # Default primary key field type

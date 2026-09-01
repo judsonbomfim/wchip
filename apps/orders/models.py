@@ -5,22 +5,24 @@ from apps.sims.models import Sims
 PRODUCT = [
     ('4769', 'Oriente Flex'),
     ('4768', 'Asia Flex'),
-    ('4763', 'Africa Flex'),
-    ('4752', 'Cuba Flex'),
     ('4740', 'Japão Flex'),
-    ('4735', 'Oceania Flex'),
-    ('4718', 'Caribe Flex'),
     ('3734', 'A. Sul Flex'),
     ('3564', 'A. Sul Controle'),
-    ('981', 'A. Norte Flex'),
     ('980', 'A. Norte Controle'),
-    ('976', 'EUA Flex'),    
     ('977', 'EUA Ilimitado'),
     ('975', 'Mundo Controle'),
-    ('4816', 'Europa Flex (E)'),
-    ('974', 'Europa Flex (F)'),
     ('971', 'Europa Controle'),
     ('001', 'EUA T-mobile'),
+    # Legado
+    ('4816', 'Europa Flex (E)'),
+    ('4763', 'Africa Flex'),
+    ('4752', 'Cuba Flex'),
+    ('4735', 'Oceania Flex'),
+    ('4718', 'Caribe Flex'),
+    ('981', 'A. Norte Flex'),
+    ('976', 'EUA Flex'),    
+    ('974', 'Europa Flex'),
+    
 ]
 
 DATA = [
@@ -61,6 +63,7 @@ ORDER_STATUS = [
     ('RS', 'Reuso'),
     ('RP', 'Reprocessar'),
     ('RS', 'Retirada SP'),
+    ('SE', '(e)SIM Esgotado'),
     ('VS', 'Verificar SIM'),
 ]
 

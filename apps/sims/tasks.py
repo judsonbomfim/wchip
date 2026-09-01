@@ -7,9 +7,9 @@ import json
 from django.conf import settings
 import pytz
 
-from .classes import ApiCM, ApiCMHK, ApiTC, ApiAR, OperatorSelect, RateLimitExceeded, selectPlanCMHK
+from .classes import ApiCM, ApiCMHK, ApiTC, ApiAR, RateLimitExceeded, selectPlanCMHK
 from apps.orders.models import Orders, Notes
-from apps.orders.classes import ApiStore, StatusStore, NotesAdd, UpdateOrder, UpdateStore
+from apps.orders.classes import NotesAdd, UpdateOrder, UpdateStore
 from apps.sims.models import Sims
 from datetime import datetime, timedelta
 from django.utils import timezone
@@ -49,7 +49,7 @@ def sims_in_orders():
         type_sim_i = ord.type_sim
         cell_imei = ord.cell_imei
         id_sim_i = id_item_i.id_sim
-        esim_eua = type_sim_i == 'esim' and (product_i == '001' or product_i == '977') # EUA Ilimitado
+        esim_eua = type_sim_i == 'esim' and product_i == '001' # EUA Ilimitado
         
         # Se já houver SIM   
         if id_sim_i != None:
@@ -71,29 +71,23 @@ def sims_in_orders():
 
             # Definir Operadora
             if type_sim_i == 'sim':        
-                oper_sel = OperatorSelect.opSelSim()
+                oper_sel_i = 'TM'
             else:
-                oper_sel = OperatorSelect.opSelESim()
-            oper_sel_i = oper_sel.get(str(product_i), '')
+                oper_sel_i = 'CMHK'
                         
             # Select SIM
             if esim_eua:
-                if oper_sel_i == 'VR':
-                    sim_ds = Sims.objects.all().get(pk=1537)
-                    addNote(f'VERIZON - SIM padrão adicionado')
-                elif oper_sel_i == 'TM':
-                    sim_ds = Sims.objects.all().get(pk=465)
-                    addNote(f'eSIM EUA - SIM padrão adicionado')
-            elif oper_sel_i == 'AR':
-                sim_ds = Sims.objects.all().get(pk=351)
-                addNote(f'AIRALO - SIM padrão adicionado')
+                sim_ds = Sims.objects.all().get(pk=465)
+                addNote(f'eSIM EUA - SIM padrão adicionado')
             else:
                 sim_ds = Sims.objects.all().order_by('id').filter(operator=oper_sel_i, type_sim=type_sim_i, sim_status='DS').first()
                 if sim_ds:
-                    logger.info(f'Pedido {order_id_i} - SIM {sim_ds.sim} encontrado para atribuição.')
                     pass
                 else:
-                    logger.info(f'>>>>>>>>>>>>>>>>>>>>>>> SIMs indisponíveis para pedido {order_id_i}!')
+                    addNote('SIM indisponível ou fora de estoque')
+                    order_put = Orders.objects.get(pk=id_id_i)
+                    order_put.order_status = 'SE'
+                    order_put.save()
                     continue
             
             # update order
@@ -457,9 +451,14 @@ def simDeactivateAll(id=None):
     now = datetime.now(timezone)
     yesterday = now.date() - timedelta(days=1)
 
-    # Selecionar pedidos
-    if id is None:       
-        orders_to_process = Orders.objects.exclude(order_status='AT', id_sim__operator__in=['TC', 'TI']).order_by('-id')
+    # Selecionar pedidos: só ATIVADOS, excluindo TC/TI (esses vão em simDeactivateTC).
+    # exclude(AT, TC/TI) sozinho está errado — inclui DE/CC/etc. e reprocessa todo dia.
+    if id is None:
+        orders_to_process = (
+            Orders.objects.filter(order_status='AT')
+            .exclude(id_sim__operator__in=['TC', 'TI'])
+            .order_by('-id')
+        )
     else:
         orders_to_process = Orders.objects.filter(pk=id)
 
@@ -490,13 +489,25 @@ def simDeactivateAll(id=None):
             continue
 
         if id is None:
-            orders_up_status.delay(order.id, 'DE')
+            # Reserva atômica AT→DE para não reprocessar em execução concorrente
+            claimed = Orders.objects.filter(pk=order.id, order_status='AT').update(
+                order_status='DE'
+            )
+            if claimed == 0:
+                logger.info(
+                    f'Pedido {order.order_id} já não está AT. Ignorando.'
+                )
+                continue
+            # previous_status='AT': status já foi gravado no claim acima
+            orders_up_status.delay(order.id, 'DE', previous_status='AT')
             sim_put = Sims.objects.get(pk=order.id_sim.id)
             sim_put.sim_status = 'DE'
             sim_put.save()
-        NotesAdd.addNote(order, f'{iccid} desativado com sucesso. Processo automático')
+            NotesAdd.addNote(
+                order, f'{iccid} desativado com sucesso. Processo automático'
+            )
         
-    logger.info(f'>>>>>>>>>> DESATIVAÇÃO TC FINALIZADA <<<<<<<<<<')
+    logger.info(f'>>>>>>>>>> DESATIVAÇÃO ALL FINALIZADA <<<<<<<<<<')
 
 
 @shared_task

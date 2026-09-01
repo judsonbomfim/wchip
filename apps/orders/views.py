@@ -420,7 +420,7 @@ def ord_add(request):
             id_item=order,
             id_user=User.objects.get(pk=request.user.id),
             note=ord_note,
-            type_note='S',
+            type_note='P',
         )
 
     messages.success(request, f'Pedido {order.item_id} criado com sucesso!')
@@ -619,15 +619,22 @@ def ord_edit(request,id):
                 sim_lpa.lpa = lpa or None
                 sim_lpa.save(update_fields=['lpa'])
         
+        # Verificar Usuário (P = nota de usuário, S = sistema)
+        try:
+            id_user = User.objects.get(pk=request.user.id)
+            type_note_i = 'P'
+        except User.DoesNotExist:
+            id_user = None
+            type_note_i = 'S'
+
         # Notes
         def addNote(t_note):
-            add_sim = Notes( 
-                id_item = Orders.objects.get(pk=order.id),
-                id_user = User.objects.get(pk=request.user.id),
-                note = t_note,
-                type_note = 'S',
-            )
-            add_sim.save()
+            Notes(
+                id_item=Orders.objects.get(pk=order.id),
+                id_user=id_user,
+                note=t_note,
+                type_note=type_note_i,
+            ).save()
         # Save Notes
         if ord_note:
             addNote(ord_note)
@@ -901,44 +908,12 @@ def orders_activations(request):
 
     }
     return render(request, 'painel/orders/activations.html', context)
-    
 
-# def textImg(request):
-#     # Carrega a imagem em escala de cinza
-#     img = cv2.imread('static/imei2.jpg', cv2.IMREAD_GRAYSCALE)
-#     # Extrai o texto da imagem
-#     texto = pytesseract.image_to_string(img)
-#     textos = texto.split()
-#     txt = []
-#     for t in textos:
-#         txt.append(f'{t}<br>')
-    
-#     return HttpResponse(txt)
 
-# def esimExpSis(request):
-    
-        
-#     apiStore = ApiStore.conectApiStore()
-#     # Get the order
-#     order_id = 54085
-    
-#     # Add the meta data
-#     meta_data_list = {
-#         "meta_data":[
-#             {
-#                 "key": "campo_esims",
-#                 "value": "<img src='https://painel.acasadochip.com/media/8932042000002302486.jpeg' style='width: 300px; margin:40px;'><img src='https://painel.acasadochip.com/media/8932042000002302486.jpeg' style='width: 300px; margin:40px;'>"
-#             },
-#         ]
-#     }
-
-#     # Update the order
-#     apiStore.put(f"orders/{order_id}", meta_data_list).json()    
-#     return HttpResponse('eSIM enviado!')
-
-# # def vendasSem(request):
-# apiStore = conectApiStore()
-# dateNow = datetime.datetime.now()  
-
-# dateSem = datetime.datetime.now() - datetime.timedelta(days=7)
-# vendasDaSemana = apiStore.get('reports/sales', params={'date_min': dateSem, 'date_max': dateNow})
+def alterarNotaUsuario():
+    """Corrige type_note: notas com usuário → P; sem usuário → S."""
+    q_user = Notes.objects.filter(id_user__isnull=False).exclude(type_note='P')
+    q_sys = Notes.objects.filter(id_user__isnull=True).exclude(type_note='S')
+    n_user = q_user.update(type_note='P')
+    n_sys = q_sys.update(type_note='S')
+    return {'usuario': n_user, 'sistema': n_sys}
