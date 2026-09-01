@@ -41,8 +41,16 @@
     <div class="card-header">
       <div class="flex flex-wrap items-center gap-2.5">
         {% if request.user|can:'edit_orders' %}
+          <a href="{% url 'ord_add' %}"
+             class="btn bg-primary shrink-0 text-white hover:bg-primary-hover">
+            <i class="iconify tabler--plus me-1"></i>
+            Novo Pedido
+          </a>
           <div class="w-40 shrink-0">
-            <select class="form-select" name="ord_staus" id="ord_status" form="ordersForm">
+            <select class="form-select"
+                    name="ord_staus"
+                    id="ord_status"
+                    form="ordersForm">
               <option value="" selected>Alterar Status</option>
               {% for ord_st in ord_st_list %}
                 <option value="{{ ord_st.0 }}">{{ ord_st.1 }}</option>
@@ -53,11 +61,6 @@
                   class="btn bg-primary shrink-0 text-white hover:bg-primary-hover"
                   name="up_status"
                   form="ordersForm">Alterar</button>
-          <a href="{% url 'ord_add' %}"
-             class="btn bg-primary shrink-0 text-white hover:bg-primary-hover">
-            <i class="iconify tabler--plus me-1"></i>
-            Novo Pedido
-          </a>
         {% endif %}
         <div class="input-icon-group w-64 max-w-full shrink-0">
           <i class="iconify tabler--search input-icon"></i>
@@ -121,7 +124,9 @@
         <thead class="thead-sm">
           <tr class="bg-light/25 text-2xs uppercase">
             <th class="w-[1%]">
-              <input class="form-checkbox form-checkbox-light size-4.5" type="checkbox" id="select-all-orders" />
+              <input class="form-checkbox form-checkbox-light size-4.5"
+                     type="checkbox"
+                     id="select-all-orders" />
             </th>
             <th>Pedido</th>
             <th>Cliente</th>
@@ -343,7 +348,8 @@
                       <span id="detalhe-dados-consumidos">0.00</span> MB
                     </span>
                   </div>
-                  <div id="detalhe-disponivel-row" class="flex items-center justify-between gap-3">
+                  <div id="detalhe-disponivel-row"
+                       class="flex items-center justify-between gap-3">
                     <span class="flex items-center gap-2">
                       <span class="bg-default-200 size-2.5 rounded-full"></span>
                       Disponível
@@ -352,7 +358,8 @@
                   </div>
                 </div>
               </div>
-              <div id="detalhe-consumo-chart-wrap" class="flex min-w-0 items-center justify-center overflow-hidden">
+              <div id="detalhe-consumo-chart-wrap"
+                   class="flex min-w-0 items-center justify-center overflow-hidden">
                 <div id="detalhe-consumo-chart" class="w-44"></div>
               </div>
             </div>
