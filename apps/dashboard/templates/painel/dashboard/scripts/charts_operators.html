@@ -164,7 +164,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 VR: parseSeries('{{ weekOperValuesVR|escapejs|safe }}')
             },
             parseSeries('{{ weekOperDates|escapejs|safe }}'),
-            '{{ dateWeek|date:"d/m/Y" }} — {{ dateYesterday|date:"d/m/Y" }}',
+            '{{ dateWeek|date:"d/m/Y" }} — {{ dateDay|date:"d/m/Y" }}',
             'Dias'
         );
     } catch (error) {
@@ -183,7 +183,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     VR: parseSeries('{{ monthOperValuesVR|escapejs|safe }}')
                 },
                 parseSeries('{{ monthOperDates|escapejs|safe }}'),
-                '{{ dateMonth|date:"d/m/Y" }} — {{ dateYesterday|date:"d/m/Y" }}',
+                '{{ dateMonth|date:"d/m/Y" }} — {{ dateDay|date:"d/m/Y" }}',
                 'Dias'
             );
         } catch (error) {
@@ -203,7 +203,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     VR: parseSeries('{{ yearOperValuesVR|escapejs|safe }}')
                 },
                 parseSeries('{{ yearOperDates|escapejs|safe }}'),
-                '{{ dateYear|date:"d/m/Y" }} — {{ dateYesterday|date:"d/m/Y" }}',
+                '{{ dateYear|date:"d/m/Y" }} — {{ dateDay|date:"d/m/Y" }}',
                 'Meses'
             );
         } catch (error) {

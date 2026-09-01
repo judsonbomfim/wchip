@@ -112,7 +112,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     { name: 'eSIMs', data: weekSimsValuesE }
                 ],
                 categories: weekSimsDates,
-                title: '{{ dateWeek|date:"d/m/Y" }} — {{ dateYesterday|date:"d/m/Y" }}',
+                title: '{{ dateWeek|date:"d/m/Y" }} — {{ dateDay|date:"d/m/Y" }}',
                 xTitle: 'Dias',
                 labelFormat: 'd'
             })).render();
@@ -135,7 +135,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     { name: 'eSIMs', data: monthSimsValuesE }
                 ],
                 categories: monthSimsDates,
-                title: '{{ dateMonth|date:"d/m/Y" }} — {{ dateYesterday|date:"d/m/Y" }}',
+                title: '{{ dateMonth|date:"d/m/Y" }} — {{ dateDay|date:"d/m/Y" }}',
                 xTitle: 'Dias',
                 labelFormat: 'd'
             })).render();
@@ -158,7 +158,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     { name: 'eSIMs', data: yearSimsValuesE }
                 ],
                 categories: yearSimsDates,
-                title: '{{ dateYear|date:"d/m/Y" }} — {{ dateYesterday|date:"d/m/Y" }}',
+                title: '{{ dateYear|date:"d/m/Y" }} — {{ dateDay|date:"d/m/Y" }}',
                 xTitle: 'Meses',
                 labelFormat: 'MMM'
             })).render();

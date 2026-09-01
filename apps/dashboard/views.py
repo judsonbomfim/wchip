@@ -34,10 +34,14 @@ def index(request):
     countActivTC = operator_counts.get('TC', 0)
     countActivVR = operator_counts.get('VR', 0)
 
+    # Vendas até o fim de hoje; exclui cancelados/reembolsos
+    # DateTimeField + __range com date corta hoje à 00:00 — usar __lt=dateTomorrow
     simsAll = Sims.objects.all()
-    ordersWeek = Orders.objects.filter(order_date__range=(dateWeek, dateDay))
-    ordersMonth = Orders.objects.filter(order_date__range=(dateMonth, dateDay))
-    ordersYear = Orders.objects.filter(order_date__range=(dateYear, dateDay))
+    non_sale_status = ['CC', 'RB', 'RE']
+    chart_orders = Orders.objects.exclude(order_status__in=non_sale_status)
+    ordersWeek = chart_orders.filter(order_date__gte=dateWeek, order_date__lt=dateTomorrow)
+    ordersMonth = chart_orders.filter(order_date__gte=dateMonth, order_date__lt=dateTomorrow)
+    ordersYear = chart_orders.filter(order_date__gte=dateYear, order_date__lt=dateTomorrow)
 
     fields = ['order_id', 'order_date', 'id_sim__type_sim', 'id_sim__operator']
 

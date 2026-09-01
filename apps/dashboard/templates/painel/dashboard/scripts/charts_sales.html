@@ -108,7 +108,7 @@ document.addEventListener("DOMContentLoaded", function() {
             new ApexCharts(target, pedidosLineOptions({
                 values: weekSalesValues,
                 categories: weekSalesDates,
-                title: '{{ dateWeek|date:"d/m/Y" }} — {{ dateYesterday|date:"d/m/Y" }}',
+                title: '{{ dateWeek|date:"d/m/Y" }} — {{ dateDay|date:"d/m/Y" }}',
                 xTitle: 'Dias',
                 labelFormat: 'd/M'
             })).render();
@@ -126,7 +126,7 @@ document.addEventListener("DOMContentLoaded", function() {
             new ApexCharts(document.querySelector("#ttSalesMonth"), pedidosLineOptions({
                 values: monthSalesValues,
                 categories: monthSalesDates,
-                title: '{{ dateMonth|date:"d/m/Y" }} — {{ dateYesterday|date:"d/m/Y" }}',
+                title: '{{ dateMonth|date:"d/m/Y" }} — {{ dateDay|date:"d/m/Y" }}',
                 xTitle: 'Dias',
                 labelFormat: 'd'
             })).render();
@@ -144,7 +144,7 @@ document.addEventListener("DOMContentLoaded", function() {
             new ApexCharts(document.querySelector("#ttSalesYear"), pedidosLineOptions({
                 values: yearSalesValues,
                 categories: yearSalesDates,
-                title: '{{ dateYear|date:"d/m/Y" }} — {{ dateYesterday|date:"d/m/Y" }}',
+                title: '{{ dateYear|date:"d/m/Y" }} — {{ dateDay|date:"d/m/Y" }}',
                 xTitle: 'Meses',
                 labelFormat: 'MMM'
             })).render();
