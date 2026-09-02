@@ -1545,55 +1545,22 @@ class selectPlanCMHK():
     @staticmethod
     def selectPlanList(selList):
         plans = {
-            # EUA Ilimitado
             "976": "list_cmhk_eua_ilimitado",
-            # Europa Controle
             "971": "list_cmhk_europa_controle",
-            # América do Sul Controle
-            "3734": "list_cmhk_america_sul_flex",
+            "974": "list_cmhk_europa_flex",
             "3564": "list_cmhk_america_sul_controle",
-            # América do Norte Controle
+            "3734": "list_cmhk_america_sul_flex",
             "980": "list_cmhk_america_norte_controle",
-            # World / Global
             "975": "list_cmhk_world",
-            # Ásia
             "4768": "list_cmhk_asia",
-            # Oriente Médio
             "4769": "list_cmhk_oriente_medio",
-            # Japão
             "4740": "list_cmhk_japao",
         }
         return plans.get(selList)
 
     @staticmethod
     def selectPlanCod(plan, day, data):
-        data = str(data)
-        data_alias = {
-            '500mb-dia': '500mb',
-            '1gb-dia': '1gb',
-            '2gb-dia': '2gb',
-            '3gb-dia': '3gb',
-            'ilimitado': 'ilimitado',
-            '1gb-periodo': '1gb',
-            '2gb-periodo': '2gb',
-            '3gb-periodo': '3gb',
-            '5gb-periodo': '5gb',
-            '7gb-periodo': '7gb',
-            '10gb-periodo': '10gb',
-            '15gb-periodo': '15gb',
-            '20gb-periodo': '20gb',
-            '30gb-periodo': '30gb',
-            # legado
-            '5gb-30dias': '5gb',
-            '10gb-30dias': '10gb',
-            '20gb-30dias': '20gb',
-            '30gb-30dias': '30gb',
-            '500mb': '500mb',
-            '1gb': '1gb',
-            '2gb': '2gb',
-            '3gb': '3gb',
-        }
-        data_norm = data_alias.get(data, data)
+        data_norm = str(data).split("-")[0]
         list_name = selectPlanCMHK.selectPlanList(str(plan))
         if not list_name:
             return None
