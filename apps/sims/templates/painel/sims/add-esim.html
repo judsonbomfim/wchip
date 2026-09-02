@@ -9,11 +9,15 @@
     <div class="card-header">
       <div>
         <h4 class="card-title mb-1.25">Cadastrar eSIMs virtuais</h4>
-        <p class="mb-0 text-default-400">Envie as imagens dos QR Codes. O nome do arquivo deve ser o número do eSIM.</p>
+        <p class="mb-0 text-default-400">Envie as imagens dos QR Codes. O nome do arquivo deve ser o número do eSIM. Lotes grandes são enviados automaticamente em grupos de {{ esim_chunk_size }} arquivos.</p>
       </div>
     </div>
     <div class="card-body">
-      <form action="{% url 'sims_add_esim' %}" method="post" enctype="multipart/form-data">
+      <form id="esim-add-form"
+            action="{% url 'sims_add_esim' %}"
+            method="post"
+            enctype="multipart/form-data"
+            data-chunk-size="{{ esim_chunk_size }}">
         {% csrf_token %}
         <div class="mb-5 grid gap-base md:grid-cols-2">
           <div>
@@ -35,12 +39,189 @@
         <div class="mb-5">
           <label class="form-label" for="formFile">Enviar imagens</label>
           <input class="form-input" type="file" id="formFile" name="esim" accept="image/*" multiple required>
+          <p id="esim-file-hint" class="mb-0 mt-1.5 text-sm text-default-400"></p>
         </div>
-        <button type="submit" class="btn bg-primary text-white hover:bg-primary-hover">
+        <button type="submit" id="esim-submit" class="btn bg-primary text-white hover:bg-primary-hover">
           <i class="iconify tabler--device-sim me-1"></i>
-          Cadastrar eSIMs
+          <span data-esim-submit-label>Cadastrar eSIMs</span>
         </button>
       </form>
+
+      <div id="esim-upload-status" class="mt-5 hidden">
+        <p id="esim-upload-label" class="mb-2 text-sm text-default-500"></p>
+        <div class="h-2 w-full overflow-hidden rounded-full bg-default-200">
+          <div id="esim-upload-bar" class="h-full bg-primary transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <div id="esim-upload-summary" class="mt-4 space-y-1.5 text-sm"></div>
+      </div>
     </div>
   </div>
 {% endblock page_content %}
+{% block scripts %}
+  <script>
+  (function () {
+    const form = document.getElementById('esim-add-form')
+    if (!form) return
+
+    const fileInput = document.getElementById('formFile')
+    const hint = document.getElementById('esim-file-hint')
+    const submitBtn = document.getElementById('esim-submit')
+    const submitLabel = submitBtn.querySelector('[data-esim-submit-label]')
+    const statusBox = document.getElementById('esim-upload-status')
+    const statusLabel = document.getElementById('esim-upload-label')
+    const statusBar = document.getElementById('esim-upload-bar')
+    const summaryBox = document.getElementById('esim-upload-summary')
+    const chunkSize = Math.max(1, Number.parseInt(form.dataset.chunkSize, 10) || 20)
+    const defaultLabel = submitLabel ? submitLabel.textContent : 'Cadastrar eSIMs'
+
+    function batchCount (n) {
+      return Math.ceil(n / chunkSize) || 0
+    }
+
+    function updateHint () {
+      const n = fileInput.files.length
+      if (!n) {
+        hint.textContent = ''
+        return
+      }
+      const batches = batchCount(n)
+      hint.textContent = batches > 1
+        ? `${n} arquivo(s) selecionado(s) · serão enviados em ${batches} lotes`
+        : `${n} arquivo(s) selecionado(s)`
+    }
+
+    function setBusy (busy, text) {
+      submitBtn.disabled = busy
+      fileInput.disabled = busy
+      if (submitLabel) submitLabel.textContent = text || defaultLabel
+    }
+
+    function showStatus (visible) {
+      statusBox.classList.toggle('hidden', !visible)
+    }
+
+    function setProgress (current, total, text) {
+      statusLabel.textContent = text
+      const pct = total ? Math.round((current / total) * 100) : 0
+      statusBar.style.width = `${pct}%`
+    }
+
+    function appendLine (text, className) {
+      const p = document.createElement('p')
+      p.className = `mb-0 ${className}`
+      p.textContent = text
+      summaryBox.appendChild(p)
+    }
+
+    function listPreview (items, limit) {
+      if (!items.length) return ''
+      const shown = items.slice(0, limit)
+      const extra = items.length - shown.length
+      return extra > 0 ? `${shown.join(', ')} e mais ${extra}` : shown.join(', ')
+    }
+
+    fileInput.addEventListener('change', updateHint)
+
+    form.addEventListener('submit', async function (event) {
+      event.preventDefault()
+
+      const operator = form.querySelector('#operator').value
+      const typeSim = form.querySelector('#type_sim').value
+      const csrf = form.querySelector('[name=csrfmiddlewaretoken]').value
+      const files = Array.from(fileInput.files)
+
+      if (!operator || !files.length) {
+        return
+      }
+
+      const chunks = []
+      for (let i = 0; i < files.length; i += chunkSize) {
+        chunks.push(files.slice(i, i + chunkSize))
+      }
+
+      const totals = {
+        created: [],
+        skipped: [],
+        errors: [],
+        lpa_missing: []
+      }
+
+      summaryBox.replaceChildren()
+      showStatus(true)
+      setProgress(0, chunks.length, `Enviando lote 1 de ${chunks.length}…`)
+      setBusy(true, `Enviando 1/${chunks.length}`)
+
+      try {
+        for (let i = 0; i < chunks.length; i++) {
+          setProgress(i, chunks.length, `Enviando lote ${i + 1} de ${chunks.length}…`)
+          setBusy(true, `Enviando ${i + 1}/${chunks.length}`)
+
+          const formData = new FormData()
+          formData.append('csrfmiddlewaretoken', csrf)
+          formData.append('type_sim', typeSim)
+          formData.append('operator', operator)
+          chunks[i].forEach((file) => formData.append('esim', file))
+
+          const response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              Accept: 'application/json',
+              'X-CSRFToken': csrf
+            },
+            body: formData
+          })
+
+          let data
+          try {
+            data = await response.json()
+          } catch (parseError) {
+            throw new Error(`Falha no lote ${i + 1}. Os lotes anteriores foram gravados.`)
+          }
+
+          if (!response.ok || !data.ok) {
+            throw new Error(data.error || `Falha no lote ${i + 1}. Os lotes anteriores foram gravados.`)
+          }
+
+          totals.created.push(...(data.created || []))
+          totals.skipped.push(...(data.skipped || []))
+          totals.errors.push(...(data.errors || []))
+          totals.lpa_missing.push(...(data.lpa_missing || []))
+        }
+
+        setProgress(chunks.length, chunks.length, 'Envio concluído')
+        appendLine(
+          `${totals.created.length} cadastrado(s), ${totals.skipped.length} já existiam, ${totals.errors.length} com erro.`,
+          'text-default-600'
+        )
+        if (totals.created.length) {
+          appendLine(`Cadastrados: ${listPreview(totals.created, 12)}`, 'text-success')
+        }
+        if (totals.skipped.length) {
+          appendLine(`Já cadastrados: ${listPreview(totals.skipped, 12)}`, 'text-info')
+        }
+        if (totals.lpa_missing.length) {
+          appendLine(
+            `Sem LPA: ${listPreview(totals.lpa_missing, 12)}. Rode /sims/atualizar_lpa/ ou edite manualmente.`,
+            'text-warning'
+          )
+        }
+        totals.errors.slice(0, 15).forEach((err) => {
+          appendLine(`${err.name}: ${err.message}`, 'text-danger')
+        })
+        if (totals.errors.length > 15) {
+          appendLine(`e mais ${totals.errors.length - 15} erro(s)`, 'text-danger')
+        }
+        fileInput.value = ''
+        updateHint()
+      } catch (error) {
+        setProgress(0, 1, 'Envio interrompido')
+        statusBar.style.width = '0%'
+        appendLine(error.message || 'Não foi possível enviar os eSIMs.', 'text-danger')
+      } finally {
+        setBusy(false)
+      }
+    })
+  })()
+  </script>
+{% endblock scripts %}

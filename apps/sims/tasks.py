@@ -600,9 +600,7 @@ def simActivateEO(id=None):
             UpdateOrder.upStatus(id_item,'EA')
             NotesAdd.addNote(order, f'Erro EO: campos obrigatorios ausentes ({", ".join(missing_fields)}).')
             continue
-        
-        logger.info(f'Pedido {order_id} - Enviando solicitação de ativação para EO: {payload}')
-        
+                
         # Cabeçalhos da solicitação
         headers = {
             'Content-Type': 'application/json',
@@ -796,12 +794,12 @@ def simActivateCMHK(id=None):
 
     tz = pytz.timezone(settings.TIME_ZONE)
     today = datetime.now(tz).date()
-    tomorrow = today + timedelta(days=1)
+    # tomorrow = today + timedelta(days=1)
 
     logger.info('>>>>>>>>>> ATIVAÇÂO CMHK INICIADA')
 
     if id is None:
-        orders_all = Orders.objects.filter(order_status='AA', id_sim__operator='CMHK', activation_date__lte=tomorrow)
+        orders_all = Orders.objects.filter(order_status='AA', id_sim__operator='CMHK', activation_date__lte=today)
     else:
         orders_all = Orders.objects.filter(pk=id)
 
@@ -820,7 +818,7 @@ def simActivateCMHK(id=None):
         order_id = order.order_id
         order_item = order.id
         order_product = order.product
-        order_day = str(order.days + 1)
+        order_day = str(order.days)
         order_data = str(order.data_day)
         order_sim = order.id_sim.sim
 

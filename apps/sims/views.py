@@ -3,7 +3,7 @@ from venv import logger
 from django.contrib.auth.decorators import login_required
 from rolepermissions.decorators import has_permission_decorator
 from django.shortcuts import get_object_or_404, redirect, render
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 from datetime import date
@@ -377,73 +377,114 @@ def sims_add_sim(request):
     }
     return render(request, 'painel/sims/add-sim.html', context)
 
+# Fatia do upload no browser; o teto do Django continua DATA_UPLOAD_MAX_NUMBER_FILES por POST.
+ESIM_UPLOAD_CHUNK_SIZE = 50
+
+
+def _wants_json(request):
+    return request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+
+def _esim_form_context():
+    return {
+        'operator_list': Sims.operator.field.choices,
+        'esim_chunk_size': ESIM_UPLOAD_CHUNK_SIZE,
+    }
+
+
+def _process_esim_uploads(esims, type_sim, operator):
+    created = []
+    skipped = []
+    errors = []
+    lpa_missing = []
+
+    for sim_img in esims:
+        sim_number = sim_img.name.split('.')[0]
+        if Sims.objects.filter(sim=sim_number, type_sim='esim').exists():
+            skipped.append(sim_number)
+            continue
+
+        if not imghdr.what(sim_img):
+            errors.append({
+                'name': sim_img.name,
+                'message': 'O arquivo não é uma imagem.',
+            })
+            continue
+
+        fileurl = normalize_sim_qr_link(upload_file_to_s3(sim_img))
+        lpa = None
+        try:
+            lpa = read_lpa_from_link(fileurl)
+        except Exception as e:
+            logger.error('Erro ao ler LPA do eSIM %s: %s', sim_number, e, exc_info=True)
+
+        Sims(
+            sim=sim_number,
+            lpa=lpa,
+            link=fileurl,
+            type_sim=type_sim,
+            operator=operator,
+        ).save()
+        created.append(sim_number)
+        if not lpa:
+            lpa_missing.append(sim_number)
+
+    return {
+        'created': created,
+        'skipped': skipped,
+        'errors': errors,
+        'lpa_missing': lpa_missing,
+    }
+
+
 @login_required(login_url='/login/')
 @has_permission_decorator('edit_sims')
 def sims_add_esim(request):
-    if request.method == "GET":
-        
-        operator_list = Sims.operator.field.choices
-        
-        context = {
-            'operator_list': operator_list,
-        }
-        
+    context = _esim_form_context()
+    if request.method == 'GET':
         return render(request, 'painel/sims/add-esim.html', context)
-    
+
     if request.method == 'POST':
-                
         type_sim = request.POST.get('type_sim')
         operator = request.POST.get('operator')
         esims = request.FILES.getlist('esim')
- 
-        if type_sim == '' or operator == '' or esims == '':
-            messages.error(request,'Preencha todos os campos')
-            return render(request, 'painel/sims/add-esim.html', {'operator_list': Sims.operator.field.choices})
-                           
-        
-        for sim_img in esims:
-            sim_i = sim_img.name.split('.')
-            
-            print(sim_img.name)
-            print(sim_img)
-            
-            fileurl = ''
-            if imghdr.what(sim_img):
-                fileurl = normalize_sim_qr_link(upload_file_to_s3(sim_img))
-            else:
-                messages.error(request,'O arquivo não é uma imagem. Verifique por favor!')
-                return render(request, 'painel/sims/add-esim.html', {'operator_list': Sims.operator.field.choices})           
+        wants_json = _wants_json(request)
 
-            
-            sims_all = Sims.objects.all().filter(sim=sim_i[0]).filter(type_sim='esim')
-            if sims_all:
-                messages.info(request,f'O SIM {sim_i[0]} já está cadastrado no sistema')
-                continue
-            lpa = None
-            try:
-                lpa = read_lpa_from_link(fileurl)
-            except Exception as e:
-                logger.error('Erro ao ler LPA do eSIM %s: %s', sim_i[0], e, exc_info=True)
-
-            # Save SIMs
-            add_sim = Sims(
-                sim = sim_i[0],
-                lpa = lpa,
-                link = fileurl,
-                type_sim = type_sim,
-                operator = operator
-            )
-            add_sim.save()
-
-            if not lpa:
-                messages.warning(
-                    request,
-                    f'eSIM {sim_i[0]} cadastrado, mas o LPA não pôde ser lido do QR. '
-                    f'Rode /sims/atualizar_lpa/ ou edite o LPA manualmente.',
+        if not type_sim or not operator or not esims:
+            if wants_json:
+                return JsonResponse(
+                    {'ok': False, 'error': 'Preencha todos os campos'},
+                    status=400,
                 )
+            messages.error(request, 'Preencha todos os campos')
+            return render(request, 'painel/sims/add-esim.html', context)
 
-        messages.success(request,'Lista gravada com sucesso')
-        return render(request, 'painel/sims/add-esim.html', {'operator_list': Sims.operator.field.choices})
+        result = _process_esim_uploads(esims, type_sim, operator)
+        if wants_json:
+            return JsonResponse({'ok': True, **result})
+
+        created_n = len(result['created'])
+        skipped_n = len(result['skipped'])
+        errors_n = len(result['errors'])
+        lpa_n = len(result['lpa_missing'])
+        if created_n:
+            messages.success(request, f'{created_n} eSIM(s) gravado(s) com sucesso')
+        if skipped_n:
+            messages.info(request, f'{skipped_n} eSIM(s) já cadastrado(s) no sistema')
+        if errors_n:
+            messages.error(
+                request,
+                f'{errors_n} arquivo(s) ignorado(s) por não serem imagem',
+            )
+        if lpa_n:
+            messages.warning(
+                request,
+                f'{lpa_n} eSIM(s) cadastrado(s) sem LPA. '
+                f'Rode /sims/atualizar_lpa/ ou edite o LPA manualmente.',
+            )
+        if not created_n and not skipped_n and not errors_n:
+            messages.error(request, 'Nenhum arquivo foi processado')
+        return render(request, 'painel/sims/add-esim.html', context)
 
 @login_required(login_url='/login/')
 @has_permission_decorator('add_ord_sims')
