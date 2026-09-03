@@ -689,15 +689,6 @@ def ord_edit(request,id):
                     request,
                     'Status atualizado no sistema, mas a sincronização com a loja falhou.',
                 )
-            else:
-                # orders_up_status já envia e-mail para AA (não-AR) e AT (AR).
-                # Mantém o e-mail de AT das demais operadoras (comportamento anterior do edit).
-                if ord_st == 'AT' and operator and operator != 'AR':
-                    try:
-                        send_email_sims(id=order.id)
-                        messages.success(request, 'E-mail enviado com sucesso para o cliente!')
-                    except Exception:
-                        logger.exception('Falha ao enviar e-mail do pedido %s', order.id)
         
         for msg_e in msg_error:
             messages.error(request,msg_e)

@@ -408,8 +408,6 @@ def orders_up_status(ord_id, ord_s, id_user=None, skip_sim_deactivate=False, pre
         try:
             if ord_s == 'AA' and operator and operator != 'AR':
                 send_email_sims(id=order_id)
-            elif ord_s == 'AT' and operator == 'AR':
-                send_email_sims(id=order_id)
         except Exception:
             logger.exception('Falha ao enviar e-mail após mudança de status do pedido %s', order_id)
 
