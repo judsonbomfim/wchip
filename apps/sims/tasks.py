@@ -818,6 +818,7 @@ def simActivateCMHK(id=None):
         order_id = order.order_id
         order_item = order.id
         order_product = order.product
+        order_product_name = order.get_product_display()
         order_day = str(order.days)
         order_data = str(order.data_day)
         order_sim = order.id_sim.sim
@@ -837,7 +838,7 @@ def simActivateCMHK(id=None):
 
         plan_code = selectPlanCMHK.selectPlanCod(order_product, order_day, order_data)
         if plan_code is None:
-            NotesAdd.addNote(order, f'ERRO AO DEFINIR PLANO CMHK {order_product} - {order_day} - {order_data}')
+            NotesAdd.addNote(order, f'ERRO AO DEFINIR PLANO CMHK {order_product_name} - {order_day} - {order_data}')
             errorData()
             continue
 

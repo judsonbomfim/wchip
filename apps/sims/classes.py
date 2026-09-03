@@ -1545,7 +1545,7 @@ class selectPlanCMHK():
     @staticmethod
     def selectPlanList(selList):
         plans = {
-            "976": "list_cmhk_eua_ilimitado",
+            "977": "list_cmhk_eua_ilimitado",
             "971": "list_cmhk_europa_controle",
             "974": "list_cmhk_europa_flex",
             "3564": "list_cmhk_america_sul_controle",
