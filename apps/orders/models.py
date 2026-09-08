@@ -26,7 +26,9 @@ DATA = [
     ('2gb-periodo', '2GB / Período'),
     ('3gb-periodo', '3GB / Período'),
     ('5gb-periodo', '5GB / Período'),
+    ('7gb-periodo', '7GB / Período'),
     ('10gb-periodo', '10GB / Período'),
+    ('15gb-periodo', '15GB / Período'),
     ('20gb-periodo', '20GB / Período'),
     ('30gb-periodo', '30GB / Período'),
 ]
