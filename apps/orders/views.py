@@ -549,10 +549,6 @@ def ord_edit(request,id):
                 sim_put.sim_status = 'DE'
                 sim_put.save()    
 
-        # Activate TC
-        if ord_st == 'AT' and order.order_status != 'AT' and operator == 'TC':
-            simActivateTC(id=order.id)
-
         # Se SIM preenchico
         if sim:
             if order_sim != '':

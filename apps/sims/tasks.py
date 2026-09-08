@@ -59,6 +59,7 @@ def sims_in_orders():
         cell_imei = ord.cell_imei
         id_sim_i = id_item_i.id_sim
         esim_eua = type_sim_i == 'esim' and product_i == '001' # EUA Ilimitado
+        voice = ord.voice
         
         # Se já houver SIM   
         if id_sim_i != None:
@@ -79,7 +80,7 @@ def sims_in_orders():
                 add_sim.save()
 
             # Definir Operadora
-            if type_sim_i == 'sim':        
+            if product_i == '001' and voice == True:      
                 oper_sel_i = 'TM'
             else:
                 oper_sel_i = 'CMHK'

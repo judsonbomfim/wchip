@@ -152,7 +152,7 @@ def order_import():
                     
                     # Planos de voz EUA T-mobile
                     if product_i == '977' and voice_i == True and type_sim_i == 'esim':
-                        product_i = '001'
+                        product_i = '001'                        
 
                     if days_i is not None:
                         try:
@@ -197,10 +197,12 @@ def order_import():
                         order_status_i = 'AS'  
                     
                     shipping_i = shipping_i[:40]
-                        
-                    # Definir Operadora                   
-                    oper_sel = OperatorSelect.opSelSim()
-                    oper_sim_i = oper_sel.get(str(product_i), '')
+                    
+                    # Definir Operadora
+                    if product_i == '001' and voice_i == True:      
+                        oper_sim_i = 'TM'
+                    else:
+                        oper_sim_i = 'CMHK'
                     
                     try:
                         # Definir variáveis para salvar no banco de dados
