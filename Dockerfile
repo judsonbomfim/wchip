@@ -5,10 +5,10 @@ WORKDIR /djangoweb
 
 COPY requirements.txt .
 
-RUN apt-get update && apt-get install -y nano libglib2.0-0 libgomp1 && \
+RUN apt-get update && apt-get install -y nano libglib2.0-0 libgomp1 gosu && \
     pip install --upgrade pip && \
     pip install -r requirements.txt && \
-    adduser --disabled-password --no-create-home duser
+    adduser --disabled-password --no-create-home --uid 1000 duser
 
 COPY . .
 
@@ -22,6 +22,7 @@ RUN chmod +x /djangoweb/scripts/entrypoint.sh && \
     touch /djangoweb/logs/performance.log && \
     chown -R duser:duser /djangoweb
 
-USER duser
-
 EXPOSE 8000
+
+ENTRYPOINT ["/djangoweb/scripts/entrypoint.sh"]
+CMD ["web"]

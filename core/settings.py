@@ -351,115 +351,116 @@ LINK_ESIM_IOS = str(
 
 
 # LOGGING CONFIGURATION
+def _logs_volume_writable():
+    log_dir = os.path.join(BASE_DIR, 'logs')
+    try:
+        os.makedirs(log_dir, exist_ok=True)
+        probe = os.path.join(log_dir, '.write_probe')
+        with open(probe, 'a', encoding='utf-8'):
+            pass
+        os.remove(probe)
+        return True
+    except OSError:
+        return False
+
+
+_LOG_TO_FILES = _logs_volume_writable()
+
+_LOGGING_FORMATTERS = {
+    'verbose': {
+        'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+        'style': '{',
+    },
+    'simple': {
+        'format': '{levelname} {asctime} {message}',
+        'style': '{',
+    },
+    'detailed': {
+        'format': '[{asctime}] {levelname} [{name}:{lineno}] - {message}',
+        'style': '{',
+        'datefmt': '%Y-%m-%d %H:%M:%S',
+    },
+}
+
+_LOGGING_HANDLERS = {
+    'console': {
+        'level': 'INFO',
+        'class': 'logging.StreamHandler',
+        'formatter': 'simple',
+    },
+}
+
+if _LOG_TO_FILES:
+    _rotating = {
+        'class': 'logging.handlers.RotatingFileHandler',
+        'maxBytes': 1024 * 1024 * 15,
+        'backupCount': 10,
+        'formatter': 'detailed',
+    }
+    _LOGGING_HANDLERS.update({
+        'file': {'level': 'INFO', 'filename': os.path.join(BASE_DIR, 'logs', 'app.log'), **_rotating},
+        'file_error': {'level': 'ERROR', 'filename': os.path.join(BASE_DIR, 'logs', 'error.log'), **_rotating},
+        'celery_file': {'level': 'INFO', 'filename': os.path.join(BASE_DIR, 'logs', 'celery.log'), **_rotating},
+        'sims_file': {'level': 'INFO', 'filename': os.path.join(BASE_DIR, 'logs', 'sims.log'), **_rotating},
+        'orders_file': {'level': 'INFO', 'filename': os.path.join(BASE_DIR, 'logs', 'orders.log'), **_rotating},
+    })
+
+
+def _log_handlers(*file_handlers):
+    if _LOG_TO_FILES:
+        return ['console', *file_handlers]
+    return ['console']
+
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '{levelname} {asctime} {message}',
-            'style': '{',
-        },
-        'detailed': {
-            'format': '[{asctime}] {levelname} [{name}:{lineno}] - {message}',
-            'style': '{',
-            'datefmt': '%Y-%m-%d %H:%M:%S',
-        },
-    },
+    'formatters': _LOGGING_FORMATTERS,
     'filters': {
         'require_debug_true': {
             '()': 'django.utils.log.RequireDebugTrue',
         },
     },
-    'handlers': {
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'app.log'),
-            'maxBytes': 1024 * 1024 * 15,  # 15MB
-            'backupCount': 10,
-            'formatter': 'detailed',
-        },
-        'file_error': {
-            'level': 'ERROR',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'error.log'),
-            'maxBytes': 1024 * 1024 * 15,  # 15MB
-            'backupCount': 10,
-            'formatter': 'detailed',
-        },
-        'celery_file': {
-            'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'celery.log'),
-            'maxBytes': 1024 * 1024 * 15,  # 15MB
-            'backupCount': 10,
-            'formatter': 'detailed',
-        },
-        'sims_file': {
-            'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'sims.log'),
-            'maxBytes': 1024 * 1024 * 15,  # 15MB
-            'backupCount': 10,
-            'formatter': 'detailed',
-        },
-        'orders_file': {
-            'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'orders.log'),
-            'maxBytes': 1024 * 1024 * 15,  # 15MB
-            'backupCount': 10,
-            'formatter': 'detailed',
-        },
-    },
+    'handlers': _LOGGING_HANDLERS,
     'loggers': {
         'django': {
-            'handlers': ['console', 'file'],
+            'handlers': _log_handlers('file'),
             'level': 'INFO',
             'propagate': True,
         },
         'django.request': {
-            'handlers': ['file_error'],
+            'handlers': _log_handlers('file_error') if _LOG_TO_FILES else ['console'],
             'level': 'ERROR',
             'propagate': False,
         },
         'celery': {
-            'handlers': ['console', 'celery_file'],
+            'handlers': _log_handlers('celery_file'),
             'level': 'INFO',
             'propagate': False,
         },
         'apps.sims': {
-            'handlers': ['console', 'sims_file', 'file_error'],
+            'handlers': _log_handlers('sims_file', 'file_error'),
             'level': 'INFO',
             'propagate': False,
         },
         'apps.orders': {
-            'handlers': ['console', 'orders_file', 'file_error'],
+            'handlers': _log_handlers('orders_file', 'file_error'),
             'level': 'INFO',
             'propagate': False,
         },
         'apps.send_email': {
-            'handlers': ['console', 'file'],
+            'handlers': _log_handlers('file'),
             'level': 'INFO',
             'propagate': False,
         },
         'apps.users': {
-            'handlers': ['console', 'file'],
+            'handlers': _log_handlers('file'),
             'level': 'INFO',
             'propagate': False,
         },
     },
     'root': {
-        'handlers': ['console', 'file', 'file_error'],
+        'handlers': _log_handlers('file', 'file_error'),
         'level': 'INFO',
     },
 }
