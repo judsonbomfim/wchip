@@ -1,20 +1,13 @@
 version: '3.8'
 
 services:
-  logs-init:
-    image: alpine:3.20
-    volumes:
-      - logs:/logs
-    command: ["sh", "-c", "chown -R 10001:10001 /logs && chmod -R u+rwX /logs"]
-    restart: "no"
-
   web:
     container_name: djangoapp
     image: djangoweb:latest
     build:
       context: .
       dockerfile: Dockerfile
-    command: web
+    command: /djangoweb/scripts/entrypoint.sh
     networks:
       - public
       - internal
@@ -24,10 +17,7 @@ services:
       - IMAGE_NAME=djangoweb:latest
       - COLLECTSTATIC_ON_STARTUP=false
     depends_on:
-      logs-init:
-        condition: service_completed_successfully
-      redis:
-        condition: service_started
+      - redis
     volumes:
       - logs:/djangoweb/logs
       - /home/sprdmntrdr/docker/django/.env:/djangoweb/.env:ro
@@ -59,12 +49,8 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     depends_on:
-      logs-init:
-        condition: service_completed_successfully
-      redis:
-        condition: service_started
-      web:
-        condition: service_started
+      - redis
+      - web
     volumes:
       - logs:/djangoweb/logs
       - /home/sprdmntrdr/docker/django/.env:/djangoweb/.env:ro
@@ -87,12 +73,8 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     depends_on:
-      logs-init:
-        condition: service_completed_successfully
-      redis:
-        condition: service_started
-      web:
-        condition: service_started
+      - redis
+      - web
     volumes:
       - logs:/djangoweb/logs
       - /home/sprdmntrdr/docker/django/.env:/djangoweb/.env:ro
