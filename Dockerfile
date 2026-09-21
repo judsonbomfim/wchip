@@ -5,10 +5,11 @@ WORKDIR /djangoweb
 
 COPY requirements.txt .
 
-RUN apt-get update && apt-get install -y nano libglib2.0-0 libgomp1 gosu && \
+RUN apt-get update && apt-get install -y --no-install-recommends nano libglib2.0-0 libgomp1 && \
+    rm -rf /var/lib/apt/lists/* && \
     pip install --upgrade pip && \
     pip install -r requirements.txt && \
-    adduser --disabled-password --no-create-home --uid 1000 duser
+    adduser --disabled-password --no-create-home --uid 10001 duser
 
 COPY . .
 

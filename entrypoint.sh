@@ -8,9 +8,17 @@ fi
 
 as_duser() {
   if [ "$(id -u)" = "0" ]; then
-    gosu duser "$@"
+    su -s /bin/sh duser -c "$(printf '%q ' "$@")"
   else
     "$@"
+  fi
+}
+
+as_duser_exec() {
+  if [ "$(id -u)" = "0" ]; then
+    exec su -s /bin/sh duser -c "exec $(printf '%q ' "$@")"
+  else
+    exec "$@"
   fi
 }
 
@@ -22,7 +30,6 @@ ensure_log_files() {
   '
 }
 
-# Compat: compose antigo chama este script como command do web
 if [ "$1" = "/djangoweb/scripts/entrypoint.sh" ] && [ "$#" -eq 1 ]; then
   set -- web
 fi
@@ -47,4 +54,4 @@ if [ "$1" = "web" ]; then
 fi
 
 ensure_log_files
-as_duser exec "$@"
+as_duser_exec "$@"

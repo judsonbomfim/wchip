@@ -124,16 +124,22 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # }
 
 
+_db_host = env('DB_HOST')
+_db_sslmode = env('DB_SSLMODE', default='prefer')
+# Postgres na rede Docker (host "postgres") não oferece SSL; require quebra a conexão.
+if _db_host == 'postgres' and _db_sslmode == 'require':
+    _db_sslmode = 'disable'
+
 DATABASES = {
     'default': {
         'ENGINE': env('DB_ENGINE'),
         'NAME': env('DB_NAME'),
         'USER': env('DB_USER'),
         'PASSWORD': env('DB_PASSWORD'),
-        'HOST': env('DB_HOST'),
+        'HOST': _db_host,
         'PORT': env('DB_PORT'),
         'OPTIONS': {
-            'sslmode': env('DB_SSLMODE', default='prefer')
+            'sslmode': _db_sslmode,
         },
     }
 }
