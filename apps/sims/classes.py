@@ -1,5 +1,5 @@
 import base64
-from datetime import datetime
+from datetime import datetime, timedelta
 import hashlib
 import http.client
 import io
@@ -22,6 +22,17 @@ from apps.sims.models import Sims
 
 HTTP_TIMEOUT = 10
 
+cm_logger = logging.getLogger(__name__)
+
+_BUNDLE_START_KEYS = (
+    "activeTime", "startTime", "beginTime", "effectiveTime",
+    "orderCreateTime", "createTime", "activeDate",
+)
+_BUNDLE_END_KEYS = (
+    "expireTime", "endTime", "invalidTime", "expireDate", "endDate",
+)
+
+
 def _cm_subscription_key(data_dict):
     """Child order (subscriptionKey) do pacote ativo na resposta CMI."""
     bundles = data_dict.get("userDataBundles") or []
@@ -43,6 +54,96 @@ def _cm_subscription_key(data_dict):
         else:
             others.append(key)
     return (activated or others or [None])[0]
+
+
+def _cm_user_data_bundles(data_dict):
+    bundles = (data_dict or {}).get("userDataBundles") or []
+    if isinstance(bundles, dict):
+        bundles = [bundles]
+    return bundles if isinstance(bundles, list) else []
+
+
+def _cm_best_bundle(data_dict):
+    """Pacote mais relevante: ativado (3), expirado (2), demais."""
+    bundles = _cm_user_data_bundles(data_dict)
+    if not bundles:
+        return None
+    for status in ("3", "2", "1"):
+        for bundle in bundles:
+            if not isinstance(bundle, dict):
+                continue
+            if str(bundle.get("status")) == status and bundle.get("subscriptionKey"):
+                return bundle
+    for bundle in bundles:
+        if isinstance(bundle, dict) and bundle.get("subscriptionKey"):
+            return bundle
+    return bundles[0] if isinstance(bundles[0], dict) else None
+
+
+def _cm_normalize_api_date(value):
+    if value in (None, ""):
+        return None
+    digits = "".join(ch for ch in str(value).strip() if ch.isdigit())
+    if len(digits) >= 8:
+        return digits[:8]
+    return None
+
+
+def _cm_bundle_window(bundle):
+    if not isinstance(bundle, dict):
+        return None, None
+    begin = end = None
+    for key in _BUNDLE_START_KEYS:
+        begin = _cm_normalize_api_date(bundle.get(key))
+        if begin:
+            break
+    for key in _BUNDLE_END_KEYS:
+        end = _cm_normalize_api_date(bundle.get(key))
+        if end:
+            break
+    return begin, end
+
+
+def _cm_bundle_used_mb(bundle):
+    if not isinstance(bundle, dict):
+        return None
+    for key in (
+        "qtaconsumption", "usedFlow", "useFlow", "usedQuota",
+        "dataUsage", "usageFlow",
+    ):
+        val = _cm_float(bundle.get(key))
+        if val is not None and val >= 0:
+            return val
+    total = None
+    for key in ("qtaallowance", "totalQuota", "quota", "packageFlow", "totalFlow"):
+        val = _cm_float(bundle.get(key))
+        if val is not None:
+            total = val
+            break
+    remain = None
+    for key in ("qtaremaining", "remainFlow", "remainQuota", "remainingFlow"):
+        val = _cm_float(bundle.get(key))
+        if val is not None:
+            remain = val
+            break
+    if total is not None and remain is not None:
+        return max(total - remain, 0.0)
+    return None
+
+
+def _cm_is_period_data_day(data_day):
+    if not data_day:
+        return False
+    value = str(data_day).lower()
+    if value == "ilimitado":
+        return False
+    if "-periodo" in value:
+        return True
+    if "-dia" in value:
+        return False
+    if value.endswith("gb"):
+        return True
+    return False
 
 
 def _cm_quota_node(data_dict):
@@ -95,18 +196,161 @@ def _cm_daily_quota(data_dict, date_today):
     return 0
 
 
-def _cm_quota_payload(api_token, iccid, date_today, child_order_id=None):
+def _cm_period_quota(data_dict):
+    quota = _cm_quota_node(data_dict)
+    history_quota = quota.get("historyQuota") or []
+    if isinstance(history_quota, dict):
+        history_quota = [history_quota]
+
+    total = 0.0
+    seen_days = set()
+    for entry in history_quota:
+        if not isinstance(entry, dict) or entry.get("appName"):
+            continue
+        day = str(entry.get("time") or "")
+        consumption = _cm_float(entry.get("qtaconsumption"))
+        if consumption is None:
+            continue
+        if day:
+            if day in seen_days:
+                continue
+            seen_days.add(day)
+        total += consumption
+    if total > 0:
+        return total
+
+    subscriber = quota.get("subscriberQuota") or {}
+    if isinstance(subscriber, dict):
+        for key in ("qtaconsumption", "totalconsumption", "totalConsumption"):
+            val = _cm_float(subscriber.get(key))
+            if val is not None:
+                return val
+    return 0
+
+
+def _cm_quota_payload(api_token, iccid, begin_time, end_time, child_order_id=None):
     body = {
         "accessToken": api_token,
         "iccid": iccid,
-        "beginTime": date_today,
-        "endTime": date_today,
+        "beginTime": begin_time,
+        "endTime": end_time,
         "ext": {"todayFlow": "2"},
     }
     if child_order_id:
         body["childOrderId"] = child_order_id
     return json.dumps(body)
 
+
+def _cm_wsse_headers(app_key, app_secret):
+    nonce, created, password_digest = ApiCM.generate_password_digest(app_secret)
+    return {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": 'WSSE realm="SDP", profile="UsernameToken", type="Appkey"',
+        "X-WSSE": (
+            f'UsernameToken Username="{app_key}", PasswordDigest="{password_digest}", '
+            f'Nonce="{nonce}", Created="{created}"'
+        ),
+    }
+
+
+def _cm_http_user_data_bundles(app_url, app_key, app_secret, api_token, iccid):
+    url_api = f"{app_url}/aep/APP_getSubedUserDataBundle_SBO/v1"
+    parsed_url = urlparse(url_api)
+    headers = _cm_wsse_headers(app_key, app_secret)
+    payload = json.dumps({
+        "accessToken": api_token,
+        "iccid": iccid,
+        "language": "2",
+    })
+    try:
+        conn = http.client.HTTPSConnection(parsed_url.hostname, parsed_url.port, timeout=HTTP_TIMEOUT)
+        conn.request("POST", parsed_url.path, payload, headers)
+        res = conn.getresponse()
+        data = res.read()
+        return json.loads(data) if data else None
+    except Exception:
+        return None
+    finally:
+        if "conn" in locals():
+            conn.close()
+
+
+def _cm_http_subscriber_quota(app_url, app_key, app_secret, api_token, iccid, begin_time, end_time, child_order_id):
+    url_api = f"{app_url}/aep/APP_getSubscriberAllQuota_SBO/v1"
+    parsed_url = urlparse(url_api)
+    headers = _cm_wsse_headers(app_key, app_secret)
+    payload = _cm_quota_payload(api_token, iccid, begin_time, end_time, child_order_id)
+    try:
+        conn = http.client.HTTPSConnection(parsed_url.hostname, parsed_url.port, timeout=HTTP_TIMEOUT)
+        conn.request("POST", parsed_url.path, payload, headers)
+        res = conn.getresponse()
+        data = res.read()
+        return json.loads(data) if data else None
+    except Exception:
+        return None
+    finally:
+        if "conn" in locals():
+            conn.close()
+
+
+def _cm_resolve_mobile_data(iccid, data_day, app_url, app_key, app_secret, get_token, operator_label):
+    api_token = get_token()
+    if api_token == "error" or not api_token:
+        return 0
+
+    beijing_tz = pytz.timezone("Asia/Shanghai")
+    date_today = datetime.now(beijing_tz).strftime("%Y%m%d")
+
+    bundles_response = _cm_http_user_data_bundles(app_url, app_key, app_secret, api_token, iccid)
+    bundle = _cm_best_bundle(bundles_response) if bundles_response else None
+    child_order_id = None
+    if bundle:
+        child_order_id = bundle.get("subscriptionKey")
+    if not child_order_id and bundles_response:
+        child_order_id = _cm_subscription_key(bundles_response)
+
+    period_plan = _cm_is_period_data_day(data_day)
+    if data_day is None and bundle:
+        begin, end = _cm_bundle_window(bundle)
+        if begin and end and begin != end:
+            period_plan = True
+
+    if period_plan:
+        used_from_bundle = _cm_bundle_used_mb(bundle)
+        if used_from_bundle is not None:
+            return used_from_bundle
+
+        begin, end = _cm_bundle_window(bundle) if bundle else (None, None)
+        if not begin:
+            begin = (datetime.now(beijing_tz) - timedelta(days=45)).strftime("%Y%m%d")
+        end_time = end or date_today
+        if end_time > date_today:
+            end_time = date_today
+
+        quota_response = _cm_http_subscriber_quota(
+            app_url, app_key, app_secret, api_token, iccid, begin, end_time, child_order_id,
+        )
+        if quota_response:
+            try:
+                return _cm_period_quota(quota_response)
+            except (KeyError, IndexError, TypeError) as exc:
+                cm_logger.error(
+                    "Erro ao processar consumo acumulado %s %s: %s",
+                    operator_label, iccid, exc,
+                )
+        return 0
+
+    quota_response = _cm_http_subscriber_quota(
+        app_url, app_key, app_secret, api_token, iccid, date_today, date_today, child_order_id,
+    )
+    if not quota_response:
+        return 0
+    try:
+        return _cm_daily_quota(quota_response, date_today)
+    except (KeyError, IndexError, TypeError) as exc:
+        cm_logger.error("Erro ao processar consumo diário %s %s: %s", operator_label, iccid, exc)
+        return 0
 
 
 class RateLimitExceeded(Exception):
@@ -942,69 +1186,16 @@ class ApiCM:
         
             
     @staticmethod
-    def mobileData(iccid):
-                
-        url_api = f'{settings.APICM_URL}/aep/APP_getSubscriberAllQuota_SBO/v1'
-        parsed_url = urlparse(url_api)
-        api_token = ApiCM.get_token()
-        childOrderId = ApiCM.childOrderId(iccid)
-
-        # Verificar se token foi obtido com sucesso
-        if api_token == 'error' or not api_token:
-            return 0
-
-        # Gerar data atual Pequim
-        beijing_tz = pytz.timezone("Asia/Shanghai")
-        date_today = datetime.now(beijing_tz).strftime("%Y%m%d")
-
-        # Gerar PasswordDigest
-        nonce, created, password_digest = ApiCM.generate_password_digest(ApiCM.app_secret)
-
-        # Cabeçalhos da requisição
-        headers = {
-            'Content-Type': 'application/json',
-            "Accept": "application/json",
-            "Authorization": 'WSSE realm="SDP", profile="UsernameToken", type="Appkey"',
-            "X-WSSE": f'UsernameToken Username="{ApiCM.app_key}", PasswordDigest="{password_digest}", Nonce="{nonce}", Created="{created}"'
-        }
-
-        # Corpo da requisição
-        payload = json.dumps({
-            "accessToken": api_token,
-            "iccid": iccid,
-            "childOrderId": childOrderId,
-            "ext": {"todayFlow": 2}
-        })
-
-        # Fazer a requisição POST com tempo limite
-        try:
-            conn = http.client.HTTPSConnection(parsed_url.hostname, parsed_url.port, timeout=100)
-            conn.request("POST", parsed_url.path, payload, headers)
-            res = conn.getresponse()            
-            # Verificar o status da resposta
-            data = res.read()
-            data_dict = json.loads(data)
-            
-            try:
-                history_quota = data_dict["historyQuota"]
-                times_x = [entry for entry in history_quota if entry["time"] == date_today]
-                soma_qtaconsumption = sum(float(entry["qtaconsumption"]) for entry in times_x)
-                mobile_data = soma_qtaconsumption
-                return mobile_data
-            except (KeyError, IndexError, TypeError) as e:
-                print(f">>>>>>>>>>>>>>>>>>> Erro ao processar dados de uso: {e}")
-                return 0
-                            
-        except Exception as e:
-            return 0
-        finally:
-            if 'conn' in locals():
-                conn.close()
-        
-        # # Resultado
-        # print(f">>>>>>>>>>>>>>>>>>> Status da resposta: {data}")
-        # return data
-        
+    def mobileData(iccid, data_day=None):
+        return _cm_resolve_mobile_data(
+            iccid,
+            data_day,
+            settings.APICM_URL,
+            ApiCM.app_key,
+            ApiCM.app_secret,
+            ApiCM.get_token,
+            "CM",
+        )
 
 
 class ApiCMHK:
@@ -1105,11 +1296,9 @@ class ApiCMHK:
             "X-WSSE": f'UsernameToken Username="{ApiCMHK.app_key}", PasswordDigest="{password_digest}", Nonce="{nonce}", Created="{created}"'
         }
 
-        # Pedido status=1: em uso (spec 3.2.6)
         payload = json.dumps({
             "accessToken": api_token,
             "iccid": iccid,
-            "status": "1",
             "language": "2",
         })
 
@@ -1123,6 +1312,9 @@ class ApiCMHK:
             try:
                 data = res.read()
                 data_dict = json.loads(data)
+                bundle = _cm_best_bundle(data_dict)
+                if bundle:
+                    return bundle.get("subscriptionKey")
                 return _cm_subscription_key(data_dict)
             except (json.JSONDecodeError, KeyError, IndexError, TypeError):
                 return None
@@ -1134,53 +1326,16 @@ class ApiCMHK:
                 conn.close()
                
     @staticmethod
-    def mobileData(iccid):
-                
-        url_api = f'{ApiCMHK.app_url}/aep/APP_getSubscriberAllQuota_SBO/v1'
-        parsed_url = urlparse(url_api)
-        api_token = ApiCMHK.get_token()
-        childOrderId = ApiCMHK.childOrderId(iccid)
-
-        if api_token == 'error' or not api_token:
-            return 0
-
-        # Gerar data atual Pequim
-        beijing_tz = pytz.timezone("Asia/Shanghai")
-        date_today = datetime.now(beijing_tz).strftime("%Y%m%d")
-
-        # Gerar PasswordDigest
-        nonce, created, password_digest = ApiCMHK.generate_password_digest(ApiCMHK.app_secret)
-
-        # Cabeçalhos da requisição
-        headers = {
-            'Content-Type': 'application/json',
-            "Accept": "application/json",
-            "Authorization": 'WSSE realm="SDP", profile="UsernameToken", type="Appkey"',
-            "X-WSSE": f'UsernameToken Username="{ApiCMHK.app_key}", PasswordDigest="{password_digest}", Nonce="{nonce}", Created="{created}"'
-        }
-
-        payload = _cm_quota_payload(api_token, iccid, date_today, childOrderId)
-
-        # Fazer a requisição POST com tempo limite
-        try:
-            conn = http.client.HTTPSConnection(parsed_url.hostname, parsed_url.port, timeout=10)
-            conn.request("POST", parsed_url.path, payload, headers)
-            res = conn.getresponse()            
-            # Verificar o status da resposta
-            data = res.read()
-            data_dict = json.loads(data)
-            
-            try:
-                return _cm_daily_quota(data_dict, date_today)
-            except (KeyError, IndexError, TypeError) as e:
-                logger.error(f">>>>>>>>>>>>>>>>>>> Erro ao processar dados de uso CMHK: {e}")
-                return 0
-                            
-        except Exception as e:
-            return 0
-        finally:
-            if 'conn' in locals():
-                conn.close()
+    def mobileData(iccid, data_day=None):
+        return _cm_resolve_mobile_data(
+            iccid,
+            data_day,
+            ApiCMHK.app_url,
+            ApiCMHK.app_key,
+            ApiCMHK.app_secret,
+            ApiCMHK.get_token,
+            "CMHK",
+        )
 
 
 

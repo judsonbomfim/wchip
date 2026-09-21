@@ -1,65 +1,95 @@
-version: '3.8'
+x-app-common: &app-common
+  image: ${IMAGE_NAME:-djangoweb:latest}
+  environment:
+    REDIS_HOST: redis
+    REDIS_PORT: "6379"
+    REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+    DEBUG: ${DEBUG:-False}
+    COLLECTSTATIC_ON_STARTUP: ${COLLECTSTATIC_ON_STARTUP:-false}
+  volumes:
+    - logs:/djangoweb/logs
+    # Servidor: .env de produção (no repo o conteúdo está em .env.production; .env da raiz é só local)
+    - ${ENV_FILE_PATH:-/home/sprdmntrdr/docker/django/.env}:/djangoweb/.env:ro
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+  restart: unless-stopped
 
 services:
   web:
-    container_name: djangoapp
-    image: djangoweb:latest
+    <<: *app-common
+    container_name: wchip-web
     build:
       context: .
       dockerfile: Dockerfile
-    command: /djangoweb/scripts/entrypoint.sh
+    command: ["web"]
     networks:
       - public
-      - internal
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - IMAGE_NAME=djangoweb:latest
-      - COLLECTSTATIC_ON_STARTUP=false
+      - shared_backend
+      - wchip_internal
     depends_on:
-      - redis
-    volumes:
-      - logs:/djangoweb/logs
-      - /home/sprdmntrdr/docker/django/.env:/djangoweb/.env:ro
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz/', timeout=4)",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      DEBUG: ${DEBUG:-False}
+      COLLECTSTATIC_ON_STARTUP: ${COLLECTSTATIC_ON_STARTUP:-false}
+      IMAGE_NAME: ${IMAGE_NAME:-djangoweb:latest}
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=public"
-      - "traefik.http.routers.django-http.rule=Host(`painel.worldchip.com.br`)"
+      - "traefik.http.routers.django-http.rule=Host(`${DOMAIN:-painel.worldchip.com.br}`)"
       - "traefik.http.routers.django-http.entrypoints=web"
       - "traefik.http.routers.django-http.middlewares=https-redirect"
-      - "traefik.http.routers.django-https.rule=Host(`painel.worldchip.com.br`)"
+      - "traefik.http.routers.django-https.rule=Host(`${DOMAIN:-painel.worldchip.com.br}`)"
       - "traefik.http.routers.django-https.entrypoints=websecure"
       - "traefik.http.routers.django-https.tls=true"
       - "traefik.http.routers.django-https.tls.certresolver=leresolver"
       - "traefik.http.services.django.loadbalancer.server.port=8000"
       - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
       - "traefik.http.middlewares.https-redirect.redirectscheme.permanent=true"
-    restart: unless-stopped
 
   celery:
-    container_name: celery
-    image: djangoweb:latest
+    <<: *app-common
+    container_name: wchip-celery
     build:
       context: .
       dockerfile: Dockerfile
     command: celery -A core worker --loglevel=info --concurrency=8 --max-tasks-per-child=50
     networks:
-      - internal
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - shared_backend
+      - wchip_internal
+    mem_limit: 4g
     depends_on:
-      - redis
-      - web
-    volumes:
-      - logs:/djangoweb/logs
-      - /home/sprdmntrdr/docker/django/.env:/djangoweb/.env:ro
-    restart: on-failure
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_healthy
 
   # Nunca escalar celery_beat: um único processo evita disparos duplicados.
   celery_beat:
-    container_name: celery_beat
-    image: djangoweb:latest
+    <<: *app-common
+    container_name: wchip-celery-beat
     build:
       context: .
       dockerfile: Dockerfile
@@ -68,43 +98,62 @@ services:
       - -c
       - python manage.py sync_celery_beat && celery -A core beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     networks:
-      - internal
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - shared_backend
+      - wchip_internal
+    mem_limit: 512m
     depends_on:
-      - redis
-      - web
-    volumes:
-      - logs:/djangoweb/logs
-      - /home/sprdmntrdr/docker/django/.env:/djangoweb/.env:ro
-    deploy:
-      replicas: 1
-    restart: on-failure
-    
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+
   redis:
-    container_name: redis
-    image: redis:7.2.4-alpine
+    container_name: wchip-redis
+    image: redis:7.2.16-alpine
     networks:
-      - internal
+      - wchip_internal
+    environment:
+      REDISCLI_AUTH: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
     volumes:
       - redis-data:/data
-      - ./redis.conf:/usr/local/etc/redis/redis.conf
-    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command:
+      - redis-server
+      - /usr/local/etc/redis/redis.conf
+      - --requirepass
+      - ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: unless-stopped
 
 networks:
   public:
     external: true
     name: public
-  internal:
+  shared_backend:
     external: true
     name: shared_backend
+  wchip_internal:
+    driver: bridge
+    internal: true
 
 volumes:
   redis-data:
     driver: local
   logs:
     driver: local
-
-  

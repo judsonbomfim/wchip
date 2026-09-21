@@ -187,7 +187,9 @@ def ord_details(request, order_id):
         '2gb-periodo': '2000',
         '3gb-periodo': '3000',
         '5gb-periodo': '5000',
+        '7gb-periodo': '7000',
         '10gb-periodo': '10000',
+        '15gb-periodo': '15000',
         '20gb-periodo': '20000',
         '30gb-periodo': '30000',
     }
@@ -206,9 +208,9 @@ def ord_details(request, order_id):
     if operator == 'TC' and sim:
         mobile_data = ApiTC.mobileData(sim)
     elif operator == 'CM' and sim:
-        mobile_data = ApiCM.mobileData(sim)
+        mobile_data = ApiCM.mobileData(sim, order.data_day)
     elif operator == 'CMHK' and sim:
-        mobile_data = ApiCMHK.mobileData(sim)
+        mobile_data = ApiCMHK.mobileData(sim, order.data_day)
 
     if mobile_data != '' and mobile_data is not None:
         try:

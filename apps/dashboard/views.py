@@ -8,6 +8,10 @@ from datetime import datetime, timedelta
 from collections import Counter, defaultdict
 
 
+def healthz(request):
+    return HttpResponse('ok', content_type='text/plain')
+
+
 @login_required(login_url='/login/')
 def index(request):
     today = datetime.now()

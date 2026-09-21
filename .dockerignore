@@ -16,11 +16,26 @@ logs/
 # Local configuration
 local_settings.py
 
+# Secrets — never bake into image layers
+.env
+.env.*
+!.env.portainer.example
+
 # Virtual environments
 env/
 venv/
-#.env/
 .venv/
+
+# VCS / IDE
+.git
+.gitignore
+.cursor
+.idea/
+.vscode/
+
+# Theme dumps / backups (not needed at runtime)
+templates/inspina_completo
+templates/painel_bk
 
 # Node modules
 node_modules/
@@ -38,18 +53,8 @@ media/
 htmlcov/
 .coverage
 .tox/
-
-# IDE / Editor directories
-.idea/
-.vscode/
+.pytest_cache/
 
 # OS generated files
 .DS_Store
 Thumbs.db
-
-# Dockerfile
-Dockerfile
-
-# Docker Compose files
-docker-compose.yml
-docker-compose.*.yml
