@@ -3,14 +3,12 @@ set -e
 
 echo "Criando diretório de logs..."
 mkdir -p /djangoweb/logs
-touch /djangoweb/logs/django.log
-touch /djangoweb/logs/celery.log
-touch /djangoweb/logs/api_calls.log
-touch /djangoweb/logs/performance.log
-touch /djangoweb/logs/app.log
-touch /djangoweb/logs/error.log
-touch /djangoweb/logs/sims.log
-touch /djangoweb/logs/orders.log
+for logfile in django.log celery.log api_calls.log performance.log app.log error.log sims.log orders.log; do
+  if ! touch "/djangoweb/logs/${logfile}" 2>/dev/null; then
+    echo "ERRO: sem permissão em /djangoweb/logs (uid=$(id -u)). No host: docker run --rm -v NOME_VOLUME_logs:/logs alpine chown -R 10001:10001 /logs"
+    exit 1
+  fi
+done
 
 if [ "$1" != "web" ]; then
     exec "$@"

@@ -21,6 +21,15 @@ x-app-common: &app-common
   restart: unless-stopped
 
 services:
+  # Volume logs costuma ficar root:root após deploys antigos; app roda como duser (uid 10001).
+  logs-init:
+    container_name: wchip-logs-init
+    image: alpine:3.20
+    volumes:
+      - logs:/logs
+    command: ["sh", "-c", "chown -R 10001:10001 /logs && chmod -R u+rwX /logs"]
+    restart: "no"
+
   web:
     <<: *app-common
     container_name: wchip-web
@@ -33,7 +42,10 @@ services:
       - shared_backend
       - wchip_internal
     depends_on:
-      - redis
+      logs-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
     healthcheck:
       test:
         [
@@ -78,8 +90,12 @@ services:
       - wchip_internal
     mem_limit: 4g
     depends_on:
-      - redis
-      - web
+      logs-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
+      web:
+        condition: service_started
 
   # Nunca escalar celery_beat: um único processo evita disparos duplicados.
   celery_beat:
@@ -97,8 +113,12 @@ services:
       - wchip_internal
     mem_limit: 512m
     depends_on:
-      - redis
-      - web
+      logs-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
+      web:
+        condition: service_started
 
   redis:
     container_name: wchip-redis
