@@ -3,10 +3,9 @@ from django.urls import path, include
 
 from django.conf import settings
 from django.conf.urls.static import static
-from apps.dashboard.views import index, clear_cache, healthz
+from apps.dashboard.views import index, clear_cache
 
 urlpatterns = [
-    path('healthz/', healthz, name='healthz'),
     path('', index, name='dashboard'),
     path('admin/', admin.site.urls),
     path('pedidos/', include('apps.orders.urls')),

@@ -2,7 +2,7 @@ from pathlib import Path
 import environ
 import os
 import boto3
-from urllib.parse import quote, urlparse, urlunparse
+from urllib.parse import urlparse
 from django.contrib.messages import constants as messages
 from celery.schedules import crontab
 from dotenv import load_dotenv
@@ -22,6 +22,9 @@ env = environ.Env(
 # Leia o arquivo `.env`
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
+# Leia a variável de ambiente DEBUG
+debug_mode = env('DEBUG')
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
@@ -29,24 +32,10 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = str(env('SECRET_KEY'))
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env('DEBUG')
+DEBUG = True
 
 # Certifique-se de que cast não seja sobrescrito
-ALLOWED_HOSTS = [
-    h.strip()
-    for h in env('ALLOWED_HOSTS', default='').split(',')
-    if h.strip()
-]
-# Healthcheck do container chama 127.0.0.1 — precisa estar permitido.
-for _loopback in ('127.0.0.1', 'localhost'):
-    if _loopback not in ALLOWED_HOSTS:
-        ALLOWED_HOSTS.append(_loopback)
-
-if not DEBUG:
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    USE_X_FORWARDED_HOST = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+ALLOWED_HOSTS = [h.strip() for h in env('ALLOWED_HOSTS', default='').split(',')]
 
 def _normalize_origin(value):
     value = (value or '').strip()
@@ -281,25 +270,8 @@ DEFAULT_FROM_EMAIL = str(env('DEFAULT_FROM_EMAIL'))
 
 # CELERY
 
-def _inject_redis_password(url, password):
-    if not url or not password:
-        return url
-    parsed = urlparse(url)
-    if parsed.password:
-        return url
-    host = parsed.hostname or 'redis'
-    port = f':{parsed.port}' if parsed.port else ''
-    user = parsed.username or ''
-    encoded = quote(password, safe='')
-    auth = f'{user}:{encoded}' if user else f':{encoded}'
-    return urlunparse(parsed._replace(netloc=f'{auth}@{host}{port}'))
-
-
-_redis_password = env('REDIS_PASSWORD', default='')
-CELERY_BROKER_URL = _inject_redis_password(str(env('CELERY_BROKER_URL')), _redis_password)
-CELERY_RESULT_BACKEND = _inject_redis_password(
-    str(env('CELERY_RESULT_BACKEND')), _redis_password
-)
+CELERY_BROKER_URL = str(env('CELERY_BROKER_URL'))
+CELERY_RESULT_BACKEND = str(env('CELERY_RESULT_BACKEND'))
 
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
