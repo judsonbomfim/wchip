@@ -33,8 +33,7 @@ services:
       - shared_backend
       - wchip_internal
     depends_on:
-      redis:
-        condition: service_healthy
+      - redis
     healthcheck:
       test:
         [
@@ -79,10 +78,8 @@ services:
       - wchip_internal
     mem_limit: 4g
     depends_on:
-      redis:
-        condition: service_healthy
-      web:
-        condition: service_healthy
+      - redis
+      - web
 
   # Nunca escalar celery_beat: um único processo evita disparos duplicados.
   celery_beat:
@@ -100,54 +97,18 @@ services:
       - wchip_internal
     mem_limit: 512m
     depends_on:
-      redis:
-        condition: service_healthy
-      web:
-        condition: service_healthy
+      - redis
+      - web
 
   redis:
     container_name: wchip-redis
     image: redis:7.2.16-alpine
     networks:
       - wchip_internal
-    # Senha e demais secrets: mesmo .env montado no Django (ENV_FILE_PATH).
-    env_file:
-      - path: ${ENV_FILE_PATH:-/home/sprdmntrdr/docker/django/.env}
-        required: false
     volumes:
       - redis-data:/data
-    command:
-      - sh
-      - -c
-      - |
-        set -e
-        if [ -n "$$REDIS_PASSWORD" ]; then
-          exec redis-server --port 6379 --bind 0.0.0.0 --protected-mode yes --dir /data --pidfile "" --requirepass "$$REDIS_PASSWORD"
-        else
-          exec redis-server --port 6379 --bind 0.0.0.0 --protected-mode yes --dir /data --pidfile ""
-        fi
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "if [ -n \"$$REDIS_PASSWORD\" ]; then redis-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping; else redis-cli ping; fi | grep -q PONG",
-        ]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-      start_period: 10s
-    read_only: true
-    tmpfs:
-      - /tmp
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
     restart: unless-stopped
 
 networks:
