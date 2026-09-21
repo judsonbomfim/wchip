@@ -67,6 +67,7 @@ class StatusStore():
             'EI': 'em-andamento',
             'EE': 'em-andamento',
             'ES': 'em-separacao',
+            'EV': 'motoboy',
             'MB': 'motoboy',
             'PV': 'agd-ativacao',
             'RE': 'reembolsar',

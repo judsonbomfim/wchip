@@ -14,23 +14,231 @@ import logging
 # Configurar logger para este módulo
 logger = logging.getLogger('apps.orders')
 
+
+def _process_store_order(order, apiStore, msg_info, msg_error):
+    """Processa um pedido da loja: importa os itens elegíveis e atualiza o status no site.
+
+    Retorna o número de itens importados. Exceções inesperadas sobem para o
+    chamador, que isola o pedido com erro e segue para os demais (um pedido
+    malformado não pode mais derrubar a importação inteira).
+    """
+    n_imported = 0
+    n_item = 1
+    id_ord = order["id"]
+    client_id_i = order.get('customer_id')
+
+    # Verificar pedido repetido
+    if Orders.objects.filter(order_id=id_ord).exists():
+        return 0
+
+    logger.info(f'Processando pedido ID: {id_ord}')
+
+    # Especificar produtos a serem listados
+    prod_sel = [int(code) for code, name in Orders.product.field.choices]
+
+    billing = order.get('billing') or {}
+    shipping_lines = order.get('shipping_lines') or []
+
+    # Listar itens do pedido
+    for item in order.get('line_items', []):
+
+        if item.get('product_id') not in prod_sel:
+            logger.info(
+                f"Pedido {id_ord}: produto {item.get('product_id')} "
+                'fora da lista de importação; item ignorado.'
+            )
+            continue
+
+        qtd = item.get('quantity', 1)
+        q_i = 1
+
+        while q_i <= qtd:
+            order_id_i = order['id']
+            logger.info(f'Inserindo pedido {order_id_i}')
+
+            item_id_i = f'{order_id_i}-{n_item}'
+            client_i = f'{billing.get("first_name", "")} {billing.get("last_name", "")}'.strip()
+            email_i = billing.get('email')
+            product_i = item['product_id']
+
+            qty_i = 1
+            if order.get('coupon_lines'):
+                coupon_i = order['coupon_lines'][0]['code']
+            else:
+                coupon_i = '-'
+            # Definir valor padrão para variáveis
+            ord_chip_nun_i = '-'
+            countries_i = False
+            voice_i = False
+            cell_mod_i = False
+            type_sim_i = "sim"
+            data_day_i = None
+            days_i = None
+            activation_date_i = None
+            # Percorrer itens do pedido
+            for i in item.get('meta_data', []):
+                if i['key'] == 'pa_tipo-de-sim':
+                    tipe_sim = i['display_value'].split(' ')
+                    sim_t = tipe_sim[0].strip().lower()
+                    if sim_t == 'esim':
+                        type_sim_i = 'esim'
+                    else:
+                        type_sim_i = 'sim'
+                if i['key'] == 'pa_franquia': data_day_i = i['value']
+                if i['key'] == 'pa_dias': days_i = i['value']
+                if i['key'] == 'Adicionar Países': countries_i = True
+                if i['key'] == '+ Plano de Voz': voice_i = True
+                if i['key'] == 'Data de Ativação': activation_date_i = i['value']
+                if i['key'] == 'Modelo e marca de celular': cell_mod_i = i['value']
+                if i['key'] == 'Número de pedido ou do chip': ord_chip_nun_i = i['value']
+
+            # Pedidos sem linha de frete (eSIM/digital) não derrubam mais a importação
+            shipping_i = shipping_lines[0].get('method_title', '') if shipping_lines else ''
+            order_status_i = 'AS'
+
+            order_date_i = DateFormats.dateHour(order['date_created'])
+
+            # Planos de voz EUA T-mobile
+            # product_id vem como int da API da loja: comparar como string,
+            # senão a conversão nunca dispara (int != str) e o pedido entra
+            # como CMHK em vez de EUA T-mobile (TM).
+            if str(product_i) == '977' and voice_i == True and type_sim_i == 'esim':
+                product_i = '001'
+
+            if days_i is not None:
+                try:
+                    days_i = int(days_i)
+                except (TypeError, ValueError):
+                    logger.error(
+                        f'Pedido {order_id_i} item {item_id_i} com pa_dias inválido: {days_i}'
+                    )
+                    msg_error.append(f'Pedido {order_id_i} com pa_dias inválido')
+                    q_i += 1
+                    n_item += 1
+                    continue
+
+            if not data_day_i or days_i is None or not activation_date_i:
+                logger.error(
+                    f'Pedido {order_id_i} item {item_id_i} sem metadados obrigatórios: '
+                    f'data_day={data_day_i}, days={days_i}, activation_date={activation_date_i}'
+                )
+                msg_error.append(f'Pedido {order_id_i} sem metadados obrigatórios')
+                q_i += 1
+                n_item += 1
+                continue
+
+            # Definir status do pedido
+            if 'AEROPORTO' in shipping_i:
+                shipping_i = 'Entr. Aeroporto'
+                order_status_i = 'AG'
+            elif 'VIP' in shipping_i:
+                shipping_i = 'Entr. VIP'
+                # 'EV' (Entrega VIP) é o status válido no modelo; 'MB' não existe
+                # mais nas choices e fazia o full_clean() rejeitar o pedido.
+                order_status_i = 'EV'
+            elif type_sim_i == 'sim':
+                order_status_i = 'ES'
+            elif type_sim_i == 'esim':
+                order_status_i = 'AS'
+
+            shipping_i = shipping_i[:40]
+
+            # Definir Operadora
+            if product_i == '001' and voice_i == True:
+                oper_sim_i = 'TM'
+            else:
+                oper_sim_i = 'CMHK'
+
+            try:
+                # Definir variáveis para salvar no banco de dados
+                order_add = Orders(
+                    order_id=order_id_i,
+                    item_id=item_id_i,
+                    client_id=client_id_i,
+                    client=client_i,
+                    email=email_i,
+                    product=product_i,
+                    data_day=data_day_i,
+                    qty=qty_i,
+                    coupon=coupon_i,
+                    days=days_i,
+                    countries=countries_i,
+                    voice=voice_i,
+                    cell_mod=cell_mod_i,
+                    ord_chip_nun=ord_chip_nun_i,
+                    shipping=shipping_i,
+                    order_date=order_date_i,
+                    activation_date=activation_date_i,
+                    order_status=order_status_i,
+                    type_sim=type_sim_i,
+                    oper_sim=oper_sim_i,
+                )
+                order_add.full_clean()
+                order_add.save()
+            except Exception:
+                logger.error(
+                    f'Erro ao importar pedido {order_id_i} item {item_id_i}: '
+                    f'produto={product_i}, shipping={shipping_i}, data_day={data_day_i}, '
+                    f'days={days_i}, activation_date={activation_date_i}, type_sim={type_sim_i}',
+                    exc_info=True,
+                )
+                msg_error.append(f'Pedido {order_id_i} deu erro ao importar')
+                q_i += 1
+                n_item += 1
+                continue
+
+            # Save Notes
+            add_sim = Notes(
+                id_item=Orders.objects.get(pk=order_add.id),
+                id_user=None,
+                note='Pedido importado para o sistema',
+                type_note='S',
+            )
+            add_sim.save()
+
+            # Alterar status
+            # Status sis : Status Loja
+            status_def_sis = StatusStore.st_sis_site()
+            if order_status_i in status_def_sis:
+                status_ped = {
+                    'status': status_def_sis[order_status_i]
+                }
+                try:
+                    apiStore.put(f'orders/{order_id_i}', status_ped).json()
+                except Exception:
+                    logger.error(
+                        f'Falha ao atualizar status na loja para pedido {order_id_i}',
+                        exc_info=True,
+                    )
+                    msg_error.append(f'{order_id_i} - Falha ao atualizar status na loja!')
+
+            # Definir variáveis
+            q_i += 1
+            n_item += 1
+            n_imported += 1
+
+            msg_info.append(f'Pedido {order_id_i} atualizados com sucesso')
+
+    return n_imported
+
+
 @shared_task
 def order_import():
     date_now = datetime.now()
-    
+
     try:
         apiStore = ApiStore.conectApiStore()
     except Exception as e:
         logger.error(f'Erro ao conectar com API da loja: {e}')
         return
-    
+
     global n_item_total
     n_item_total = 0
     global msg_info
     msg_info = []
     global msg_error
     msg_error = []
-    
+
     # Definir números de páginas
     per_page = 100
     order_status_filter = ['pg-confirmado', 'processing']
@@ -39,20 +247,19 @@ def order_import():
     except Exception as e:
         logger.error(f'[{date_now}] Erro ao buscar pedidos na loja: {e}', exc_info=True)
         return
-    
+
     if order_p.status_code != 200:
         logger.error(f'[{date_now}] Erro ao buscar pedidos: {order_p.status_code} - {order_p.text}')
         return
-    
+
     total_pages = int(order_p.headers.get('X-WP-TotalPages', 1))
     n_page = 1
-    # orders_all = Orders.objects.all()
-    
+
     logger.info(f'[{date_now}] Iniciando importação de pedidos')
-        
+
     while n_page <= total_pages:
         logger.info(f'Buscando página {n_page} de {total_pages}')
-        
+
         # Pedidos com status 'processing'
         try:
             page_response = apiStore.get(
@@ -80,208 +287,23 @@ def order_import():
             n_page += 1
             continue
 
-        # Listar pedidos         
+        # Listar pedidos — cada pedido isolado: um pedido malformado não
+        # pode mais abortar a importação dos demais nem derrubar a orders_auto.
         for order in ord:
-            
-            n_item = 1
-            id_ord = order["id"]
-            client_id_i = order['customer_id']
-            
-            # Verificar pedido repetido
-            id_sis = Orders.objects.filter(order_id=id_ord)
-            if id_sis:
+            try:
+                n_item_total += _process_store_order(order, apiStore, msg_info, msg_error)
+            except Exception:
+                logger.error(
+                    f'Erro inesperado ao importar pedido {order.get("id", "desconhecido")}; '
+                    'pedido abortado, seguindo para os demais.',
+                    exc_info=True,
+                )
+                msg_error.append(f'Pedido {order.get("id", "?")} - erro inesperado na importação')
                 continue
-            else: pass
 
-            logger.info(f'Processando pedido ID: {order["id"]}')
-            
-            # Listar itens do pedido
-            for item in order['line_items']:
-                
-                # Especificar produtos a serem listados
-                products = Orders.product.field.choices
-                prod_sel = []
-                for code, name in products:
-                    prod_sel.append(int(code))
-                if item['product_id'] not in prod_sel:
-                    continue
-                                
-                qtd = item['quantity']
-                q_i = 1 
-                
-                while q_i <= qtd:
-                    order_id_i = order['id']
-                    logger.info(f'Inserindo pedido {order_id_i}')
-                    
-                    item_id_i = f'{order_id_i}-{n_item}'
-                    client_i = f'{order["billing"]["first_name"]} {order["billing"]["last_name"]}'
-                    email_i = order['billing']['email']
-                    product_i = item['product_id']
-                    
-                    qty_i = 1
-                    if order['coupon_lines']:
-                        coupon_i = order['coupon_lines'][0]['code']
-                    else: coupon_i = '-'
-                    # Definir valor padrão para variáveis
-                    ord_chip_nun_i = '-'
-                    countries_i = False
-                    voice_i = False
-                    cell_mod_i = False
-                    type_sim_i = "sim"
-                    data_day_i = None
-                    days_i = None
-                    activation_date_i = None
-                    # Percorrer itens do pedido
-                    for i in item['meta_data']:
-                        if i['key'] == 'pa_tipo-de-sim':
-                            tipe_sim = i['display_value'].split(' ')
-                            sim_t = tipe_sim[0].strip().lower()
-                            if sim_t == 'esim' : type_sim_i = 'esim'
-                            else: type_sim_i = 'sim'
-                        if i['key'] == 'pa_franquia': data_day_i = i['value']
-                        if i['key'] == 'pa_dias': days_i = i['value']
-                        if i['key'] == 'Adicionar Países': countries_i = True
-                        if i['key'] == '+ Plano de Voz': voice_i = True
-                        if i['key'] == 'Data de Ativação': activation_date_i = i['value']
-                        if i['key'] == 'Modelo e marca de celular': cell_mod_i = i['value']
-                        if i['key'] == 'Número de pedido ou do chip': ord_chip_nun_i = i['value']
-                    shipping_i = order['shipping_lines'][0]['method_title']
-                    order_status_i = 'AS'
-                    
-                    order_date_i = DateFormats.dateHour(order['date_created'])
-                    
-                    # Planos de voz EUA T-mobile
-                    if product_i == '977' and voice_i == True and type_sim_i == 'esim':
-                        product_i = '001'                        
-
-                    if days_i is not None:
-                        try:
-                            days_i = int(days_i)
-                        except (TypeError, ValueError):
-                            logger.error(
-                                f'Pedido {order_id_i} item {item_id_i} com pa_dias inválido: {days_i}'
-                            )
-                            msg_error.append(f'Pedido {order_id_i} com pa_dias inválido')
-                            q_i += 1
-                            n_item += 1
-                            continue
-
-                    if not data_day_i or days_i is None or not activation_date_i:
-                        logger.error(
-                            f'Pedido {order_id_i} item {item_id_i} sem metadados obrigatórios: '
-                            f'data_day={data_day_i}, days={days_i}, activation_date={activation_date_i}'
-                        )
-                        msg_error.append(f'Pedido {order_id_i} sem metadados obrigatórios')
-                        q_i += 1
-                        n_item += 1
-                        continue
-                    # notes_i = 0
-                    
-                    # Definir status do pedido
-                    # ('AG', 'Aerop. GRU'),
-                    # ('FG', 'Frete Grátis'),
-                    # ('FN', 'Frete Normal'),
-                    # ('EV', 'Entrega VIP'),
-                    # ('SD', 'SEDEX'),
-                    
-                    # Definir status do pedido
-                    if 'AEROPORTO' in shipping_i:
-                        shipping_i = 'Entr. Aeroporto'
-                        order_status_i = 'AG'
-                    elif 'VIP' in shipping_i:
-                        shipping_i = 'Entr. VIP'
-                        order_status_i = 'MB'
-                    elif type_sim_i == 'sim':
-                        order_status_i = 'ES'
-                    elif type_sim_i == 'esim':
-                        order_status_i = 'AS'  
-                    
-                    shipping_i = shipping_i[:40]
-                    
-                    # Definir Operadora
-                    if product_i == '001' and voice_i == True:      
-                        oper_sim_i = 'TM'
-                    else:
-                        oper_sim_i = 'CMHK'
-                    
-                    try:
-                        # Definir variáveis para salvar no banco de dados
-                        order_add = Orders(
-                            order_id = order_id_i,
-                            item_id = item_id_i,
-                            client_id = client_id_i,
-                            client = client_i,
-                            email = email_i,
-                            product = product_i,
-                            data_day = data_day_i,
-                            qty = qty_i,
-                            coupon = coupon_i,
-                            days = days_i,
-                            countries = countries_i,
-                            voice = voice_i,
-                            cell_mod = cell_mod_i,
-                            ord_chip_nun = ord_chip_nun_i,
-                            shipping = shipping_i,
-                            order_date = order_date_i,
-                            activation_date = activation_date_i,
-                            order_status = order_status_i,
-                            type_sim = type_sim_i,
-                            oper_sim = oper_sim_i
-                            # notes = notes_i
-                        )
-                        order_add.full_clean()
-                        order_add.save()
-                    except Exception:
-                        logger.error(
-                            f'Erro ao importar pedido {order_id_i} item {item_id_i}: '
-                            f'produto={product_i}, shipping={shipping_i}, data_day={data_day_i}, '
-                            f'days={days_i}, activation_date={activation_date_i}, type_sim={type_sim_i}',
-                            exc_info=True,
-                        )
-                        msg_error.append(f'Pedido {order_id_i} deu erro ao importar')
-                        q_i += 1
-                        n_item += 1
-                        continue
-                    
-                    # id_user = None
-                    # if getpass.getuser():
-                    #     id_user = getpass.getuser()
-                    
-                    # Save Notes
-                    add_sim = Notes( 
-                        id_item = Orders.objects.get(pk=order_add.id),
-                        id_user = None,
-                        note = f'Pedido importado para o sistema',
-                        type_note = 'S',
-                    )
-                    add_sim.save()
-                    
-                    # Alterar status
-                    # Status sis : Status Loja
-                    status_def_sis = StatusStore.st_sis_site()
-                    if order_status_i in status_def_sis:
-                        status_ped = {
-                            'status': status_def_sis[order_status_i]
-                        }
-                        try:
-                            apiStore.put(f'orders/{order_id_i}', status_ped).json()
-                        except Exception:
-                            logger.error(
-                                f'Falha ao atualizar status na loja para pedido {order_id_i}',
-                                exc_info=True,
-                            )
-                            msg_error.append(f'{order_id_i} - Falha ao atualizar status na loja!')
-                    
-                    # Definir variáveis
-                    q_i += 1 
-                    n_item += 1
-                    n_item_total += 1
-                    
-                    msg_info.append(f'Pedido {order_id_i} atualizados com sucesso')
-                    
         n_page += 1
-    
-    # Status 
+
+    # Status
     if n_item_total == 0:
         logger.info(f'>>>>>>>>>>>>>>>>>>>>>>> Não há pedido(s) para atualizar!')
     else:
@@ -295,9 +317,18 @@ def orders_auto():
     from apps.sims.tasks import sims_in_orders
 
     logger.info('Iniciando orders_auto')
-    order_import()
-    sims_in_orders()
+    # Cada etapa isolada: se a importação falhar, a atribuição de SIMs e o
+    # envio de e-mails dos pedidos já importados continuam rodando no ciclo.
+    try:
+        order_import()
+    except Exception:
+        logger.error('order_import falhou; seguindo com sims_in_orders', exc_info=True)
+    try:
+        sims_in_orders()
+    except Exception:
+        logger.error('sims_in_orders falhou; seguindo com send_email_sims', exc_info=True)
     send_email_sims()
+
 
 @shared_task
 def orders_up_status(ord_id, ord_s, id_user=None, skip_sim_deactivate=False, previous_status=None):
@@ -317,11 +348,11 @@ def orders_up_status(ord_id, ord_s, id_user=None, skip_sim_deactivate=False, pre
             user = None
 
     for o_id in ord_ids:
-        
+
         logger.info(f'Processando order ID: {o_id}')
-        
+
         order = Orders.objects.get(pk=o_id)
-        
+
         order_id = order.id
         # Se o caller já gravou o status, usa previous_status para a nota correta
         order_st = previous_status if previous_status is not None else order.order_status
@@ -338,9 +369,9 @@ def orders_up_status(ord_id, ord_s, id_user=None, skip_sim_deactivate=False, pre
         # Save status System
         order.order_status = ord_s
         order.save()
-        
+
         if ord_s == 'CC' or ord_s == 'DE' or ord_s == 'RE':
-            if order.id_sim:                
+            if order.id_sim:
                 # Change TC (evita loop: simDeactivateTC → orders_up_status → simDeactivateTC)
                 if (
                     not skip_sim_deactivate
@@ -348,35 +379,35 @@ def orders_up_status(ord_id, ord_s, id_user=None, skip_sim_deactivate=False, pre
                     and order.order_status != 'ED'
                 ):
                     simDeactivateTC(id=order.id)
-                
+
                 # Update SIM
                 sim_put = Sims.objects.get(pk=order.id_sim.id)
                 sim_put.sim_status = 'DE'
                 sim_put.save()
- 
+
         # Evita recursao: a ativacao em operadora e feita por sims.tasks,
         # aqui apenas centralizamos a mudanca de status e pos-processamento.
-        
+
         # Ver. Status Cancelled in items
         order_itens = 0
         order_ver = Orders.objects.filter(order_id=order.order_id)
         for ord_v in order_ver:
             if ord_v.order_status != 'CC':
-                order_itens += 1 
-        
+                order_itens += 1
+
         # Status sis : Status Loja
         status_sis_site = StatusStore.st_sis_site()
         try:
             apiStore = ApiStore.conectApiStore()
             # Só cancelar se todos os itens estiverem cancelados
             if order_itens == 0 and ord_s == 'CC':
-                logger.info(f'--------------------------- Alterar STATUS Cancelled')         
+                logger.info(f'--------------------------- Alterar STATUS Cancelled')
                 update_store = {
                     'status': 'cancelled'
                 }
                 apiStore.put(f'orders/{order.order_id}', update_store).json()
             elif ord_s not in ('CC', 'DE'):
-                logger.info(f'--------------------------- Alterar STATUS Loja')            
+                logger.info(f'--------------------------- Alterar STATUS Loja')
                 if ord_s in status_sis_site:
                     update_store = {
                         'status': status_sis_site[ord_s]
@@ -387,7 +418,7 @@ def orders_up_status(ord_id, ord_s, id_user=None, skip_sim_deactivate=False, pre
                 'Falha ao sincronizar status na loja para pedido %s',
                 order.order_id,
             )
-                
+
         # Save Notes (P = usuário, S = sistema)
         type_note = 'P' if user is not None else 'S'
 
@@ -398,14 +429,14 @@ def orders_up_status(ord_id, ord_s, id_user=None, skip_sim_deactivate=False, pre
                 note=t_note,
                 type_note=type_note,
             ).save()
-        
+
         if order_st != ord_s:
             status_labels = dict(Orders.order_status.field.choices)
             addNote(
                 f'Alterado de {status_labels.get(order_st, order_st)} '
                 f'para {status_labels.get(ord_s, ord_s)}'
             )
-        
+
         # Enviar email (pk do pedido, não order_id da loja)
         try:
             if ord_s == 'AA' and operator and operator != 'AR':
@@ -422,4 +453,3 @@ def up_order_st_store(order_id,order_st):
             'status': order_st
         }
     apiStore.put(f'orders/{order_id}', update_store).json()
-

@@ -1,9 +1,11 @@
 import logging
+from datetime import timedelta
 from pathlib import Path
 from celery import shared_task
 from django.shortcuts import redirect
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.html import strip_tags
 from django.conf import settings
 from apps.orders.models import Orders, Notes
@@ -56,10 +58,38 @@ def send_email_sims(id=None):
         
     orders_all = None
     if id == None:
-        orders_all = Orders.objects.filter(order_status='EE')
+        orders_all = list(Orders.objects.filter(order_status='EE'))
+
+        # Rede de segurança: pedidos recentes em 'Agd. Ativação', com SIM e
+        # operadora != AR, que ainda não têm nota de e-mail enviado.
+        # Cobre falhas do disparo automático (SMTP, fila, exceções) — sem ela,
+        # um pedido que perdeu o disparo ficava para sempre sem e-mail.
+        # O intervalo de 15 min evita corrida com o disparo feito ao entrar em AA.
+        now = timezone.now()
+        emailed_notes = Notes.objects.filter(
+            note__icontains='E-mail enviado'
+        ).values('id_item_id')
+        pending_aa = (
+            Orders.objects.filter(
+                order_status='AA',
+                id_sim__isnull=False,
+                created_at__gte=now - timedelta(days=7),
+                updated_at__lt=now - timedelta(minutes=15),
+            )
+            .exclude(id__in=emailed_notes)
+            .exclude(id_sim__operator='AR')
+        )
+        if pending_aa.exists():
+            logger.warning(
+                'Rede de segurança de e-mail: %s pedido(s) AA sem envio: %s',
+                pending_aa.count(),
+                list(pending_aa.values_list('item_id', flat=True)),
+            )
+        ids_lote = {o.id for o in orders_all}
+        orders_all += [o for o in pending_aa if o.id not in ids_lote]
     else:
         orders_all = Orders.objects.filter(pk=id)
-            
+
     url_site = settings.URL_CDN
     url_img = f'{url_site}/email/'
 
@@ -77,8 +107,14 @@ def send_email_sims(id=None):
         product = f'{order.get_product_display()} {order.get_data_day_display()}'
         days = order.days     
         product_plan = order.product
-        try: type_sim = order.id_sim.type_sim
-        except: continue            
+        try:
+            type_sim = order.id_sim.type_sim
+        except Exception:
+            logger.warning(
+                f'Pedido {order.item_id} (status {order.order_status}) sem SIM vinculado; '
+                'e-mail não enviado.'
+            )
+            continue
         countries = order.countries
         operator = order.id_sim.operator
         lpa = order.id_sim.lpa if order.id_sim and order.id_sim.lpa else ''

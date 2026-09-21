@@ -65,10 +65,21 @@ def sims_in_orders():
         if id_sim_i != None:
             if ord.order_status == 'AS':
                 if esim_eua and cell_imei == None:
-                    id_item_i.order_status = 'AI'
+                    status_exist = 'AI'
                 else:
-                    id_item_i.order_status = 'AA'
-                id_item_i.save()
+                    status_exist = 'AA'
+                # Via orders_up_status: sincroniza a loja, grava a nota de
+                # mudança de status e dispara o e-mail de informações (AA).
+                # Antes era só save(): pedido ia para AA sem e-mail e sem sync.
+                try:
+                    orders_up_status.delay(id_id_i, status_exist)
+                except Exception:
+                    logger.error(
+                        f'Falha ao enfileirar orders_up_status para o pedido {ord.order_id}; '
+                        'executando de forma síncrona.',
+                        exc_info=True,
+                    )
+                    orders_up_status(id_id_i, status_exist)
         else:    
             # Notes
             def addNote(t_note):
@@ -131,7 +142,17 @@ def sims_in_orders():
             
             # Atualizar pedido no site
                         
-            orders_up_status.delay(id_id_i, status_ord)
+            # Enfileira com fallback síncrono: se o broker falhar, o pedido
+            # não fica em AA sem sync na loja e sem e-mail.
+            try:
+                orders_up_status.delay(id_id_i, status_ord)
+            except Exception:
+                logger.error(
+                    f'Falha ao enfileirar orders_up_status para o pedido {ord.order_id}; '
+                    'executando de forma síncrona.',
+                    exc_info=True,
+                )
+                orders_up_status(id_id_i, status_ord)
             
             n_item_total += 1
     
