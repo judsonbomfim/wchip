@@ -887,14 +887,15 @@ def simActivateCMHK(id=None):
             "Authorization": 'WSSE realm="SDP", profile="UsernameToken", type="Appkey"',
             "X-WSSE": f'UsernameToken Username="{app_key}", PasswordDigest="{password_digest}", Nonce="{nonce}", Created="{created}"',
         }
+        # Pacote novo no eSIM: dataBundleId, sem is_Refuel.
+        # is_Refuel 1 exige refuelingId e a CMHK responde 1000005 se ele vier vazio.
         payload = json.dumps({
             "accessToken": api_token,
             "dataBundleId": plan_code,
             "ICCID": order_sim,
             "thirdOrderId": str(order_item),
-            "includeCard": "0",
-            "is_Refuel": "0",
-            "quantity": "1",
+            "includeCard": 0,
+            "quantity": 1,
         })
         conn = None
         try:
