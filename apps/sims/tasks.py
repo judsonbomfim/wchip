@@ -804,6 +804,18 @@ def simActivateCM(id=None):
     logger.info(f'>>>>>>>>>> ATIVAÇÂO CM FINALIZADA')
 
 
+def _cmhk_created_order_id(data_dict):
+    """Pedido criado na CMHK. Vazio quando a resposta não confirma o pacote."""
+    if not isinstance(data_dict, dict):
+        return ''
+    code = str(data_dict.get('code') or '')
+    description = str(data_dict.get('description') or '')
+    order_api_id = data_dict.get('orderID') or data_dict.get('orderId') or ''
+    if code == '0000000' and description == 'Success' and order_api_id:
+        return str(order_api_id)
+    return ''
+
+
 @shared_task(time_limit=110, soft_time_limit=100)
 @periodic_task_lock(timeout=140)
 def simActivateCMHK(id=None):
@@ -879,27 +891,57 @@ def simActivateCMHK(id=None):
             "accessToken": api_token,
             "dataBundleId": plan_code,
             "ICCID": order_sim,
-            "thirdOrderId": order_item,
+            "thirdOrderId": str(order_item),
             "includeCard": "0",
-            "is_Refuel": "1",
+            "is_Refuel": "0",
             "quantity": "1",
         })
-        conn = http.client.HTTPSConnection(parsed_url.hostname, parsed_url.port, timeout=10)
-        conn.request("POST", parsed_url.path, payload, headers)
-        res = conn.getresponse()
-        data = res.read()
-        if res.status != 200:
-            errorData(data.decode("utf-8"))
-        else:
-            data_dict = json.loads(data)
-            result_data = data_dict.get('description')
-            if result_data != 'Success':
+        conn = None
+        try:
+            conn = http.client.HTTPSConnection(parsed_url.hostname, parsed_url.port, timeout=10)
+            conn.request("POST", parsed_url.path, payload, headers)
+            res = conn.getresponse()
+            raw = res.read()
+            body = raw.decode("utf-8", errors="replace")
+            if res.status != 200:
+                logger.error(
+                    'CMHK HTTP %s ao ativar pedido=%s iccid=%s corpo=%s',
+                    res.status, order_id, order_sim, body,
+                )
+                errorData(body)
+                continue
+            try:
+                data_dict = json.loads(raw)
+            except json.JSONDecodeError:
+                logger.error(
+                    'CMHK resposta inválida pedido=%s iccid=%s corpo=%s',
+                    order_id, order_sim, body,
+                )
+                errorData(body)
+                continue
+            order_api_id = _cmhk_created_order_id(data_dict)
+            if not order_api_id:
+                logger.error(
+                    'CMHK não criou pacote pedido=%s iccid=%s plano=%s resposta=%s',
+                    order_id, order_sim, plan_code, data_dict,
+                )
                 errorData(data_dict)
-            else:
-                NotesAdd.addNote(order, f'SIM {order_sim} ativado na CMHK com sucesso')
-                UpdateOrder.upStatus(order_item, 'AT')
-                UpdateStore.upStore(order_id=order_id, status_g='AT')
-        conn.close()
+                continue
+            NotesAdd.addNote(
+                order,
+                f'SIM {order_sim} ativado na CMHK com sucesso. Pedido operadora: {order_api_id}',
+            )
+            UpdateOrder.upStatus(order_item, 'AT')
+            UpdateStore.upStore(order_id=order_id, status_g='AT')
+        except Exception as exc:
+            logger.error(
+                'CMHK falha ao ativar pedido=%s iccid=%s erro=%s',
+                order_id, order_sim, exc, exc_info=True,
+            )
+            errorData(str(exc))
+        finally:
+            if conn is not None:
+                conn.close()
 
     logger.info('>>>>>>>>>> ATIVAÇÂO CMHK FINALIZADA')
 
