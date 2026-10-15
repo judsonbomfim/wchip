@@ -887,15 +887,16 @@ def simActivateCMHK(id=None):
             "Authorization": 'WSSE realm="SDP", profile="UsernameToken", type="Appkey"',
             "X-WSSE": f'UsernameToken Username="{app_key}", PasswordDigest="{password_digest}", Nonce="{nonce}", Created="{created}"',
         }
-        # Pacote novo no eSIM: dataBundleId, sem is_Refuel.
-        # is_Refuel 1 exige refuelingId e a CMHK responde 1000005 se ele vier vazio.
+        # Mesmo contrato do sisacdc (APP_createOrder_SBO): campos string e is_Refuel "1".
+        # is_Refuel "0" ou ausente gera CMHK 1000007 (malformed).
         payload = json.dumps({
             "accessToken": api_token,
             "dataBundleId": plan_code,
             "ICCID": order_sim,
-            "thirdOrderId": str(order_item),
-            "includeCard": 0,
-            "quantity": 1,
+            "thirdOrderId": order_item,
+            "includeCard": "0",
+            "is_Refuel": "1",
+            "quantity": "1",
         })
         conn = None
         try:
@@ -920,18 +921,18 @@ def simActivateCMHK(id=None):
                 )
                 errorData(body)
                 continue
-            order_api_id = _cmhk_created_order_id(data_dict)
-            if not order_api_id:
+            if data_dict.get('description') != 'Success':
                 logger.error(
-                    'CMHK não criou pacote pedido=%s iccid=%s plano=%s resposta=%s',
+                    'CMHK recusou pedido=%s iccid=%s plano=%s resposta=%s',
                     order_id, order_sim, plan_code, data_dict,
                 )
                 errorData(data_dict)
                 continue
-            NotesAdd.addNote(
-                order,
-                f'SIM {order_sim} ativado na CMHK com sucesso. Pedido operadora: {order_api_id}',
-            )
+            order_api_id = _cmhk_created_order_id(data_dict)
+            success_note = f'SIM {order_sim} ativado na CMHK com sucesso'
+            if order_api_id:
+                success_note = f'{success_note}. Pedido operadora: {order_api_id}'
+            NotesAdd.addNote(order, success_note)
             UpdateOrder.upStatus(order_item, 'AT')
             UpdateStore.upStore(order_id=order_id, status_g='AT')
         except Exception as exc:
