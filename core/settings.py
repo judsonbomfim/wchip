@@ -301,10 +301,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'apps.sims.tasks.simDeactivateAll',
         'schedule': crontab(hour=0, minute=0),
     },
-    'task__2_min_activate_CM': {
-        'task': 'apps.sims.tasks.simActivateCM',
-        'schedule': crontab(minute='2-58/2'),  # grupo A
-    },
+    # 'task__2_min_activate_CM': {
+    #     'task': 'apps.sims.tasks.simActivateCM',
+    #     'schedule': crontab(minute='2-58/2'),  # grupo A
+    # },
     'task__2_min_activate_CMHK': {
         'task': 'apps.sims.tasks.simActivateCMHK',
         'schedule': crontab(minute='3-59/2'),  # grupo B
