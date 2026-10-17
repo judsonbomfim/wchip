@@ -285,17 +285,17 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'apps.orders.tasks.orders_auto',
         'schedule': crontab(minute='2-58/2'),  # grupo A: min 02, 04, 06...
     },
-    'task__2_min_activate_TC': {
-        'task': 'apps.sims.tasks.simActivateTC',
-        'schedule': crontab(minute='2-58/2'),  # grupo A
-    },
+    # 'task__2_min_activate_TC': {
+    #     'task': 'apps.sims.tasks.simActivateTC',
+    #     'schedule': crontab(minute='2-58/2'),  # grupo A
+    # },
+    # 'task__deactivate_TC': {
+    #     'task': 'apps.sims.tasks.simDeactivateTC',
+    #     'schedule': crontab(hour=0, minute=0),
+    # },
     'task__2_min_activate_EO': {  # T-mobile/ Verizon
         'task': 'apps.sims.tasks.simActivateEO',
         'schedule': crontab(minute='3-59/2'),  # grupo B: min 03, 05, 07...
-    },
-    'task__deactivate_TC': {
-        'task': 'apps.sims.tasks.simDeactivateTC',
-        'schedule': crontab(hour=0, minute=0),
     },
     'task__deactivate_all': {
         'task': 'apps.sims.tasks.simDeactivateAll',
@@ -309,10 +309,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'apps.sims.tasks.simActivateCMHK',
         'schedule': crontab(minute='3-59/2'),  # grupo B
     },
-    'task__2_min_activate_AR': {
-        'task': 'apps.sims.tasks.simActivateAR',
-        'schedule': crontab(minute='3-59/2'),  # grupo B
-    },
+    # 'task__2_min_activate_AR': {
+    #     'task': 'apps.sims.tasks.simActivateAR',
+    #     'schedule': crontab(minute='3-59/2'),  # grupo B
+    # },
 }
 
 
