@@ -816,6 +816,64 @@ def _cmhk_created_order_id(data_dict):
     return ''
 
 
+# Chaves candidatas para o identificador do pacote (dataBundleId) dentro de
+# cada item de ``userDataBundles`` retornado por APP_getSubedUserDataBundle_SBO.
+# A API varia o casing entre versões, por isso tentamos variantes conhecidas.
+_CMHK_BUNDLE_ID_KEYS = (
+    'dataBundleId', 'dataBundleID', 'databundleId', 'databundleid',
+    'bundleId', 'bundleID', 'offerId', 'offerID', 'productId',
+)
+
+
+def _cmhk_bundle_data_ids(bundle):
+    """Conjunto de identificadores de pacote presentes em um item de bundle."""
+    ids = set()
+    if not isinstance(bundle, dict):
+        return ids
+    for key in _CMHK_BUNDLE_ID_KEYS:
+        val = bundle.get(key)
+        if val:
+            ids.add(str(val))
+    return ids
+
+
+def _cmhk_subscription_keys(bundles):
+    """Conjunto de ``subscriptionKey`` (childOrderId) dos pacotes do ICCID."""
+    keys = set()
+    for bundle in bundles or []:
+        if isinstance(bundle, dict) and bundle.get('subscriptionKey'):
+            keys.add(str(bundle.get('subscriptionKey')))
+    return keys
+
+
+def _cmhk_bundle_matches_plan(bundles, plan_code):
+    """True se algum pacote do ICCID corresponde ao ``plan_code`` (dataBundleId).
+
+    Usado como verificação idempotente: identifica o pacote exato que a
+    ativação deveria ter inserido, independentemente de quando foi criado.
+    """
+    plan_code = str(plan_code or '')
+    if not plan_code or not bundles:
+        return False
+    return any(plan_code in _cmhk_bundle_data_ids(b) for b in bundles)
+
+
+def _cmhk_bundle_provisioned(bundles, plan_code, baseline_keys):
+    """Confirma que o pacote foi efetivamente provisionado no ICCID.
+
+    Verdadeiro quando (a) existe um pacote com o ``dataBundleId`` esperado ou
+    (b) surgiu um novo ``subscriptionKey`` em relação ao estado anterior à
+    ativação (``baseline_keys``), o que indica que o createOrder criou de fato
+    uma nova assinatura de pacote no chip.
+    """
+    if not bundles:
+        return False
+    if _cmhk_bundle_matches_plan(bundles, plan_code):
+        return True
+    new_keys = _cmhk_subscription_keys(bundles) - (baseline_keys or set())
+    return bool(new_keys)
+
+
 @shared_task(time_limit=110, soft_time_limit=100)
 @periodic_task_lock(timeout=140)
 def simActivateCMHK(id=None):
@@ -876,6 +934,30 @@ def simActivateCMHK(id=None):
             errorData()
             continue
 
+        # --- Idempotência / estado anterior ------------------------------
+        # Consulta os pacotes já provisionados no ICCID ANTES de enviar o
+        # createOrder. Serve para dois fins:
+        #   1) Se o pacote deste pedido (plan_code) já consta no chip, não
+        #      reenviar — evita pacote duplicado ao reprocessar um pedido que,
+        #      na verdade, já havia sido ativado na operadora.
+        #   2) Guardar os subscriptionKey existentes (baseline) para, após a
+        #      ativação, detectar se um NOVO pacote realmente surgiu no chip.
+        baseline_bundles = ApiCMHK.subscribed_bundles(order_sim)
+        baseline_keys = _cmhk_subscription_keys(baseline_bundles)
+        if baseline_bundles and _cmhk_bundle_matches_plan(baseline_bundles, plan_code):
+            logger.info(
+                'CMHK pacote já provisionado pedido=%s iccid=%s plano=%s; marcando AT sem reenviar',
+                order_id, order_sim, plan_code,
+            )
+            NotesAdd.addNote(
+                order,
+                f'SIM {order_sim} já possui o pacote {plan_code} provisionado na CMHK; '
+                'ativação confirmada sem novo envio.'
+            )
+            UpdateOrder.upStatus(order_item, 'AT')
+            UpdateStore.upStore(order_id=order_id, status_g='AT')
+            continue
+
         url_api = f'{settings.APICMHK_URL}/aep/APP_createOrder_SBO/v1'
         parsed_url = urlparse(url_api)
         app_key = settings.APICMHK_KEY
@@ -929,6 +1011,43 @@ def simActivateCMHK(id=None):
                 errorData(data_dict)
                 continue
             order_api_id = _cmhk_created_order_id(data_dict)
+
+            # --- Verificação pós-ativação --------------------------------
+            # "Success" (mesmo com orderID) do APP_createOrder_SBO NÃO garante
+            # que o pacote foi provisionado no chip: com is_Refuel="1" a CMHK
+            # aceita a ordem mas o pacote pode não entrar no SIM/eSIM. Antes de
+            # marcar AT, confirmamos consultando os pacotes reais do ICCID.
+            # Tentativas curtas cobrem provisionamento assíncrono sem estourar
+            # o soft_time_limit da task.
+            provisioned = False
+            verify_bundles = None
+            for attempt in range(3):
+                if attempt:
+                    time.sleep(2)
+                verify_bundles = ApiCMHK.subscribed_bundles(order_sim)
+                if verify_bundles is None:
+                    # Consulta falhou (token/HTTP): não dá para confirmar agora.
+                    continue
+                if _cmhk_bundle_provisioned(verify_bundles, plan_code, baseline_keys):
+                    provisioned = True
+                    break
+
+            if not provisioned:
+                logger.error(
+                    'CMHK Success SEM provisionamento pedido=%s iccid=%s plano=%s '
+                    'createOrder=%s pacotes_iccid=%s',
+                    order_id, order_sim, plan_code, data_dict, verify_bundles,
+                )
+                extra = f' Pedido operadora: {order_api_id}.' if order_api_id else ''
+                NotesAdd.addNote(
+                    order,
+                    f'CMHK retornou Success mas o pacote {plan_code} NÃO foi provisionado '
+                    f'no SIM {order_sim}.{extra} Pacotes no ICCID: {verify_bundles}. '
+                    'Pedido mantido em Erro Ativação para reprocessamento manual.'
+                )
+                UpdateOrder.upStatus(order_item, 'EA')
+                continue
+
             success_note = f'SIM {order_sim} ativado na CMHK com sucesso'
             if order_api_id:
                 success_note = f'{success_note}. Pedido operadora: {order_api_id}'

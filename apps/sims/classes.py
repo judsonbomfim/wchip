@@ -1337,6 +1337,33 @@ class ApiCMHK:
             "CMHK",
         )
 
+    @staticmethod
+    def subscribed_bundles(iccid):
+        """Pacotes (``userDataBundles``) associados ao ICCID na CMHK.
+
+        Consulta ``APP_getSubedUserDataBundle_SBO`` e devolve a lista de
+        pacotes efetivamente provisionados no chip. É a fonte de verdade para
+        confirmar que uma ativação (``APP_createOrder_SBO``) realmente inseriu o
+        pacote no SIM/eSIM.
+
+        Returns:
+            list | None: lista de dicts de pacotes (``[]`` quando o ICCID não
+            possui nenhum pacote) ou ``None`` quando a consulta falha
+            (token/HTTP), caso em que não se pode afirmar nada sobre o estado.
+        """
+        api_token = ApiCMHK.get_token()
+        if api_token == "error" or not api_token:
+            return None
+        response = _cm_http_user_data_bundles(
+            ApiCMHK.app_url,
+            ApiCMHK.app_key,
+            ApiCMHK.app_secret,
+            api_token,
+            iccid,
+        )
+        if response is None:
+            return None
+        return _cm_user_data_bundles(response)
 
 
 class ApiAR:
